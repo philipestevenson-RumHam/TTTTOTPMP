@@ -14,12 +14,12 @@ window.QUIZ_QUESTIONS = {
   "2026-07-14": [
     {
       "type": "letters",
-      "question": "Name the Artist from the Album Cover…",
-      "answer": "W",
-      "display_answer": "The White Stripes",
+      "question": "Name the Artist…",
+      "answer": "S",
+      "display_answer": "Shakira",
       "media": {
-        "type": "image",
-        "url": "media\\the-white-stripes-elephant.jpg"
+        "type": "video",
+        "url": "media\\Shak.mp4"
       }
     },
     {
@@ -44,6 +44,16 @@ window.QUIZ_QUESTIONS = {
     },
     {
       "type": "letters",
+      "question": "Name the Artist from the Album Cover…",
+      "answer": "W",
+      "display_answer": "The White Stripes",
+      "media": {
+        "type": "image",
+        "url": "media\\the-white-stripes-elephant.jpg"
+      }
+    },
+    {
+      "type": "letters",
       "question": "Name the Track…",
       "answer": "W",
       "display_answer": "Watching The Detectives (Elvis Costello)",
@@ -51,31 +61,6 @@ window.QUIZ_QUESTIONS = {
         "type": "audio",
         "url": "media\\WatchingTheDetectives.mp3"
       }
-    },
-    {
-      "type": "letters",
-      "question": "Name the Track from the opening lyrics…",
-      "answer": "S",
-      "display_answer": "Sympathy for the Devil (The Rolling Stones)",
-      "media": {
-        "type": "video",
-        "url": "media\\TheRollingStones.mp4"
-      }
-    },
-    {
-      "type": "letters",
-      "question": "One Hit Wonder: Name the Artist…",
-      "answer": "B",
-      "display_answer": "Baz Lurman (Everyone's Free to Wear Sunscreen)",
-      "media": {
-        "type": "video",
-        "url": "media\\Baz Lurman.mp4"
-      }
-    },
-    {
-      "type": "numbers",
-      "question": "In what year did Wham! reach Number One in the UK with Last Christmas",
-      "answer": 2021
     },
     {
       "type": "sequence",
@@ -99,42 +84,58 @@ window.QUIZ_QUESTIONS = {
     },
     {
       "type": "letters",
-      "question": "Name the Artist…",
+      "question": "Name the Track from the opening lyrics…",
       "answer": "S",
-      "display_answer": "Shakira",
+      "display_answer": "Sympathy for the Devil (The Rolling Stones)",
       "media": {
         "type": "video",
-        "url": "media\\Shak.mp4"
+        "url": "media\\TheRollingStones.mp4"
       }
     },
     {
-      "type": "sequence",
-      "question": "Put these planets in order from the Sun (nearest first):",
-      "items": [
-        "Earth",
-        "Mars",
-        "Mercury",
-        "Venus"
-      ],
-      "answer": [
-        "Mercury",
-        "Venus",
-        "Earth",
-        "Mars"
-      ]
+      "type": "letters",
+      "question": "One Hit Wonder: Name the Artist…",
+      "answer": "B",
+      "display_answer": "Baz Lurman (Everyone's Free to Wear Sunscreen)",
+      "media": {
+        "type": "video",
+        "url": "media\\Baz Lurman.mp4"
+      }
     },
     {
       "type": "multiple_choice",
-      "question": "Which planet is closest to the Sun?",
+      "question": "The song “All Star” by Smash Mouth was the theme song for which 1999 movie?",
       "options": [
-        "Venus",
-        "Earth",
-        "Mars",
-        "Mercury",
-        "Jupiter",
-        "Saturn"
+        "Shrek",
+        "Shrek 2",
+        "Digimon: The Movie",
+        "Rat Race",
+        "Toy Story",
+        "Mystery Men"
       ],
-      "answer": "Mercury"
+      "answer": "Mystery Men"
+    },
+    {
+      "type": "multiple_choice",
+      "question": "Name the Artist who sang the Original…",
+      "options": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E",
+        "F"
+      ],
+      "answer": "A",
+      "media": {
+        "type": "audio",
+        "url": "media\\WatchingTheDetectives.mp3"
+      }
+    },
+    {
+      "type": "numbers",
+      "question": "In what year did Wham! reach Number One in the UK with Last Christmas",
+      "answer": 2021
     }
   ]
 };
