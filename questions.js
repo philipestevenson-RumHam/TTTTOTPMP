@@ -14,7 +14,7 @@ window.QUIZ_QUESTIONS = {
   "2026-07-14": [
     {
       "type": "letters",
-      "question": "Name the artist from the Album…",
+      "question": "Name the Artist from the Album Cover…",
       "answer": "W",
       "display_answer": "The White Stripes",
       "media": {
@@ -24,7 +24,7 @@ window.QUIZ_QUESTIONS = {
     },
     {
       "type": "sequence",
-      "question": "Put these six chart‑hit songs by Madonna in order of their original release.",
+      "question": "Put these six chart‑hit songs by Madonna in order of their original release…",
       "items": [
         "Like a Virgin",
         "Holiday",
@@ -44,22 +44,22 @@ window.QUIZ_QUESTIONS = {
     },
     {
       "type": "letters",
-      "question": "Name the track…",
+      "question": "Name the Track…",
       "answer": "W",
       "display_answer": "Watching The Detectives (Elvis Costello)",
       "media": {
-        "type": "video",
-        "url": "media\\TheRollingStones.mp4"
+        "type": "audio",
+        "url": "media\\WatchingTheDetectives.mp3"
       }
     },
     {
       "type": "letters",
-      "question": "Name the track from the opening lyrics…",
+      "question": "Name the Track from the opening lyrics…",
       "answer": "S",
       "display_answer": "Sympathy for the Devil (The Rolling Stones)",
       "media": {
-        "type": "audio",
-        "url": "media\\WatchingTheDetectives.mp3"
+        "type": "video",
+        "url": "media\\TheRollingStones.mp4"
       }
     },
     {
@@ -79,39 +79,33 @@ window.QUIZ_QUESTIONS = {
     },
     {
       "type": "sequence",
-      "question": "Order these Bond films chronologically (oldest first):",
+      "question": "Put the following in Order to make a Track followed by the Artist…",
       "items": [
-        "Skyfall",
-        "GoldenEye",
-        "Casino Royale",
-        "No Time To Die",
-        "Die Another Day",
-        "Spectre"
+        "ASI",
+        "WAL",
+        "WON",
+        "DER",
+        "S",
+        "L O"
       ],
       "answer": [
-        "GoldenEye",
-        "Die Another Day",
-        "Casino Royale",
-        "Skyfall",
-        "Spectre",
-        "No Time To Die"
+        "WON",
+        "DER",
+        "WAL",
+        "L O",
+        "ASI",
+        "S"
       ]
     },
     {
-      "type": "sequence",
-      "question": "Put these planets in order from the Sun (nearest first):",
-      "items": [
-        "Earth",
-        "Mars",
-        "Mercury",
-        "Venus"
-      ],
-      "answer": [
-        "Mercury",
-        "Venus",
-        "Earth",
-        "Mars"
-      ]
+      "type": "letters",
+      "question": "Name the Artist…",
+      "answer": "S",
+      "display_answer": "Shakira",
+      "media": {
+        "type": "video",
+        "url": "media\\Shak.mp4"
+      }
     },
     {
       "type": "sequence",
