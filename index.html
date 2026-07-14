@@ -361,6 +361,7 @@ button {
 }
 .btn-primary { background: var(--sq-gold); color: var(--sq-btn-text); }
 .btn-secondary { background: var(--sq-secondary); color: var(--sq-text); }
+.btn-secondary:disabled { opacity: 0.35; color: var(--sq-text-muted); cursor: default; }
 .final-label {
   text-transform: uppercase;
   letter-spacing: 0.12em;
@@ -1049,22 +1050,15 @@ button {
     if (currentIndex >= gameQuestions.length) { showFinal(); return; }
     jokerActive = false;
     updateHudSub();
-    const isLastQuestion = currentIndex === gameQuestions.length - 1;
-    if (!jokerUsed && isLastQuestion) {
-      // Auto-play the joker on the final question if it hasn't been used yet
-      jokerUsed = true;
-      jokerActive = true;
-      updateHudSub();
-      showToast('🃏 Joker auto-played on the final question!');
-      beginQuestion();
-    } else if (!jokerUsed) {
-      showJokerPrompt();
+    if (!jokerUsed) {
+      const isLastQuestion = currentIndex === gameQuestions.length - 1;
+      showJokerPrompt(isLastQuestion);
     } else {
       beginQuestion();
     }
   }
 
-  function showJokerPrompt() {
+  function showJokerPrompt(forced) {
     qPanel.classList.add('hidden');
     hud.classList.add('hidden');
     hudSub.classList.add('hidden');
@@ -1073,14 +1067,20 @@ button {
     const doubled = value * 2;
     const screen = document.createElement('div');
     screen.className = 'screen';
+    const subtitle = forced
+      ? `This is your last chance to play your joker \u2014 it\u2019s the final question, so it must be played now.`
+      : `Play your joker now to make this question worth <b style="color:var(--sq-gold)">${doubled}</b> points?`;
+    const warning = forced
+      ? `It doesn\u2019t come back if you get this wrong \u2014 but if you don\u2019t play it now, it\u2019s gone for good.`
+      : `You only get one joker, and it doesn't come back if you get this wrong.`;
     screen.innerHTML = `
       <div class="joker-card">🃏</div>
       <div class="screen-title">Question ${currentIndex + 1}</div>
       <div class="joker-value">${value} <span style="font-size:0.5em;color:var(--sq-text-muted)">pts</span></div>
-      <div class="screen-subtitle">Play your joker now to make this question worth <b style="color:var(--sq-gold)">${doubled}</b> points?</div>
-      <div class="streak-warning">You only get one joker, and it doesn't come back if you get this wrong.</div>
+      <div class="screen-subtitle">${subtitle}</div>
+      <div class="streak-warning">${warning}</div>
       <button class="screen-btn btn-primary" id="btn-play-joker">Play Joker (${doubled}pts)</button>
-      <button class="screen-btn btn-secondary" id="btn-skip-joker">Don't Play Joker (${value}pts)</button>
+      <button class="screen-btn btn-secondary" id="btn-skip-joker" ${forced ? 'disabled' : ''}>Don't Play Joker (${value}pts)</button>
     `;
     aPanel.innerHTML = '';
     aPanel.appendChild(screen);
@@ -1090,9 +1090,11 @@ button {
       updateHudSub();
       beginQuestion();
     });
-    document.getElementById('btn-skip-joker').addEventListener('click', () => {
-      beginQuestion();
-    });
+    if (!forced) {
+      document.getElementById('btn-skip-joker').addEventListener('click', () => {
+        beginQuestion();
+      });
+    }
   }
 
   function beginQuestion() {
