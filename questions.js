@@ -11,7 +11,7 @@
 //                     If Q is blank, the type is inferred from its extension.
 
 window.QUIZ_QUESTIONS = {
-  "2026-06-01": [
+  "2026-07-14": [
     {
       "type": "letters",
       "question": "Name the artist from the Album…",
@@ -43,20 +43,13 @@ window.QUIZ_QUESTIONS = {
       ]
     },
     {
-      "type": "multiple_choice",
-      "question": "Which planet is closest to the Sun?",
-      "options": [
-        "Venus",
-        "Earth",
-        "Mars",
-        "Mercury",
-        "Jupiter",
-        "Saturn"
-      ],
-      "answer": "Mercury",
+      "type": "letters",
+      "question": "Name the track…",
+      "answer": "W",
+      "display_answer": "Watching The Detectives (Elvis Costello)",
       "media": {
-        "type": "audio",
-        "url": "media\\q1-audio.mp3"
+        "type": "video",
+        "url": "media\\TheRollingStones.mp4"
       }
     },
     {
@@ -65,8 +58,8 @@ window.QUIZ_QUESTIONS = {
       "answer": "S",
       "display_answer": "Sympathy for the Devil (The Rolling Stones)",
       "media": {
-        "type": "video",
-        "url": "media\\TheRollingStones.mp4"
+        "type": "audio",
+        "url": "media\\WatchingTheDetectives.mp3"
       }
     },
     {
@@ -81,8 +74,8 @@ window.QUIZ_QUESTIONS = {
     },
     {
       "type": "numbers",
-      "question": "How many days are in a leap year?",
-      "answer": 366
+      "question": "In what year did Wham! reach Number One in the UK with Last Christmas",
+      "answer": 2021
     },
     {
       "type": "sequence",
@@ -122,26 +115,6 @@ window.QUIZ_QUESTIONS = {
     },
     {
       "type": "sequence",
-      "question": "Order these Bond films chronologically (oldest first):",
-      "items": [
-        "Skyfall",
-        "GoldenEye",
-        "Casino Royale",
-        "No Time To Die",
-        "Die Another Day",
-        "Spectre"
-      ],
-      "answer": [
-        "GoldenEye",
-        "Die Another Day",
-        "Casino Royale",
-        "Skyfall",
-        "Spectre",
-        "No Time To Die"
-      ]
-    },
-    {
-      "type": "sequence",
       "question": "Put these planets in order from the Sun (nearest first):",
       "items": [
         "Earth",
@@ -157,24 +130,17 @@ window.QUIZ_QUESTIONS = {
       ]
     },
     {
-      "type": "sequence",
-      "question": "Order these Bond films chronologically (oldest first):",
-      "items": [
-        "Skyfall",
-        "GoldenEye",
-        "Casino Royale",
-        "No Time To Die",
-        "Die Another Day",
-        "Spectre"
+      "type": "multiple_choice",
+      "question": "Which planet is closest to the Sun?",
+      "options": [
+        "Venus",
+        "Earth",
+        "Mars",
+        "Mercury",
+        "Jupiter",
+        "Saturn"
       ],
-      "answer": [
-        "GoldenEye",
-        "Die Another Day",
-        "Casino Royale",
-        "Skyfall",
-        "Spectre",
-        "No Time To Die"
-      ]
+      "answer": "Mercury"
     }
   ]
 };
