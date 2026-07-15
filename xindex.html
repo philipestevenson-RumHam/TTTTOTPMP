@@ -102,37 +102,6 @@ button {
 .joker-pill.available { background: rgba(0,200,232,0.18); color: var(--sq-gold); }
 .joker-pill.used { background: rgba(255,255,255,0.08); color: var(--sq-text-muted); }
 .joker-pill.active { background: #f5a623; color: #07091c; }
-.streak-ladder {
-  display: flex;
-  align-items: flex-end;
-  gap: 3px;
-  padding: 0 2px 6px;
-  flex-shrink: 0;
-  height: 14px;
-}
-.ladder-pip {
-  flex: 1;
-  height: 40%;
-  border-radius: 3px;
-  background: rgba(255,255,255,0.08);
-  transition: height 0.2s ease, background 0.2s ease;
-}
-.ladder-pip:nth-child(1) { height: 30%; }
-.ladder-pip:nth-child(2) { height: 38%; }
-.ladder-pip:nth-child(3) { height: 46%; }
-.ladder-pip:nth-child(4) { height: 54%; }
-.ladder-pip:nth-child(5) { height: 62%; }
-.ladder-pip:nth-child(6) { height: 70%; }
-.ladder-pip:nth-child(7) { height: 78%; }
-.ladder-pip:nth-child(8) { height: 86%; }
-.ladder-pip:nth-child(9) { height: 93%; }
-.ladder-pip:nth-child(10) { height: 100%; }
-.ladder-pip.done { background: var(--sq-gold); }
-.ladder-pip.current { background: #f5a623; box-shadow: 0 0 6px #f5a623; }
-.hud.joker-glow {
-  box-shadow: 0 0 0 2px #f5a623, 0 0 16px rgba(245,166,35,0.55);
-  border-radius: 12px;
-}
 .joker-card {
   font-size: 5rem;
   line-height: 1;
@@ -715,7 +684,6 @@ button {
   <div class="level-pill" id="level-pill">Question <b>1</b> / 10</div>
   <div class="joker-pill available" id="joker-pill">🃏 Joker available</div>
 </div>
-<div class="streak-ladder hidden" id="streak-ladder"></div>
 
 <!-- Question Panel -->
 <div class="question-panel hidden" id="question-panel">
@@ -755,7 +723,7 @@ button {
     </div>
     <div class="lb-list" id="lbList"><div class="lb-loading">Loading…</div></div>
     <div class="lb-footer">
-      <a class="lb-stats-btn" href="Scores (RumHam).html">📊 Stats</a>
+      <a class="lb-stats-btn" href="Scores.html">📊 Stats</a>
       <button class="lb-close-btn" id="lbCloseBtn">Close</button>
     </div>
   </div>
@@ -820,7 +788,7 @@ button {
   let timerInterval = null;
   let timerStart = 0;
   let timerStarted = false;
-  const timerDuration = 10000;
+  const timerDuration = 15000;
   let answered = false;
   let seqTaps = [];
   let numberInput = '';
@@ -844,7 +812,6 @@ button {
   const hudSub = document.getElementById('hud-sub');
   const levelPill = document.getElementById('level-pill');
   const jokerPill = document.getElementById('joker-pill');
-  const streakLadder = document.getElementById('streak-ladder');
   const timerFill = document.getElementById('timer-fill');
   const qPanel = document.getElementById('question-panel');
   const qText = document.getElementById('question-text');
@@ -874,41 +841,10 @@ button {
 
   // Pyramid scoring: awards points for the current question, updates streak/score,
   // and returns the points earned (0 on a wrong answer, which also resets the streak).
-  // ── Sound effects (synthesized, no audio files needed) ──
-  let sfxCtx = null;
-  function getSfxCtx() {
-    if (!sfxCtx) sfxCtx = new (window.AudioContext || window.webkitAudioContext)();
-    if (sfxCtx.state === 'suspended') sfxCtx.resume();
-    return sfxCtx;
-  }
-  function playTone(freq, duration, type, delay) {
-    try {
-      const ctx = getSfxCtx();
-      const startAt = ctx.currentTime + (delay || 0);
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = type || 'sine';
-      osc.frequency.value = freq;
-      gain.gain.setValueAtTime(0.001, startAt);
-      gain.gain.linearRampToValueAtTime(0.16, startAt + 0.01);
-      gain.gain.exponentialRampToValueAtTime(0.001, startAt + duration);
-      osc.connect(gain); gain.connect(ctx.destination);
-      osc.start(startAt);
-      osc.stop(startAt + duration + 0.02);
-    } catch (e) { /* audio not available — fail silently */ }
-  }
-  function playCorrectSound() {
-    playTone(880, 0.12, 'sine', 0);
-    playTone(1320, 0.18, 'sine', 0.09);
-  }
-  function playWrongSound() {
-    playTone(220, 0.3, 'sawtooth', 0);
-  }
-
   function awardPoints(isCorrect) {
     const pts = isCorrect ? currentQuestionValue() : 0;
-    if (isCorrect) { score += pts; streak++; playCorrectSound(); }
-    else { streak = 0; playWrongSound(); }
+    if (isCorrect) { score += pts; streak++; }
+    else { streak = 0; }
     hudScore.textContent = score;
     return pts;
   }
@@ -972,7 +908,6 @@ button {
   function showStart() {
     hud.classList.add('hidden');
     hudSub.classList.add('hidden');
-    streakLadder.classList.add('hidden');
     qPanel.classList.add('hidden');
     aPanel.innerHTML = '';
     const screen = document.createElement('div');
@@ -1063,7 +998,6 @@ button {
     hudScore.textContent = '0';
     hud.classList.remove('hidden');
     hudSub.classList.remove('hidden');
-    streakLadder.classList.remove('hidden');
     qPanel.classList.remove('hidden');
     updateHudSub();
     showQuestion();
@@ -1081,18 +1015,6 @@ button {
       jokerPill.className = 'joker-pill available';
       jokerPill.textContent = '🃏 Joker available';
     }
-    renderStreakLadder();
-  }
-
-  function renderStreakLadder() {
-    let html = '';
-    for (let i = 0; i < 10; i++) {
-      let cls = 'ladder-pip';
-      if (i < streak) cls += ' done';
-      else if (i === streak) cls += ' current';
-      html += `<div class="${cls}"></div>`;
-    }
-    streakLadder.innerHTML = html;
   }
 
   const CHAR_REVEAL_MS = 45;
@@ -1152,7 +1074,6 @@ button {
     qPanel.classList.add('hidden');
     hud.classList.add('hidden');
     hudSub.classList.add('hidden');
-    streakLadder.classList.add('hidden');
     const q = gameQuestions[currentIndex];
     const value = pointsForStreak(streak);
     const doubled = value * 2;
@@ -1195,9 +1116,7 @@ button {
     seqTaps = [];
     numberInput = '';
     hud.classList.remove('hidden');
-    hud.classList.toggle('joker-glow', jokerActive);
     hudSub.classList.remove('hidden');
-    streakLadder.classList.remove('hidden');
     qPanel.classList.remove('hidden');
     const q = gameQuestions[currentIndex];
     qText.classList.remove('dimmed');
@@ -1231,7 +1150,6 @@ button {
       const audio = document.createElement('audio');
       audio.src = q.media.url;
       audio.style.display = 'none';
-      audio.addEventListener('error', () => { badge.remove(); audio.remove(); }, { once: true });
       aPanel.appendChild(audio);
       const badge = document.createElement('button');
       badge.className = 'audio-badge';
@@ -1259,7 +1177,6 @@ button {
       video.loop = true;
       video.playsInline = true;
       video.muted = false;
-      video.addEventListener('error', () => { overlay.remove(); }, { once: true });
       box.appendChild(video);
       const soundBadge = document.createElement('button');
       soundBadge.className = 'audio-badge video-sound-badge';
@@ -1285,7 +1202,6 @@ button {
     } else {
       const img = document.createElement('img');
       img.src = q.media.url;
-      img.addEventListener('error', () => { overlay.remove(); }, { once: true });
       box.appendChild(img);
     }
     const hint = document.createElement('div');
@@ -1495,19 +1411,6 @@ button {
     });
   }
 
-  function preloadMedia(q) {
-    if (!q || !q.media || !q.media.url) return;
-    if (q.media.type === 'image') {
-      const img = new Image();
-      img.src = q.media.url;
-    } else {
-      const el = document.createElement(q.media.type === 'video' ? 'video' : 'audio');
-      el.preload = 'auto';
-      el.src = q.media.url;
-      el.load();
-    }
-  }
-
   function showFeedback(isCorrect, answer, pts, timeout) {
     clearReveals();
     qText.classList.add('dimmed');
@@ -1515,13 +1418,12 @@ button {
     if (timeout) { fbText.textContent = `Time\'s up! Answer: ${answer}`; fbText.style.color = '#ff6b6b'; }
     else if (isCorrect) { fbText.textContent = `Correct! ${answer} +${pts}${jokerNote}`; fbText.style.color = '#00c8e8'; }
     else { fbText.textContent = `Wrong! Answer: ${answer}. Back to 1 point.`; fbText.style.color = '#ff6b6b'; }
-    preloadMedia(gameQuestions[currentIndex + 1]);
     setTimeout(() => { currentIndex++; showQuestion(); }, 2000);
   }
 
   // Already played
   function showAlreadyPlayed(name, previousScore) {
-    hud.classList.add('hidden'); hudSub.classList.add('hidden'); streakLadder.classList.add('hidden'); qPanel.classList.add('hidden'); aPanel.innerHTML = '';
+    hud.classList.add('hidden'); hudSub.classList.add('hidden'); qPanel.classList.add('hidden'); aPanel.innerHTML = '';
     const maxScore = MAX_POSSIBLE_SCORE;
     const screen = document.createElement('div');
     screen.className = 'screen';
@@ -1540,7 +1442,7 @@ button {
 
   // Final screen
   async function showFinal() {
-    stopTimer(); hud.classList.add('hidden'); hudSub.classList.add('hidden'); streakLadder.classList.add('hidden'); qPanel.classList.add('hidden'); aPanel.innerHTML = '';
+    stopTimer(); hud.classList.add('hidden'); hudSub.classList.add('hidden'); qPanel.classList.add('hidden'); aPanel.innerHTML = '';
     const maxScore = MAX_POSSIBLE_SCORE;
     let saveStatus = '';
     if (currentPlayerId) {
