@@ -11,7 +11,7 @@
 //                     If Q is blank, the type is inferred from its extension.
 
 window.QUIZ_QUESTIONS = {
-  "2026-07-14": [
+  "2026-07-15": [
     {
       "type": "letters",
       "question": "Name the Artist…",
@@ -119,17 +119,17 @@ window.QUIZ_QUESTIONS = {
       "type": "multiple_choice",
       "question": "Name the Artist who sang the Original…",
       "options": [
-        "A",
-        "B",
-        "C",
-        "D",
-        "E",
-        "F"
+        "Tailor Swift",
+        "Tayler Swift",
+        "Taylore Swift",
+        "Tayor Swift",
+        "Taylor Swift",
+        "Tayla Swift"
       ],
       "answer": "A",
       "media": {
-        "type": "audio",
-        "url": "media\\WatchingTheDetectives.mp3"
+        "type": "video",
+        "url": "media\\Swift.mp4"
       }
     },
     {
