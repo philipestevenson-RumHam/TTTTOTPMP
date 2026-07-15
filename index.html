@@ -254,14 +254,19 @@ button {
   font-size: clamp(1rem, 2.8vw, 1.24rem);
   justify-content: center;
   padding: 0 16px;
-  gap: 10px;
 }
 .kbtn.mc-btn .letter-prefix {
-  opacity: 0.5;
-  font-weight: 700;
-  flex-shrink: 0;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  font-size: clamp(3rem, 12vw, 4.6rem);
+  font-weight: 800;
+  opacity: 0.16;
+  line-height: 1;
+  pointer-events: none;
 }
-.kbtn.mc-btn .choice-text { text-align: left; }
+.kbtn.mc-btn .choice-text { text-align: left; position: relative; z-index: 1; }
 .kbtn.empty-slot {
   background: var(--sq-empty-slot);
   color: rgba(255,255,255,0.3);
@@ -718,7 +723,7 @@ button {
     </div>
     <div class="lb-list" id="lbList"><div class="lb-loading">Loading…</div></div>
     <div class="lb-footer">
-      <a class="lb-stats-btn" href="Scores.html">📊 Stats</a>
+      <a class="lb-stats-btn" href="Scores (RumHam).html">📊 Stats</a>
       <button class="lb-close-btn" id="lbCloseBtn">Close</button>
     </div>
   </div>
@@ -1023,6 +1028,13 @@ button {
     revealTimeoutIds = [];
   }
 
+  // If the person answers before the typewriter finishes, snap the rest of
+  // the question text into view immediately so they can see what it said.
+  function revealQuestionTextNow() {
+    clearReveals();
+    qText.querySelectorAll('.qchar').forEach(el => el.classList.add('revealed'));
+  }
+
   function typewriterReveal(text, onComplete) {
     qText.innerHTML = '';
     const chars = [];
@@ -1207,7 +1219,7 @@ button {
     grid.className = 'keypad multiple';
     const labels = ['A','B','C','D','E','F'];
     for (let i = 0; i < 6; i++) {
-      if (i < q.options.length && i < 4) {
+      if (i < q.options.length) {
         const btn = document.createElement('button');
         btn.className = 'kbtn mc-btn';
         btn.innerHTML = `<span class="letter-prefix">${labels[i]}</span><span class="choice-text">${q.options[i]}</span>`;
@@ -1226,7 +1238,7 @@ button {
 
   function onMCAnswer(btn, q, grid) {
     if (answered) return;
-    answered = true; stopTimer();
+    answered = true; stopTimer(); revealQuestionTextNow();
     const isCorrect = btn.dataset.value === q.answer;
     const pts = awardPoints(isCorrect);
     grid.querySelectorAll('.mc-btn').forEach(b => {
@@ -1254,7 +1266,7 @@ button {
 
   function onLetterAnswer(btn, q, grid) {
     if (answered) return;
-    answered = true; stopTimer();
+    answered = true; stopTimer(); revealQuestionTextNow();
     const isCorrect = btn.dataset.value.includes(q.answer);
     const pts = awardPoints(isCorrect);
     grid.querySelectorAll('.letter-btn').forEach(b => {
@@ -1304,7 +1316,7 @@ button {
     if (k === 'C') { numberInput = ''; updateNumDisplay(); }
     else if (k === 'ENTER') {
       if (!numberInput.length) return;
-      answered = true; stopTimer();
+      answered = true; stopTimer(); revealQuestionTextNow();
       const isCorrect = parseInt(numberInput, 10) === q.answer;
       const pts = awardPoints(isCorrect);
       const disp = document.getElementById('num-display');
@@ -1357,7 +1369,7 @@ button {
     os.className = 'seq-order'; os.textContent = seqTaps.length;
     btn.appendChild(os);
     if (seqTaps.length === q.items.length) {
-      answered = true; stopTimer();
+      answered = true; stopTimer(); revealQuestionTextNow();
       const isCorrect = seqTaps.every((v, i) => v === q.answer[i]);
       const pts = awardPoints(isCorrect);
       const btns = grid.querySelectorAll('.seq-btn');
@@ -1370,7 +1382,7 @@ button {
   // Timeout
   function onTimeout() {
     if (answered) return;
-    answered = true; stopTimer();
+    answered = true; stopTimer(); revealQuestionTextNow();
     awardPoints(false);
     const overlay = aPanel.querySelector('.media-overlay');
     if (overlay) overlay.remove();
