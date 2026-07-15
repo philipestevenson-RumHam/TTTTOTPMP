@@ -126,7 +126,7 @@ window.QUIZ_QUESTIONS = {
         "Taylor Swift",
         "Tayla Swift"
       ],
-      "answer": "A",
+      "answer": "Taylor Swift",
       "media": {
         "type": "video",
         "url": "media\\Swift.mp4"
