@@ -26,12 +26,12 @@ window.QUIZ_QUESTIONS = {
       "type": "sequence",
       "question": "Put these six chart‑hit songs by Madonna in order of their original release…",
       "items": [
-        "Like a Virgin",
         "Holiday",
+        "Like a Virgin",
         "Material Girl",
         "Papa Don’t Preach",
-        "Vogue",
-        "Like a Prayer"
+        "Like a Prayer",
+        "Vogue"
       ],
       "answer": [
         "Holiday",
@@ -66,12 +66,12 @@ window.QUIZ_QUESTIONS = {
       "type": "sequence",
       "question": "Put the following in Order to make a Track followed by the Artist…",
       "items": [
-        "ASI",
-        "WAL",
         "WON",
         "DER",
-        "S",
-        "L O"
+        "WAL",
+        "L O",
+        "ASI",
+        "S"
       ],
       "answer": [
         "WON",
@@ -138,7 +138,7 @@ window.QUIZ_QUESTIONS = {
       "answer": 2021
     }
   ],
-  "2026-07-17": [
+  "2026-07-15": [
     {
       "type": "letters",
       "question": "Name the Artist…",
@@ -153,8 +153,8 @@ window.QUIZ_QUESTIONS = {
       "type": "sequence",
       "question": "Put these six chart‑hit songs by Ed Sheeran in order of their original release…",
       "items": [
-        "Sing",
         "The A Team",
+        "Sing",
         "Thinking Out Loud",
         "Photograph",
         "Shape of You",
@@ -182,8 +182,8 @@ window.QUIZ_QUESTIONS = {
     {
       "type": "letters",
       "question": "Name the Track…",
-      "answer": "MY SHARONA (THE KNACK)",
-      "display_answer": "MY SHARONA (THE KNACK)",
+      "answer": "M",
+      "display_answer": "My Sharona (The Knack)",
       "media": {
         "type": "audio",
         "url": "media\\The KnackMySharona.mp3"
@@ -193,12 +193,12 @@ window.QUIZ_QUESTIONS = {
       "type": "sequence",
       "question": "Put the following in Order to make a Track followed by the Artist…",
       "items": [
-        "ME MA",
         "CALL",
+        "ME MA",
         "YBE C",
+        "ARLY",
         "RAE J",
-        "EPSEN",
-        "ARLY"
+        "EPSEN"
       ],
       "answer": [
         "CALL",
