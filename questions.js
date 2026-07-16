@@ -11,7 +11,7 @@
 //                     If Q is blank, the type is inferred from its extension.
 
 window.QUIZ_QUESTIONS = {
-  "2026-07-15": [
+  "2026-07-16": [
     {
       "type": "letters",
       "question": "Name the Artist…",
@@ -46,7 +46,7 @@ window.QUIZ_QUESTIONS = {
       "type": "letters",
       "question": "Name the Artist from the Album Cover…",
       "answer": "W",
-      "display_answer": "The White Stripes",
+      "display_answer": "The White Stripes (Elephant)",
       "media": {
         "type": "image",
         "url": "media\\the-white-stripes-elephant.jpg"
@@ -134,8 +134,135 @@ window.QUIZ_QUESTIONS = {
     },
     {
       "type": "numbers",
-      "question": "In what year did Wham! reach Number One in the UK with Last Christmas",
+      "question": "In what year did Wham! reach Number One in the UK with Last Christmas?",
       "answer": 2021
+    }
+  ],
+  "2026-07-17": [
+    {
+      "type": "letters",
+      "question": "Name the Artist…",
+      "answer": "L",
+      "display_answer": "Lana Del Ray",
+      "media": {
+        "type": "video",
+        "url": "media\\LanaDelRay.mp4"
+      }
+    },
+    {
+      "type": "sequence",
+      "question": "Put these six chart‑hit songs by Ed Sheeran in order of their original release…",
+      "items": [
+        "Sing",
+        "The A Team",
+        "Thinking Out Loud",
+        "Photograph",
+        "Shape of You",
+        "Perfect"
+      ],
+      "answer": [
+        "The A Team",
+        "Sing",
+        "Thinking Out Loud",
+        "Photograph",
+        "Shape of You",
+        "Perfect"
+      ]
+    },
+    {
+      "type": "letters",
+      "question": "Name the Artist from the Album Cover…",
+      "answer": "D",
+      "display_answer": "David Bowie (Black Star)",
+      "media": {
+        "type": "image",
+        "url": "media\\DavidBowieBlackStar.png"
+      }
+    },
+    {
+      "type": "letters",
+      "question": "Name the Track…",
+      "answer": "MY SHARONA (THE KNACK)",
+      "display_answer": "MY SHARONA (THE KNACK)",
+      "media": {
+        "type": "audio",
+        "url": "media\\The KnackMySharona.mp3"
+      }
+    },
+    {
+      "type": "sequence",
+      "question": "Put the following in Order to make a Track followed by the Artist…",
+      "items": [
+        "ME MA",
+        "CALL",
+        "YBE C",
+        "RAE J",
+        "EPSEN",
+        "ARLY"
+      ],
+      "answer": [
+        "CALL",
+        "ME MA",
+        "YBE C",
+        "ARLY",
+        "RAE J",
+        "EPSEN"
+      ]
+    },
+    {
+      "type": "letters",
+      "question": "Name the Track from the opening lyrics…",
+      "answer": "C",
+      "display_answer": "Chelsea Dagger (The Fratellis)",
+      "media": {
+        "type": "video",
+        "url": "media\\ChelDag.mp4"
+      }
+    },
+    {
+      "type": "letters",
+      "question": "One Hit Wonder: Name the Artist…",
+      "answer": "C",
+      "display_answer": "Cutting Crew (I Just Died in Your Arms Tonight)",
+      "media": {
+        "type": "video",
+        "url": "media\\CC.mp4"
+      }
+    },
+    {
+      "type": "multiple_choice",
+      "question": "For how many weeks did Bryan Adams’ “(Everything I Do) I Do It for You”, from Robin Hood: Prince of Thieves, stay at Number One in the UK?",
+      "options": [
+        "10 Weeks",
+        "12 Weeks",
+        "14 Weeks",
+        "16 Weeks",
+        "18 Weeks",
+        "20 Weeks"
+      ],
+      "answer": "16 Weeks"
+    },
+    {
+      "type": "multiple_choice",
+      "question": "Name the Artist who sang the Original…",
+      "options": [
+        "Amy Whinehouse",
+        "Mark Ronson",
+        "The Kooks",
+        "The Zutons",
+        "The Coral",
+        "The Wombats"
+      ],
+      "answer": "The Zutons",
+      "media": {
+        "type": "video",
+        "url": "media\\val.mp4"
+      }
+    },
+    {
+      "type": "numbers",
+      "question": "In what year did Robbie Williams leave Take That?",
+      "answer": 1995
     }
   ]
 };
