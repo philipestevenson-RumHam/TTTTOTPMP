@@ -133,53 +133,6 @@ button {
   box-shadow: 0 0 0 2px #f5a623, 0 0 16px rgba(245,166,35,0.55);
   border-radius: 12px;
 }
-.recap-label {
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--sq-text-muted);
-  margin-top: 6px;
-}
-.recap-row {
-  display: flex;
-  gap: 5px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-.recap-summary {
-  font-size: 0.72rem;
-  color: var(--sq-text-muted);
-  text-align: center;
-  line-height: 1.5;
-  max-width: 320px;
-}
-.tile {
-  width: 28px;
-  height: 38px;
-  border-radius: 6px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  font-size: 8px;
-  font-weight: 700;
-  color: rgba(255,255,255,0.4);
-  gap: 2px;
-  position: relative;
-}
-.tile span { font-size: 12px; font-weight: 800; }
-.tile.correct { background: rgba(0,200,232,0.16); color: var(--sq-text-muted); }
-.tile.correct span { color: #22c55e; }
-.tile.wrong { background: rgba(255,107,107,0.12); color: var(--sq-text-muted); }
-.tile.wrong span { color: #ff6b6b; }
-.tile.joker { box-shadow: 0 0 0 2px #f5a623; }
-.tile.joker::after {
-  content: '🃏';
-  position: absolute;
-  top: -9px;
-  font-size: 9px;
-}
 .joker-card {
   font-size: 5rem;
   line-height: 1;
@@ -842,7 +795,7 @@ button {
     </div>
     <div class="lb-list" id="lbList"><div class="lb-loading">Loading…</div></div>
     <div class="lb-footer">
-      <a class="lb-stats-btn" href="Scores (RumHam).html">📊 Stats</a>
+      <a class="lb-stats-btn" href="Scores.html">📊 Stats</a>
       <button class="lb-close-btn" id="lbCloseBtn">Close</button>
     </div>
   </div>
@@ -916,8 +869,6 @@ button {
   let streak = 0;           // consecutive correct answers since last miss (or game start)
   let jokerUsed = false;    // has the joker been played this game (voluntarily or auto)
   let jokerActive = false;  // is the joker in effect for the CURRENT question
-  let runLog = [];          // per-question record for the end-of-game recap
-  let bestStreak = 0;
   const MAX_POSSIBLE_SCORE = 65; // theoretical max: 1+2+...+10 (=55) with the joker doubling Q10 (10 -> 20)
 
   function pointsForStreak(s) { return s + 1; }
@@ -995,10 +946,8 @@ button {
   }
 
   function awardPoints(isCorrect) {
-    const base = pointsForStreak(streak);
     const pts = isCorrect ? currentQuestionValue() : 0;
-    runLog.push({ q: currentIndex + 1, correct: isCorrect, pts: pts, base: base, joker: jokerActive });
-    if (isCorrect) { score += pts; streak++; bestStreak = Math.max(bestStreak, streak); playCorrectSound(); }
+    if (isCorrect) { score += pts; streak++; playCorrectSound(); }
     else { streak = 0; playWrongSound(); }
     hudScore.textContent = score;
     return pts;
@@ -1156,8 +1105,6 @@ button {
     streak = 0;
     jokerUsed = false;
     jokerActive = false;
-    runLog = [];
-    bestStreak = 0;
     hudScore.textContent = '0';
     hud.classList.remove('hidden');
     hudSub.classList.remove('hidden');
@@ -1354,7 +1301,7 @@ button {
     if (q.media.type === 'video') {
       const video = document.createElement('video');
       video.src = q.media.url;
-      video.loop = false;
+      video.loop = true;
       video.playsInline = true;
       video.muted = false;
       video.addEventListener('error', () => { overlay.remove(); }, { once: true });
@@ -1637,27 +1584,6 @@ button {
   }
 
   // Final screen
-  function buildRecapHTML() {
-    if (!runLog.length) return '';
-    const tiles = runLog.map(e => {
-      const cls = 'tile ' + (e.correct ? 'correct' : 'wrong') + (e.joker ? ' joker' : '');
-      const val = e.correct ? e.pts : '✗';
-      return `<div class="${cls}">${e.q}<span>${val}</span></div>`;
-    }).join('');
-    const jokerEntry = runLog.find(e => e.joker);
-    let summaryParts = [`Best streak: ${bestStreak}`];
-    if (jokerEntry) {
-      summaryParts.push(jokerEntry.correct
-        ? `🃏 on Q${jokerEntry.q} (${jokerEntry.base}\u2192${jokerEntry.pts}pts)`
-        : `🃏 on Q${jokerEntry.q} (missed \u2014 would've been ${jokerEntry.base * 2}pts)`);
-    }
-    return `
-      <div class="recap-label">Your Run</div>
-      <div class="recap-row">${tiles}</div>
-      <div class="recap-summary">${summaryParts.join(' &middot; ')}</div>
-    `;
-  }
-
   async function showFinal() {
     stopTimer(); hud.classList.add('hidden'); hudSub.classList.add('hidden'); streakLadder.classList.add('hidden'); qPanel.classList.add('hidden'); aPanel.innerHTML = '';
     const maxScore = MAX_POSSIBLE_SCORE;
@@ -1675,7 +1601,6 @@ button {
       ${saveStatus === 'saved' ? '<div style="font-size:0.8rem;color:#22c55e;font-weight:700">✅ Score recorded!</div>' : ''}
       ${saveStatus === 'duplicate' ? '<div style="font-size:0.8rem;color:#f59e0b;font-weight:700">⚠️ Score already recorded for today</div>' : ''}
       ${saveStatus === 'error' ? '<div style="font-size:0.8rem;color:#ef4444;font-weight:700">⚠️ Could not save score</div>' : ''}
-      ${buildRecapHTML()}
       <button class="screen-btn btn-primary" id="btn-share">Share results</button>
       <button class="screen-btn btn-secondary" id="btn-leaderboard-end">🏆 Leaderboard</button>
       <button class="screen-btn btn-secondary" id="btn-replay">Play Again</button>
