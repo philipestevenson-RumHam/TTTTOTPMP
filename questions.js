@@ -11,7 +11,7 @@
 //                     If Q is blank, the type is inferred from its extension.
 
 window.QUIZ_QUESTIONS = {
-  "2026-07-16": [
+  "2026-07-17": [
     {
       "type": "letters",
       "question": "Name the Artist…",
@@ -96,7 +96,7 @@ window.QUIZ_QUESTIONS = {
       "type": "letters",
       "question": "One Hit Wonder: Name the Artist…",
       "answer": "B",
-      "display_answer": "Baz Lurman (Everyone's Free to Wear Sunscreen)",
+      "display_answer": "Baz Lurman (Everyone's Free To Wear Sunscreen)",
       "media": {
         "type": "video",
         "url": "media\\Baz Lurman.mp4"
@@ -138,7 +138,7 @@ window.QUIZ_QUESTIONS = {
       "answer": 2021
     }
   ],
-  "2026-07-15": [
+  "2026-07-16": [
     {
       "type": "letters",
       "question": "Name the Artist…",
@@ -186,7 +186,7 @@ window.QUIZ_QUESTIONS = {
       "display_answer": "My Sharona (The Knack)",
       "media": {
         "type": "audio",
-        "url": "media\\The KnackMySharona.mp3"
+        "url": "media\\TheKnackMySharona.mp3"
       }
     },
     {
@@ -263,6 +263,133 @@ window.QUIZ_QUESTIONS = {
       "type": "numbers",
       "question": "In what year did Robbie Williams leave Take That?",
       "answer": 1995
+    }
+  ],
+  "2026-07-15": [
+    {
+      "type": "letters",
+      "question": "Name the Artist…",
+      "answer": "C",
+      "display_answer": "Chris Martin",
+      "media": {
+        "type": "video",
+        "url": "media\\ChrisMartin.mp4"
+      }
+    },
+    {
+      "type": "sequence",
+      "question": "Put these six chart‑hit songs by Steps in order of their original release…",
+      "items": [
+        "5,6,7,8",
+        "Last Thing on My Mind",
+        "One for Sorrow",
+        "Heartbeat / Tragedy",
+        "Better Best Forgotten",
+        "Love’s Got a Hold on My Heart"
+      ],
+      "answer": [
+        "5,6,7,8",
+        "Last Thing on My Mind",
+        "One for Sorrow",
+        "Heartbeat / Tragedy",
+        "Better Best Forgotten",
+        "Love’s Got a Hold on My Heart"
+      ]
+    },
+    {
+      "type": "letters",
+      "question": "Name the Artist from the Album Cover…",
+      "answer": "F",
+      "display_answer": "Fleetwood Mac (Rumours)",
+      "media": {
+        "type": "image",
+        "url": "media\\FleetwoodMacRumours.png"
+      }
+    },
+    {
+      "type": "letters",
+      "question": "Name the Track…",
+      "answer": "O",
+      "display_answer": "Otherside (Red Hot Chili Peppers)",
+      "media": {
+        "type": "audio",
+        "url": "media\\RedHotChiliPeppersOtherside.mp3"
+      }
+    },
+    {
+      "type": "sequence",
+      "question": "Put the following in Order to make a Track followed by the Artist…",
+      "items": [
+        "DIRE",
+        "STRAI",
+        "TS MO",
+        "NEY F",
+        "OR NO",
+        "THING"
+      ],
+      "answer": [
+        "DIRE",
+        "STRAI",
+        "TS MO",
+        "NEY F",
+        "OR NO",
+        "THING"
+      ]
+    },
+    {
+      "type": "letters",
+      "question": "Name the Track from the opening lyrics…",
+      "answer": "T",
+      "display_answer": "Take On Me (A-Ha)",
+      "media": {
+        "type": "video",
+        "url": "TakeOnMeAHA.mp4"
+      }
+    },
+    {
+      "type": "letters",
+      "question": "One Hit Wonder: Name the Artist…",
+      "answer": "W",
+      "display_answer": "Cutting Crew (I Just Died in Your Arms Tonight)",
+      "media": {
+        "type": "video",
+        "url": "media\\WamdueProject.mp4"
+      }
+    },
+    {
+      "type": "multiple_choice",
+      "question": "What is the rapper 50 Cent’s real name?",
+      "options": [
+        "Nathan Nickelson",
+        "Calvin Cordozar Broadus Jr.",
+        "O’Shea Jackson",
+        "Curtis Jackson",
+        "Arthur Dollar",
+        "Shawn Corey Carter"
+      ],
+      "answer": "Curtis Jackson"
+    },
+    {
+      "type": "multiple_choice",
+      "question": "Name the Artist who sang the Original…",
+      "options": [
+        "Wake Wake",
+        "Walk Walk",
+        "Talk Take",
+        "Take Talk",
+        "Talk Talk",
+        "Take Take"
+      ],
+      "answer": "Talk Talk",
+      "media": {
+        "type": "video",
+        "url": "media\\ItsMyLife.mp4"
+      }
+    },
+    {
+      "type": "numbers",
+      "question": "In what decade did Queen score their first UK Number One single?",
+      "answer": 1970
     }
   ]
 };
