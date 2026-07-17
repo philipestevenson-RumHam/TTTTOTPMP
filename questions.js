@@ -343,14 +343,14 @@ window.QUIZ_QUESTIONS = {
       "display_answer": "Take On Me (A-Ha)",
       "media": {
         "type": "video",
-        "url": "TakeOnMeAHA.mp4"
+        "url": "media\\TakeOnMeAHA.mp4"
       }
     },
     {
       "type": "letters",
       "question": "One Hit Wonder: Name the Artist…",
       "answer": "W",
-      "display_answer": "Cutting Crew (I Just Died in Your Arms Tonight)",
+      "display_answer": "Wamdue Project (King of My Castle)",
       "media": {
         "type": "video",
         "url": "media\\WamdueProject.mp4"
