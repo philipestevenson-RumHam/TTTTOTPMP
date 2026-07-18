@@ -14,10 +14,9 @@
 window.QUIZ_QUESTIONS = {
   "2026-07-18": [
     {
-      "type": "letters",
+      "type": "wordsnake",
       "question": "Name the Artist…",
       "answer": "S",
-      "display_answer": "Shakira",
       "media": {
         "type": "video",
         "url": "media\\sh.mp4"
@@ -141,10 +140,9 @@ window.QUIZ_QUESTIONS = {
   ],
   "2026-07-17": [
     {
-      "type": "letters",
+      "type": "wordsnake",
       "question": "Name the Artist…",
       "answer": "L",
-      "display_answer": "Lana Del Ray",
       "media": {
         "type": "video",
         "url": "media\\lr.mp4"
@@ -268,10 +266,9 @@ window.QUIZ_QUESTIONS = {
   ],
   "2026-07-16": [
     {
-      "type": "letters",
+      "type": "wordsnake",
       "question": "Name the Artist…",
       "answer": "C",
-      "display_answer": "Chris Martin",
       "media": {
         "type": "video",
         "url": "media\\cm.mp4"
@@ -391,58 +388,6 @@ window.QUIZ_QUESTIONS = {
       "type": "numbers",
       "question": "In what decade did Queen score their first UK Number One single?",
       "answer": 1970
-    }
-  ],
-  "2026-07-15": [
-    {
-      "type": "wordsnake",
-      "question": "Find the band name",
-      "answer": "White Snake"
-    },
-    {
-      "type": "wordsnake",
-      "question": "Find the band name",
-      "answer": "White Snake"
-    },
-    {
-      "type": "wordsnake",
-      "question": "Find the band name",
-      "answer": "White Snake"
-    },
-    {
-      "type": "wordsnake",
-      "question": "Find the band name",
-      "answer": "White Snake"
-    },
-    {
-      "type": "wordsnake",
-      "question": "Find the band name",
-      "answer": "White Snake"
-    },
-    {
-      "type": "wordsnake",
-      "question": "Find the band name",
-      "answer": "White Snake"
-    },
-    {
-      "type": "wordsnake",
-      "question": "Find the band name",
-      "answer": "White Snake"
-    },
-    {
-      "type": "wordsnake",
-      "question": "Find the band name",
-      "answer": "White Snake"
-    },
-    {
-      "type": "wordsnake",
-      "question": "Find the band name",
-      "answer": "White Snake"
-    },
-    {
-      "type": "wordsnake",
-      "question": "Find the band name",
-      "answer": "White Snake"
     }
   ]
 };
