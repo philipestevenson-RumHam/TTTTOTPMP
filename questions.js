@@ -49,7 +49,7 @@ window.QUIZ_QUESTIONS = {
       "display_answer": "The White Stripes (Elephant)",
       "media": {
         "type": "image",
-        "url": "media\\wsjpg"
+        "url": "media\\ws.jpg"
       }
     },
     {
@@ -353,7 +353,7 @@ window.QUIZ_QUESTIONS = {
       "display_answer": "Wamdue Project (King of My Castle)",
       "media": {
         "type": "video",
-        "url": "media\\wpmp4"
+        "url": "media\\wp.mp4"
       }
     },
     {
