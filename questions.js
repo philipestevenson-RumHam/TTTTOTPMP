@@ -11,7 +11,7 @@
 //                     If Q is blank, the type is inferred from its extension.
 
 window.QUIZ_QUESTIONS = {
-  "2026-07-17": [
+  "2026-07-18": [
     {
       "type": "letters",
       "question": "Name the Artist…",
@@ -19,7 +19,7 @@ window.QUIZ_QUESTIONS = {
       "display_answer": "Shakira",
       "media": {
         "type": "video",
-        "url": "media\\Shak.mp4"
+        "url": "media\\sh.mp4"
       }
     },
     {
@@ -49,7 +49,7 @@ window.QUIZ_QUESTIONS = {
       "display_answer": "The White Stripes (Elephant)",
       "media": {
         "type": "image",
-        "url": "media\\the-white-stripes-elephant.jpg"
+        "url": "media\\wsjpg"
       }
     },
     {
@@ -59,7 +59,7 @@ window.QUIZ_QUESTIONS = {
       "display_answer": "Watching The Detectives (Elvis Costello)",
       "media": {
         "type": "audio",
-        "url": "media\\WatchingTheDetectives.mp3"
+        "url": "media\\ec.mp3"
       }
     },
     {
@@ -89,7 +89,7 @@ window.QUIZ_QUESTIONS = {
       "display_answer": "Sympathy for the Devil (The Rolling Stones)",
       "media": {
         "type": "video",
-        "url": "media\\TheRollingStones.mp4"
+        "url": "media\\rs.mp4"
       }
     },
     {
@@ -99,7 +99,7 @@ window.QUIZ_QUESTIONS = {
       "display_answer": "Baz Lurman (Everyone's Free To Wear Sunscreen)",
       "media": {
         "type": "video",
-        "url": "media\\Baz Lurman.mp4"
+        "url": "media\\bl.mp4"
       }
     },
     {
@@ -129,7 +129,7 @@ window.QUIZ_QUESTIONS = {
       "answer": "Taylor Swift",
       "media": {
         "type": "video",
-        "url": "media\\Swift.mp4"
+        "url": "media\\sw.mp4"
       }
     },
     {
@@ -138,7 +138,7 @@ window.QUIZ_QUESTIONS = {
       "answer": 2021
     }
   ],
-  "2026-07-16": [
+  "2026-07-17": [
     {
       "type": "letters",
       "question": "Name the Artist…",
@@ -146,7 +146,7 @@ window.QUIZ_QUESTIONS = {
       "display_answer": "Lana Del Ray",
       "media": {
         "type": "video",
-        "url": "media\\LanaDelRay.mp4"
+        "url": "media\\lr.mp4"
       }
     },
     {
@@ -176,7 +176,7 @@ window.QUIZ_QUESTIONS = {
       "display_answer": "David Bowie (Black Star)",
       "media": {
         "type": "image",
-        "url": "media\\DavidBowieBlackStar.png"
+        "url": "media\\db.png"
       }
     },
     {
@@ -186,7 +186,7 @@ window.QUIZ_QUESTIONS = {
       "display_answer": "My Sharona (The Knack)",
       "media": {
         "type": "audio",
-        "url": "media\\TheKnackMySharona.mp3"
+        "url": "media\\tk.mp3"
       }
     },
     {
@@ -216,7 +216,7 @@ window.QUIZ_QUESTIONS = {
       "display_answer": "Chelsea Dagger (The Fratellis)",
       "media": {
         "type": "video",
-        "url": "media\\ChelDag.mp4"
+        "url": "media\\cd.mp4"
       }
     },
     {
@@ -226,7 +226,7 @@ window.QUIZ_QUESTIONS = {
       "display_answer": "Cutting Crew (I Just Died in Your Arms Tonight)",
       "media": {
         "type": "video",
-        "url": "media\\CC.mp4"
+        "url": "media\\cc.mp4"
       }
     },
     {
@@ -256,7 +256,7 @@ window.QUIZ_QUESTIONS = {
       "answer": "The Zutons",
       "media": {
         "type": "video",
-        "url": "media\\val.mp4"
+        "url": "media\\tz.mp4"
       }
     },
     {
@@ -265,7 +265,7 @@ window.QUIZ_QUESTIONS = {
       "answer": 1995
     }
   ],
-  "2026-07-15": [
+  "2026-07-16": [
     {
       "type": "letters",
       "question": "Name the Artist…",
@@ -273,7 +273,7 @@ window.QUIZ_QUESTIONS = {
       "display_answer": "Chris Martin",
       "media": {
         "type": "video",
-        "url": "media\\ChrisMartin.mp4"
+        "url": "media\\cm.mp4"
       }
     },
     {
@@ -303,7 +303,7 @@ window.QUIZ_QUESTIONS = {
       "display_answer": "Fleetwood Mac (Rumours)",
       "media": {
         "type": "image",
-        "url": "media\\FleetwoodMacRumours.png"
+        "url": "media\\fm.png"
       }
     },
     {
@@ -313,7 +313,7 @@ window.QUIZ_QUESTIONS = {
       "display_answer": "Otherside (Red Hot Chili Peppers)",
       "media": {
         "type": "audio",
-        "url": "media\\RedHotChiliPeppersOtherside.mp3"
+        "url": "media\\os.mp3"
       }
     },
     {
@@ -343,7 +343,7 @@ window.QUIZ_QUESTIONS = {
       "display_answer": "Take On Me (A-Ha)",
       "media": {
         "type": "video",
-        "url": "media\\TakeOnMeAHA.mp4"
+        "url": "media\\to.mp4"
       }
     },
     {
@@ -353,7 +353,7 @@ window.QUIZ_QUESTIONS = {
       "display_answer": "Wamdue Project (King of My Castle)",
       "media": {
         "type": "video",
-        "url": "media\\WamdueProject.mp4"
+        "url": "media\\wpmp4"
       }
     },
     {
@@ -383,7 +383,7 @@ window.QUIZ_QUESTIONS = {
       "answer": "Talk Talk",
       "media": {
         "type": "video",
-        "url": "media\\ItsMyLife.mp4"
+        "url": "media\\ml.mp4"
       }
     },
     {
