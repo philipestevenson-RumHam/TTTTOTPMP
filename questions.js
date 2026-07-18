@@ -7,6 +7,7 @@
 //   letters         : answer (letter), display_answer (full word)
 //   numbers         : answer (integer)
 //   sequence        : items (up to 6, shown shuffled), answer (correct order array)
+//   wordsnake       : answer (word or phrase, max 20 letters — spaces don't count)
 //   optional media  : column P is the file/URL; column Q can specify image, video, or audio.
 //                     If Q is blank, the type is inferred from its extension.
 
@@ -390,6 +391,58 @@ window.QUIZ_QUESTIONS = {
       "type": "numbers",
       "question": "In what decade did Queen score their first UK Number One single?",
       "answer": 1970
+    }
+  ],
+  "2026-07-15": [
+    {
+      "type": "wordsnake",
+      "question": "Find the band name",
+      "answer": "White Snake"
+    },
+    {
+      "type": "wordsnake",
+      "question": "Find the band name",
+      "answer": "White Snake"
+    },
+    {
+      "type": "wordsnake",
+      "question": "Find the band name",
+      "answer": "White Snake"
+    },
+    {
+      "type": "wordsnake",
+      "question": "Find the band name",
+      "answer": "White Snake"
+    },
+    {
+      "type": "wordsnake",
+      "question": "Find the band name",
+      "answer": "White Snake"
+    },
+    {
+      "type": "wordsnake",
+      "question": "Find the band name",
+      "answer": "White Snake"
+    },
+    {
+      "type": "wordsnake",
+      "question": "Find the band name",
+      "answer": "White Snake"
+    },
+    {
+      "type": "wordsnake",
+      "question": "Find the band name",
+      "answer": "White Snake"
+    },
+    {
+      "type": "wordsnake",
+      "question": "Find the band name",
+      "answer": "White Snake"
+    },
+    {
+      "type": "wordsnake",
+      "question": "Find the band name",
+      "answer": "White Snake"
     }
   ]
 };

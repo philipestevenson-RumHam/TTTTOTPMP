@@ -366,6 +366,37 @@ button {
   grid-template-columns: repeat(4, minmax(0, 1fr));
   grid-template-rows: repeat(6, minmax(0, 1fr));
 }
+.keypad.snake-grid {
+  grid-template-rows: repeat(5, minmax(0, 1fr));
+}
+.snake-progress-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 4px;
+  flex-shrink: 0;
+}
+.snake-progress-box {
+  width: 24px;
+  height: 30px;
+  border-radius: 5px;
+  border: 1px solid rgba(122,143,200,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--sq-text-muted);
+  flex-shrink: 0;
+}
+.snake-progress-box.filled {
+  border-color: #f5d76e;
+  color: #f5d76e;
+  background: rgba(245,215,110,0.12);
+}
+.snake-progress-space { width: 10px; flex-shrink: 0; }
 .keypad.numbers {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   grid-template-rows: repeat(4, minmax(0, 1fr));
@@ -464,6 +495,16 @@ button {
   font-weight: 700;
 }
 .kbtn.dimmed-state { background: var(--sq-cyan-dark) !important; color: var(--sq-btn-text) !important; }
+.kbtn.snake-cell { position: relative; font-size: 2.2rem; }
+.kbtn.snake-cell.tapped { background: #f5d76e !important; color: #07091c !important; }
+.kbtn.snake-cell .snake-order {
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  opacity: 0.8;
+}
 @keyframes pulse-correct {
   0% { transform: scale(1); }
   50% { transform: scale(1.03); box-shadow: 0 0 20px rgba(0,200,232,0.7); }
@@ -1437,6 +1478,7 @@ button {
       case 'letters': renderLetters(q); break;
       case 'numbers': renderNumbers(q); break;
       case 'sequence': renderSequence(q); break;
+      case 'wordsnake': renderWordSnake(q); break;
     }
     showQuestionMedia(q);
     typewriterReveal(q.question, () => { if (!answered) startTimer(); });
@@ -1637,6 +1679,169 @@ button {
   }
 
   // Sequence
+  // Word Snake — answer letters are hidden in a 4x6 grid (same footprint as the
+  // letters keypad) along a path where each letter touches the previous one
+  // (up/down/left/right). The rest of the grid is random decoy letters.
+  const SNAKE_COLS = 4, SNAKE_ROWS = 5;
+
+  function generateSnakePath(letterCount) {
+    const total = SNAKE_COLS * SNAKE_ROWS;
+    if (letterCount > total) return null;
+    const idx = (r, c) => r * SNAKE_COLS + c;
+    const neighbors = (r, c) => {
+      const out = [];
+      if (r > 0) out.push([r - 1, c]);
+      if (r < SNAKE_ROWS - 1) out.push([r + 1, c]);
+      if (c > 0) out.push([r, c - 1]);
+      if (c < SNAKE_COLS - 1) out.push([r, c + 1]);
+      return out;
+    };
+    for (let attempt = 0; attempt < 80; attempt++) {
+      const visited = new Set();
+      let r = Math.floor(Math.random() * SNAKE_ROWS);
+      let c = Math.floor(Math.random() * SNAKE_COLS);
+      const path = [[r, c]];
+      visited.add(idx(r, c));
+      let ok = true;
+      for (let i = 1; i < letterCount; i++) {
+        const opts = neighbors(r, c).filter(([nr, nc]) => !visited.has(idx(nr, nc)));
+        if (!opts.length) { ok = false; break; }
+        const [nr, nc] = opts[Math.floor(Math.random() * opts.length)];
+        path.push([nr, nc]);
+        visited.add(idx(nr, nc));
+        r = nr; c = nc;
+      }
+      if (ok) return path;
+    }
+    // Fallback: guaranteed-to-fit boustrophedon snake (always valid adjacency)
+    const path = [];
+    for (let rr = 0; rr < SNAKE_ROWS && path.length < letterCount; rr++) {
+      const rowCols = rr % 2 === 0 ? [0, 1, 2, 3] : [3, 2, 1, 0];
+      for (const cc of rowCols) {
+        if (path.length >= letterCount) break;
+        path.push([rr, cc]);
+      }
+    }
+    return path;
+  }
+
+  function renderWordSnake(q) {
+    const letters = q.answer.toUpperCase().replace(/[^A-Z]/g, '').split('');
+    const total = SNAKE_COLS * SNAKE_ROWS;
+    const path = generateSnakePath(letters.length) || [];
+    const cellLetters = new Array(total).fill(null);
+    const pathIndexes = path.map(([r, c]) => r * SNAKE_COLS + c);
+    pathIndexes.forEach((cellIdx, i) => { cellLetters[cellIdx] = letters[i]; });
+    const ALPHA = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    for (let i = 0; i < total; i++) {
+      if (cellLetters[i] === null) cellLetters[i] = ALPHA[Math.floor(Math.random() * ALPHA.length)];
+    }
+
+    const grid = document.createElement('div');
+    grid.className = 'keypad letters snake-grid';
+    const state = { letters: letters, tapped: [] }; // tapped: [{index, letter}]
+    grid._snakeState = state;
+    grid._snakePathIndexes = pathIndexes; // for the timeout reveal
+
+    const progressBar = document.createElement('div');
+    progressBar.className = 'snake-progress-bar';
+    const rawAnswer = q.answer.toUpperCase();
+    for (const ch of rawAnswer) {
+      if (ch === ' ') {
+        const space = document.createElement('div');
+        space.className = 'snake-progress-space';
+        progressBar.appendChild(space);
+      } else if (/[A-Z]/.test(ch)) {
+        const box = document.createElement('div');
+        box.className = 'snake-progress-box';
+        progressBar.appendChild(box);
+      }
+    }
+    grid._progressBar = progressBar;
+    aPanel.appendChild(progressBar);
+
+    for (let i = 0; i < total; i++) {
+      const btn = document.createElement('button');
+      btn.className = 'kbtn snake-cell';
+      btn.textContent = cellLetters[i];
+      btn.dataset.index = i;
+      btn.addEventListener('click', () => onSnakeTap(btn, q, grid));
+      grid.appendChild(btn);
+    }
+    aPanel.appendChild(grid);
+  }
+
+  function updateSnakeProgress(grid) {
+    const state = grid._snakeState;
+    const boxes = grid._progressBar.querySelectorAll('.snake-progress-box');
+    boxes.forEach((box, i) => {
+      if (i < state.tapped.length) {
+        box.textContent = state.tapped[i].letter;
+        box.classList.add('filled');
+      } else {
+        box.textContent = '';
+        box.classList.remove('filled');
+      }
+    });
+  }
+
+  function isSnakeAdjacent(grid, index) {
+    const state = grid._snakeState;
+    const last = state.tapped[state.tapped.length - 1];
+    if (!last) return true; // no taps yet — any cell can start the path
+    const lastR = Math.floor(last.index / SNAKE_COLS), lastC = last.index % SNAKE_COLS;
+    const r = Math.floor(index / SNAKE_COLS), c = index % SNAKE_COLS;
+    return (Math.abs(r - lastR) + Math.abs(c - lastC)) === 1;
+  }
+
+  function onSnakeTap(btn, q, grid) {
+    if (answered) return;
+    const state = grid._snakeState;
+    const index = parseInt(btn.dataset.index, 10);
+
+    // Untap: tapping an already-tapped cell removes it (and anything tapped after it)
+    if (btn.classList.contains('tapped')) {
+      const pos = state.tapped.findIndex(t => t.index === index);
+      const removed = state.tapped.splice(pos);
+      removed.forEach(t => {
+        const b = grid.querySelector(`.snake-cell[data-index="${t.index}"]`);
+        if (b) { b.classList.remove('tapped'); const os = b.querySelector('.snake-order'); if (os) os.remove(); }
+      });
+      updateSnakeProgress(grid);
+      return;
+    }
+
+    if (!isSnakeAdjacent(grid, index)) return; // not adjacent to the last tap
+
+    state.tapped.push({ index: index, letter: btn.textContent });
+    btn.classList.add('tapped');
+    const os = document.createElement('span');
+    os.className = 'snake-order'; os.textContent = state.tapped.length;
+    btn.appendChild(os);
+    updateSnakeProgress(grid);
+
+    if (state.tapped.length === state.letters.length) {
+      answered = true; stopTimer(); revealQuestionTextNow();
+      const isCorrect = state.tapped.map(t => t.letter).join('') === state.letters.join('');
+      const pts = awardPoints(isCorrect);
+      if (isCorrect) {
+        grid.querySelectorAll('.snake-cell.tapped').forEach(b => b.classList.add('correct-state', 'pulse'));
+      } else {
+        highlightCorrectSnake(grid);
+      }
+      showFeedback(isCorrect, q.display_answer || q.answer, pts);
+    }
+  }
+
+  function highlightCorrectSnake(grid) {
+    const pathIndexes = grid._snakePathIndexes || [];
+    grid.querySelectorAll('.snake-cell').forEach(b => {
+      const i = parseInt(b.dataset.index, 10);
+      if (pathIndexes.includes(i)) b.classList.add('correct-state', 'pulse');
+      else b.classList.add('dimmed-state');
+    });
+  }
+
   function renderSequence(q) {
     const grid = document.createElement('div');
     grid.className = 'keypad sequence';
@@ -1701,6 +1906,12 @@ button {
       case 'letters': correctDisplay = q.display_answer || q.answer; highlightCorrectLetters(q); break;
       case 'numbers': correctDisplay = String(q.answer); break;
       case 'sequence': correctDisplay = q.answer.join(' → '); break;
+      case 'wordsnake': {
+        correctDisplay = q.display_answer || q.answer;
+        const snakeGrid = aPanel.querySelector('.snake-grid');
+        if (snakeGrid) highlightCorrectSnake(snakeGrid);
+        break;
+      }
     }
     showFeedback(false, correctDisplay, 0, true);
   }

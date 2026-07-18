@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Excel → questions.js Converter</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, sans-serif; background: #f0f4f8; display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 40px 20px; }
+  h1 { font-size: 1.6rem; color: #1F3864; margin-bottom: 6px; }
+  p.sub { color: #555; margin-bottom: 32px; }
+  #dropzone {
+    border: 3px dashed #2E75B6; border-radius: 16px; background: #fff;
+    width: 100%; max-width: 560px; padding: 60px 20px;
+    text-align: center; cursor: pointer; transition: background .2s;
+  }
+  #dropzone.over { background: #e8f4ff; }
+  #dropzone svg { margin-bottom: 14px; }
+  #dropzone p { color: #444; font-size: 1rem; }
+  #dropzone span { color: #2E75B6; font-weight: 600; }
+  #file-input { display: none; }
+  #status { margin-top: 22px; font-size: .95rem; color: #333; min-height: 24px; }
+  #convert-btn {
+    margin-top: 20px; display: none;
+    background: #1F3864; color: #fff; border: none; border-radius: 10px;
+    padding: 14px 36px; font-size: 1rem; font-weight: 600; cursor: pointer;
+    transition: background .2s;
+  }
+  #convert-btn:hover { background: #2E75B6; }
+  #preview { margin-top: 28px; width: 100%; max-width: 700px; }
+  pre {
+    background: #1e1e2e; color: #cdd6f4; border-radius: 12px;
+    padding: 20px; font-size: .78rem; overflow: auto; max-height: 380px;
+    white-space: pre-wrap; word-break: break-word;
+  }
+  .legend { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 24px; max-width: 560px; }
+  .chip { border-radius: 8px; padding: 4px 12px; font-size: .8rem; font-weight: 600; }
+</style>
+</head>
+<body>
+<h1>⚡ Excel → questions.js</h1>
+<p class="sub">Convert your monthly quiz spreadsheet, including optional image, video, and audio, into a ready-to-use questions.js file.</p>
+
+<div id="dropzone" onclick="document.getElementById('file-input').click()">
+  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#2E75B6" stroke-width="1.6">
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+    <polyline points="17 8 12 3 7 8"/>
+    <line x1="12" y1="3" x2="12" y2="15"/>
+  </svg>
+  <p>Drop your <span>.xlsx</span> file here<br><span style="font-size:.85rem;font-weight:400;color:#888">or click to browse</span></p>
+</div>
+<input type="file" id="file-input" accept=".xlsx"/>
+
+<div id="status"></div>
+<button id="convert-btn">⬇ Convert &amp; Download questions.js</button>
+<div id="preview"></div>
+
+<div class="legend">
+  <span class="chip" style="background:#E2EFDA">multiple_choice</span>
+  <span class="chip" style="background:#FFF2CC">letters</span>
+  <span class="chip" style="background:#FCE4D6">numbers</span>
+  <span class="chip" style="background:#EAD1DC">sequence</span>
+  <span class="chip" style="background:#D9E8D3">wordsnake</span>
+  <span class="chip" style="background:#DDEBF7">optional media: image / video / audio</span>
+</div>
+
+<!-- SheetJS -->
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+<script>
+const dropzone   = document.getElementById('dropzone');
+const fileInput  = document.getElementById('file-input');
+const status     = document.getElementById('status');
+const convertBtn = document.getElementById('convert-btn');
+const preview    = document.getElementById('preview');
+
+let parsedData = null;
+
+// ── Drag & drop ─────────────────────────────────────────────────
+dropzone.addEventListener('dragover',  e => { e.preventDefault(); dropzone.classList.add('over'); });
+dropzone.addEventListener('dragleave', () => dropzone.classList.remove('over'));
+dropzone.addEventListener('drop', e => {
+  e.preventDefault(); dropzone.classList.remove('over');
+  const file = e.dataTransfer.files[0];
+  if (file) processFile(file);
+});
+fileInput.addEventListener('change', () => {
+  if (fileInput.files[0]) processFile(fileInput.files[0]);
+});
+
+// ── Read & parse ─────────────────────────────────────────────────
+function processFile(file) {
+  status.textContent = '⏳ Reading file…';
+  convertBtn.style.display = 'none';
+  preview.innerHTML = '';
+  parsedData = null;
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const wb  = XLSX.read(e.target.result, { type: 'array' });
+      // Use "QUESTIONS" sheet, or first sheet
+      const sheetName = wb.SheetNames.includes('QUESTIONS') ? 'QUESTIONS' : wb.SheetNames[0];
+      const ws  = wb.Sheets[sheetName];
+      // raw:false is important: Excel stores dates internally as serial numbers
+      // (for example, 46174), while this converter requires YYYY-MM-DD text.
+      const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '', raw: false });
+
+      // Skip header row (row 0) — detect by checking if col A is "Date" or "date"
+      let startRow = 0;
+      if (rows.length > 0) {
+        const first = String(rows[0][0] || '').toLowerCase();
+        if (first === 'date' || first === '') startRow = 1;
+      }
+
+      const questions = {};
+      let errorCount = 0;
+      let okCount    = 0;
+
+      for (let i = startRow; i < rows.length; i++) {
+        const row = rows[i];
+        // Cols: A–O hold question data; P=media file/URL; Q=optional media type
+        const dateStr = String(row[0] || '').trim();
+        const qtype   = String(row[1] || '').trim().toLowerCase();
+        const question = String(row[2] || '').trim();
+
+        // Skip blank rows
+        if (!dateStr || !qtype || !question) continue;
+
+        // Validate date
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+          console.warn(`Row ${i+1}: invalid date "${dateStr}" — skipped`);
+          errorCount++;
+          continue;
+        }
+
+        let q = null;
+
+        if (qtype === 'multiple_choice') {
+          // D–I = options (up to 6), J = correct answer
+          const options = [row[3],row[4],row[5],row[6],row[7],row[8]]
+            .map(v => String(v).trim()).filter(v => v !== '');
+          const answer  = String(row[9] || '').trim();
+          if (options.length < 2) { console.warn(`Row ${i+1}: MC needs at least 2 options`); errorCount++; continue; }
+          if (!answer) { console.warn(`Row ${i+1}: MC missing correct answer`); errorCount++; continue; }
+          q = { type: 'multiple_choice', question, options, answer };
+
+        } else if (qtype === 'letters') {
+          // D = letter, E = full word
+          const letter = String(row[3] || '').trim().toUpperCase();
+          const word   = String(row[4] || '').trim();
+          if (!letter) { console.warn(`Row ${i+1}: letters missing letter`); errorCount++; continue; }
+          q = { type: 'letters', question, answer: letter, display_answer: word || letter };
+
+        } else if (qtype === 'numbers') {
+          // D = the number
+          const num = String(row[3] || '').trim();
+          if (!num) { console.warn(`Row ${i+1}: numbers missing value`); errorCount++; continue; }
+          const parsed = parseInt(num, 10);
+          if (isNaN(parsed)) { console.warn(`Row ${i+1}: numbers value is not an integer`); errorCount++; continue; }
+          q = { type: 'numbers', question, answer: parsed };
+
+        } else if (qtype === 'sequence') {
+          // D–I = items (up to 6, any order), J–O = correct order
+          const items = [row[3],row[4],row[5],row[6],row[7],row[8]]
+            .map(v => String(v).trim()).filter(v => v !== '');
+          const answer = [row[9],row[10],row[11],row[12],row[13],row[14]]
+            .map(v => String(v).trim()).filter(v => v !== '');
+          if (items.length < 2) { console.warn(`Row ${i+1}: sequence needs at least 2 items`); errorCount++; continue; }
+          if (answer.length < 2) { console.warn(`Row ${i+1}: sequence needs at least 2 order values`); errorCount++; continue; }
+          q = { type: 'sequence', question, items, answer };
+
+        } else if (qtype === 'wordsnake') {
+          // D = the answer word or phrase (max 20 letters, spaces don't count)
+          const answer = String(row[3] || '').trim();
+          if (!answer) { console.warn(`Row ${i+1}: wordsnake missing answer`); errorCount++; continue; }
+          const letterCount = answer.toUpperCase().replace(/[^A-Z]/g, '').length;
+          if (letterCount === 0) { console.warn(`Row ${i+1}: wordsnake answer has no letters`); errorCount++; continue; }
+          if (letterCount > 20) { console.warn(`Row ${i+1}: wordsnake answer "${answer}" has ${letterCount} letters — max is 20`); errorCount++; continue; }
+          q = { type: 'wordsnake', question, answer };
+
+        } else {
+          console.warn(`Row ${i+1}: unknown type "${qtype}" — skipped`);
+          errorCount++;
+          continue;
+        }
+
+        // P = media file/URL (e.g. media/eiffel-tower.jpg). Q = optional
+        // explicit type. If Q is blank, its type is inferred from the file extension.
+        const mediaUrl = String(row[15] || '').trim();
+        const enteredMediaType = String(row[16] || '').trim().toLowerCase();
+        if (mediaUrl) {
+          const extension = mediaUrl.split('?')[0].split('#')[0].split('.').pop().toLowerCase();
+          const mediaTypes = {
+            jpg: 'image', jpeg: 'image', png: 'image', gif: 'image', webp: 'image',
+            svg: 'image', avif: 'image', bmp: 'image',
+            mp4: 'video', webm: 'video', ogv: 'video', mov: 'video',
+            mp3: 'audio', m4a: 'audio', wav: 'audio', ogg: 'audio', aac: 'audio'
+          };
+          const mediaType = enteredMediaType || mediaTypes[extension];
+          if (!['image', 'video', 'audio'].includes(mediaType)) {
+            console.warn(`Row ${i+1}: media needs a recognised file extension or a Media Type of image, video, or audio`);
+            errorCount++;
+            continue;
+          }
+          q.media = { type: mediaType, url: mediaUrl };
+        }
+
+        if (!questions[dateStr]) questions[dateStr] = [];
+        questions[dateStr].push(q);
+        okCount++;
+      }
+
+      if (okCount === 0) {
+        status.textContent = `❌ No valid questions found. Check your file format.`;
+        return;
+      }
+
+      parsedData = questions;
+      const dates = Object.keys(questions).sort();
+      status.textContent = `✅ Found ${okCount} question${okCount!==1?'s':''} across ${dates.length} date${dates.length!==1?'s':''}` +
+        (errorCount ? ` · ⚠️ ${errorCount} row${errorCount!==1?'s':''} skipped (see console)` : '') + '.';
+      convertBtn.style.display = 'inline-block';
+
+      // Preview
+      const previewJson = JSON.stringify(questions, null, 2).slice(0, 2000);
+      preview.innerHTML = `<pre>${escHtml(previewJson)}${previewJson.length >= 2000 ? '\n…' : ''}</pre>`;
+
+    } catch(err) {
+      status.textContent = '❌ Error reading file: ' + err.message;
+      console.error(err);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// ── Convert & download ───────────────────────────────────────────
+convertBtn.addEventListener('click', () => {
+  if (!parsedData) return;
+
+  const js = `// SpeedQuiz — Monthly Questions
+// Auto-generated by excel_to_questions.html
+// Do not edit by hand — regenerate from your Excel template instead.
+//
+// Columns by type:
+//   multiple_choice : options (up to 6), answer
+//   letters         : answer (letter), display_answer (full word)
+//   numbers         : answer (integer)
+//   sequence        : items (up to 6, shown shuffled), answer (correct order array)
+//   wordsnake       : answer (word or phrase, max 20 letters — spaces don't count)
+//   optional media  : column P is the file/URL; column Q can specify image, video, or audio.
+//                     If Q is blank, the type is inferred from its extension.
+
+window.QUIZ_QUESTIONS = ${JSON.stringify(parsedData, null, 2)};
+`;
+
+  const blob = new Blob([js], { type: 'text/javascript' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = 'questions.js';
+  a.click();
+  URL.revokeObjectURL(url);
+  status.textContent += ' — Downloaded! ✓';
+});
+
+function escHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
+</body>
+</html>
