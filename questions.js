@@ -8,6 +8,8 @@
 //   numbers         : answer (integer)
 //   sequence        : items (up to 6, shown shuffled), answer (correct order array)
 //   wordsnake       : answer (word or phrase, max 20 letters — spaces don't count)
+//   tapspot         : target (JSON array of {x,y} points from the Shape Picker
+//                     tool, min 3), requires an image in the media column
 //   optional media  : column P is the file/URL; column Q can specify image, video, or audio.
 //                     If Q is blank, the type is inferred from its extension.
 
@@ -388,6 +390,67 @@ window.QUIZ_QUESTIONS = {
       "type": "numbers",
       "question": "In what decade did Queen score their first UK Number One single?",
       "answer": 1970
+    }
+  ],
+  "2026-07-15": [
+    {
+      "type": "tapspot",
+      "question": "Name the Artist from the Album Cover…",
+      "target": [
+        {
+          "x": 35.2,
+          "y": 16
+        },
+        {
+          "x": 32.7,
+          "y": 18.5
+        },
+        {
+          "x": 32,
+          "y": 21.4
+        },
+        {
+          "x": 32,
+          "y": 23.9
+        },
+        {
+          "x": 31.7,
+          "y": 26.4
+        },
+        {
+          "x": 29.8,
+          "y": 27.5
+        },
+        {
+          "x": 27.8,
+          "y": 28.7
+        },
+        {
+          "x": 28.7,
+          "y": 31.5
+        },
+        {
+          "x": 30.9,
+          "y": 32.2
+        },
+        {
+          "x": 33.7,
+          "y": 30.6
+        },
+        {
+          "x": 40.6,
+          "y": 24.3
+        },
+        {
+          "x": 39.5,
+          "y": 19
+        }
+      ],
+      "display_answer": "The White Stripes (Elephant)",
+      "media": {
+        "type": "image",
+        "url": "media\\ws.jpg"
+      }
     }
   ]
 };

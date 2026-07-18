@@ -61,6 +61,7 @@
   <span class="chip" style="background:#FCE4D6">numbers</span>
   <span class="chip" style="background:#EAD1DC">sequence</span>
   <span class="chip" style="background:#D9E8D3">wordsnake</span>
+  <span class="chip" style="background:#F8CBAD">tapspot</span>
   <span class="chip" style="background:#DDEBF7">optional media: image / video / audio</span>
 </div>
 
@@ -178,6 +179,24 @@ function processFile(file) {
           if (letterCount > 20) { console.warn(`Row ${i+1}: wordsnake answer "${answer}" has ${letterCount} letters — max is 20`); errorCount++; continue; }
           q = { type: 'wordsnake', question, answer };
 
+        } else if (qtype === 'tapspot') {
+          // D = target shape — paste the "coordinates only" JSON array from the
+          //     Shape Picker tool, e.g. [{"x":58,"y":22},{"x":67,"y":20},...]
+          // E = optional answer label (shown in the feedback text, e.g. "Big Ben")
+          const targetRaw = String(row[3] || '').trim();
+          const displayAnswer = String(row[4] || '').trim();
+          if (!targetRaw) { console.warn(`Row ${i+1}: tapspot missing target coordinates`); errorCount++; continue; }
+          let target;
+          try { target = JSON.parse(targetRaw); }
+          catch (e) { console.warn(`Row ${i+1}: tapspot target isn't valid JSON — ${e.message}`); errorCount++; continue; }
+          if (!Array.isArray(target) || target.length < 3 ||
+              !target.every(p => p && typeof p.x === 'number' && typeof p.y === 'number')) {
+            console.warn(`Row ${i+1}: tapspot target must be a JSON array of at least 3 {x,y} points`);
+            errorCount++; continue;
+          }
+          q = { type: 'tapspot', question, target };
+          if (displayAnswer) q.display_answer = displayAnswer;
+
         } else {
           console.warn(`Row ${i+1}: unknown type "${qtype}" — skipped`);
           errorCount++;
@@ -203,6 +222,17 @@ function processFile(file) {
             continue;
           }
           q.media = { type: mediaType, url: mediaUrl };
+        }
+
+        if (q.type === 'tapspot' && !q.media) {
+          console.warn(`Row ${i+1}: tapspot needs an image in the media column — the image is the question`);
+          errorCount++;
+          continue;
+        }
+        if (q.type === 'tapspot' && q.media && q.media.type !== 'image') {
+          console.warn(`Row ${i+1}: tapspot media must be an image, not ${q.media.type}`);
+          errorCount++;
+          continue;
         }
 
         if (!questions[dateStr]) questions[dateStr] = [];
@@ -247,6 +277,8 @@ convertBtn.addEventListener('click', () => {
 //   numbers         : answer (integer)
 //   sequence        : items (up to 6, shown shuffled), answer (correct order array)
 //   wordsnake       : answer (word or phrase, max 20 letters — spaces don't count)
+//   tapspot         : target (JSON array of {x,y} points from the Shape Picker
+//                     tool, min 3), requires an image in the media column
 //   optional media  : column P is the file/URL; column Q can specify image, video, or audio.
 //                     If Q is blank, the type is inferred from its extension.
 

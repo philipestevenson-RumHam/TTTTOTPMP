@@ -397,6 +397,25 @@ button {
   background: rgba(245,215,110,0.12);
 }
 .snake-progress-space { width: 10px; flex-shrink: 0; }
+.tapspot-wrap {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  background: rgba(20,26,64,0.9);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.tapspot-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+.tapspot-wrap svg {
+  position: absolute;
+  cursor: crosshair;
+  touch-action: manipulation;
+}
 .keypad.numbers {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   grid-template-rows: repeat(4, minmax(0, 1fr));
@@ -1479,8 +1498,9 @@ button {
       case 'numbers': renderNumbers(q); break;
       case 'sequence': renderSequence(q); break;
       case 'wordsnake': renderWordSnake(q); break;
+      case 'tapspot': renderTapSpot(q); break;
     }
-    showQuestionMedia(q);
+    if (q.type !== 'tapspot') showQuestionMedia(q);
     typewriterReveal(q.question, () => { if (!answered) startTimer(); });
   }
 
@@ -1842,6 +1862,109 @@ button {
     });
   }
 
+  // Tap Spot — the image itself is the answer surface. A polygon of {x,y}
+  // percentage points (from the Shape Picker tool) defines the target area;
+  // tapping inside it (via point-in-polygon) counts as correct.
+  const SVG_NS = 'http://www.w3.org/2000/svg';
+
+  function renderTapSpot(q) {
+    const wrap = document.createElement('div');
+    wrap.className = 'tapspot-wrap';
+    const img = document.createElement('img');
+    img.src = q.media && q.media.url;
+    img.alt = '';
+    wrap.appendChild(img);
+
+    const svg = document.createElementNS(SVG_NS, 'svg');
+    svg.setAttribute('viewBox', '0 0 100 100');
+    svg.setAttribute('preserveAspectRatio', 'none');
+    wrap.appendChild(svg);
+
+    const reposition = () => positionTapSpotOverlay(img, svg, wrap);
+    if (img.complete && img.naturalWidth) reposition();
+    img.addEventListener('load', reposition);
+    window.addEventListener('resize', reposition);
+    svg._cleanup = () => window.removeEventListener('resize', reposition);
+
+    img.addEventListener('error', () => {
+      // No sensible text-only fallback here — the image IS the question.
+      // Treat it as an unanswerable miss and move on, same as any other wrong answer.
+      if (answered) return;
+      answered = true; stopTimer(); revealQuestionTextNow();
+      const pts = awardPoints(false);
+      showFeedback(false, 'Image failed to load', pts);
+    }, { once: true });
+
+    svg.addEventListener('click', e => onTapSpotClick(e, q, svg));
+    aPanel.appendChild(wrap);
+  }
+
+  function positionTapSpotOverlay(img, svg, wrap) {
+    const wrapRect = wrap.getBoundingClientRect();
+    if (!wrapRect.width || !wrapRect.height || !img.naturalWidth) return;
+    const naturalRatio = img.naturalWidth / img.naturalHeight;
+    const wrapRatio = wrapRect.width / wrapRect.height;
+    let renderW, renderH, offsetX, offsetY;
+    if (naturalRatio > wrapRatio) {
+      renderW = wrapRect.width;
+      renderH = wrapRect.width / naturalRatio;
+      offsetX = 0;
+      offsetY = (wrapRect.height - renderH) / 2;
+    } else {
+      renderH = wrapRect.height;
+      renderW = wrapRect.height * naturalRatio;
+      offsetY = 0;
+      offsetX = (wrapRect.width - renderW) / 2;
+    }
+    svg.style.left = offsetX + 'px';
+    svg.style.top = offsetY + 'px';
+    svg.style.width = renderW + 'px';
+    svg.style.height = renderH + 'px';
+  }
+
+  function pointInPolygon(x, y, poly) {
+    let inside = false;
+    for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+      const xi = poly[i].x, yi = poly[i].y;
+      const xj = poly[j].x, yj = poly[j].y;
+      const intersect = ((yi > y) !== (yj > y)) &&
+        (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+      if (intersect) inside = !inside;
+    }
+    return inside;
+  }
+
+  function onTapSpotClick(e, q, svg) {
+    if (answered) return;
+    answered = true; stopTimer(); revealQuestionTextNow();
+    if (svg._cleanup) svg._cleanup();
+    const rect = svg.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    const isCorrect = pointInPolygon(x, y, q.target);
+    const pts = awardPoints(isCorrect);
+    drawTapSpotReveal(svg, q.target, { x, y }, isCorrect);
+    showFeedback(isCorrect, q.display_answer || '', pts);
+  }
+
+  function drawTapSpotReveal(svg, target, tapPoint, isCorrect) {
+    const poly = document.createElementNS(SVG_NS, 'polygon');
+    poly.setAttribute('points', target.map(p => `${p.x},${p.y}`).join(' '));
+    poly.setAttribute('fill', isCorrect ? 'rgba(34,197,94,0.25)' : 'rgba(245,215,110,0.2)');
+    poly.setAttribute('stroke', isCorrect ? '#22c55e' : '#f5d76e');
+    poly.setAttribute('stroke-width', '0.6');
+    svg.appendChild(poly);
+
+    const mark = document.createElementNS(SVG_NS, 'circle');
+    mark.setAttribute('cx', tapPoint.x);
+    mark.setAttribute('cy', tapPoint.y);
+    mark.setAttribute('r', 1.8);
+    mark.setAttribute('fill', isCorrect ? '#22c55e' : '#ff6b6b');
+    mark.setAttribute('stroke', '#07091c');
+    mark.setAttribute('stroke-width', '0.5');
+    svg.appendChild(mark);
+  }
+
   function renderSequence(q) {
     const grid = document.createElement('div');
     grid.className = 'keypad sequence';
@@ -1912,6 +2035,20 @@ button {
         if (snakeGrid) highlightCorrectSnake(snakeGrid);
         break;
       }
+      case 'tapspot': {
+        correctDisplay = q.display_answer || '';
+        const spotSvg = aPanel.querySelector('.tapspot-wrap svg');
+        if (spotSvg) {
+          if (spotSvg._cleanup) spotSvg._cleanup();
+          const poly = document.createElementNS(SVG_NS, 'polygon');
+          poly.setAttribute('points', q.target.map(p => `${p.x},${p.y}`).join(' '));
+          poly.setAttribute('fill', 'rgba(245,215,110,0.2)');
+          poly.setAttribute('stroke', '#f5d76e');
+          poly.setAttribute('stroke-width', '0.6');
+          spotSvg.appendChild(poly);
+        }
+        break;
+      }
     }
     showFeedback(false, correctDisplay, 0, true);
   }
@@ -1951,15 +2088,18 @@ button {
     clearReveals();
     qText.classList.add('dimmed');
     const jokerNote = (isCorrect && jokerActive) ? ' (Joker x2!)' : '';
-    const safeAnswer = escapeHtml(answer);
+    const safeAnswer = escapeHtml(answer || '');
+    const answerLabel = safeAnswer ? `${safeAnswer}` : '';
     if (timeout) {
-      fbText.innerHTML = `Time's up! Answer: ${safeAnswer}`;
+      fbText.innerHTML = safeAnswer ? `Time's up! Answer: ${safeAnswer}` : `Time's up!`;
       fbText.style.color = '#ff6b6b';
     } else if (isCorrect) {
-      fbText.innerHTML = `Correct! ${safeAnswer} <span class="fb-points">+${pts}${jokerNote}</span>`;
+      fbText.innerHTML = `Correct! ${answerLabel} <span class="fb-points">+${pts}${jokerNote}</span>`;
       fbText.style.color = '#00c8e8';
     } else {
-      fbText.innerHTML = `Wrong! Answer: ${safeAnswer}. <span class="fb-points fb-points-lost">Back to 1 point.</span>`;
+      fbText.innerHTML = safeAnswer
+        ? `Wrong! Answer: ${safeAnswer}. <span class="fb-points fb-points-lost">Back to 1 point.</span>`
+        : `Wrong! <span class="fb-points fb-points-lost">Back to 1 point.</span>`;
       fbText.style.color = '#ff6b6b';
     }
     preloadMedia(gameQuestions[currentIndex + 1]);
@@ -2146,7 +2286,8 @@ button {
     { heading: 'Letters', text: 'Tap the letter grid to choose the first letter of the answer.', list: ['Tap the letter that starts the answer','The full answer is revealed afterwards','Q/V and X/Z share buttons'] },
     { heading: 'Numbers', text: 'Type the correct number using the keypad.', list: ['Use the number pad to enter your answer','Press Enter to submit','C clears your input'] },
     { heading: 'Sequence', text: 'Tap the items in the correct order.', list: ['Items appear in a random order','Tap them in the correct sequence (1st, 2nd, 3rd…)','Get them all right to score points'] },
-    { heading: 'Word Snake', text: 'The answer is hidden in the letter grid \u2014 you just have to find it.', list: ['Tap letters one at a time to spell it out','Each letter must be touching the last one (up, down, left or right)','Tap a selected letter again to undo it'] }
+    { heading: 'Word Snake', text: 'The answer is hidden in the letter grid \u2014 you just have to find it.', list: ['Tap letters one at a time to spell it out','Each letter must be touching the last one (up, down, left or right)','Tap a selected letter again to undo it'] },
+    { heading: 'Tap the Spot', text: 'Tap the correct place on the photo or image.', list: ['Look carefully \u2014 there\u2019s no keypad, the image itself is the answer','You get one tap, so make it count','Get it wrong and the correct area lights up so you can see where it was'] }
   ];
   let htpCurrentSlide = 0;
 

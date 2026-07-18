@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Tap-Spot Shape Picker</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, sans-serif; background: #f0f4f8; display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 40px 20px; }
+  h1 { font-size: 1.6rem; color: #1F3864; margin-bottom: 6px; }
+  p.sub { color: #555; margin-bottom: 28px; text-align: center; max-width: 560px; }
+
+  #dropzone {
+    border: 3px dashed #2E75B6; border-radius: 16px; background: #fff;
+    width: 100%; max-width: 560px; padding: 60px 20px;
+    text-align: center; cursor: pointer; transition: background .2s;
+  }
+  #dropzone.over { background: #e8f4ff; }
+  #dropzone svg { margin-bottom: 14px; }
+  #dropzone p { color: #444; font-size: 1rem; }
+  #dropzone span { color: #2E75B6; font-weight: 600; }
+  #file-input { display: none; }
+
+  #workspace { display: none; width: 100%; max-width: 720px; }
+  #toolbar {
+    display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+    background: #fff; border-radius: 12px; padding: 14px 16px; margin-bottom: 16px;
+  }
+  #toolbar button {
+    background: #eef3f9; color: #1F3864; border: none; border-radius: 8px;
+    padding: 9px 16px; font-size: .85rem; font-weight: 600; cursor: pointer;
+  }
+  #toolbar button:hover { background: #dde8f5; }
+  #toolbar button.primary { background: #1F3864; color: #fff; }
+  #toolbar button.primary:hover { background: #2E75B6; }
+  #toolbar button:disabled { opacity: .4; cursor: default; }
+  #point-count { margin-left: auto; font-size: .85rem; color: #555; font-weight: 600; }
+
+  #canvas-wrap {
+    position: relative; width: 100%; background: #000; border-radius: 12px;
+    overflow: hidden; line-height: 0; user-select: none;
+  }
+  #canvas-wrap img { width: 100%; display: block; pointer-events: none; }
+  #canvas-wrap svg { position: absolute; inset: 0; width: 100%; height: 100%; cursor: crosshair; touch-action: none; }
+  .vertex { fill: #FFD700; stroke: #1F3864; stroke-width: 0.5; cursor: grab; }
+  .vertex:active { cursor: grabbing; }
+  .vertex-label {
+    fill: #1F3864; font-size: 3px; font-weight: 700; text-anchor: middle;
+    pointer-events: none; paint-order: stroke; stroke: #fff; stroke-width: 0.6px;
+  }
+  .outline { fill: rgba(255, 215, 0, 0.22); stroke: #FFD700; stroke-width: 2; }
+
+  #hint { font-size: .85rem; color: #666; margin-top: 10px; text-align: center; }
+
+  #meta-row { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+  #meta-row > div { flex: 1; min-width: 220px; }
+  #meta-row label { display: block; font-size: .78rem; font-weight: 700; color: #1F3864; margin-bottom: 4px; text-transform: uppercase; letter-spacing: .03em; }
+  #meta-row input {
+    width: 100%; padding: 9px 10px; border: 1px solid #cdd8e6; border-radius: 8px; font-size: .9rem;
+  }
+
+  #output-wrap { margin-top: 18px; }
+  #output-tabs { display: flex; gap: 8px; margin-bottom: 8px; }
+  #output-tabs button {
+    background: #eef3f9; color: #1F3864; border: none; border-radius: 8px 8px 0 0;
+    padding: 8px 14px; font-size: .8rem; font-weight: 600; cursor: pointer; opacity: .6;
+  }
+  #output-tabs button.active { opacity: 1; background: #1e1e2e; color: #cdd6f4; }
+  pre {
+    background: #1e1e2e; color: #cdd6f4; border-radius: 0 12px 12px 12px;
+    padding: 16px; font-size: .78rem; overflow: auto; max-height: 220px;
+    white-space: pre-wrap; word-break: break-word;
+  }
+  #copy-btn { margin-top: 10px; }
+  #copy-status { font-size: .8rem; color: #2E7D32; margin-left: 10px; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<h1>📍 Tap-Spot Shape Picker</h1>
+<p class="sub">Upload an image, click around the target to trace its outline, and get back ready-to-use percentage coordinates for a <code>tapspot</code> question — no matter what size the image ends up displaying at.</p>
+
+<div id="dropzone" onclick="document.getElementById('file-input').click()">
+  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#2E75B6" stroke-width="1.6">
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+    <polyline points="17 8 12 3 7 8"/>
+    <line x1="12" y1="3" x2="12" y2="15"/>
+  </svg>
+  <p>Drop an <span>image</span> here<br><span style="font-size:.85rem;font-weight:400;color:#888">or click to browse</span></p>
+</div>
+<input type="file" id="file-input" accept="image/*"/>
+
+<div id="workspace">
+  <div id="toolbar">
+    <button id="undo-btn" disabled>↩ Undo point</button>
+    <button id="clear-btn" disabled>🗑 Clear all</button>
+    <button id="new-image-btn">🖼 New image</button>
+    <span id="point-count">0 points</span>
+  </div>
+
+  <div id="canvas-wrap">
+    <img id="target-image" alt="Uploaded target"/>
+    <svg id="overlay"></svg>
+  </div>
+  <p id="hint">Click to drop points around the outline. Drag any point to nudge it. Need 3+ points to close the shape.</p>
+
+  <div id="meta-row">
+    <div>
+      <label for="question-input">Question text</label>
+      <input type="text" id="question-input" placeholder="Tap where Big Ben is on this skyline"/>
+    </div>
+    <div>
+      <label for="filename-input">Media filename</label>
+      <input type="text" id="filename-input" placeholder="media/london-skyline.jpg"/>
+    </div>
+  </div>
+
+  <div id="output-wrap">
+    <div id="output-tabs">
+      <button class="active" data-tab="coords">Coordinates only</button>
+      <button data-tab="full">Full question JSON</button>
+    </div>
+    <pre id="output-box">Add at least 3 points to generate output.</pre>
+    <button id="copy-btn" disabled>📋 Copy to clipboard</button>
+    <span id="copy-status"></span>
+  </div>
+</div>
+
+<script>
+const dropzone     = document.getElementById('dropzone');
+const fileInput    = document.getElementById('file-input');
+const workspace     = document.getElementById('workspace');
+const targetImage   = document.getElementById('target-image');
+const overlay       = document.getElementById('overlay');
+const undoBtn        = document.getElementById('undo-btn');
+const clearBtn       = document.getElementById('clear-btn');
+const newImageBtn    = document.getElementById('new-image-btn');
+const pointCountEl   = document.getElementById('point-count');
+const questionInput  = document.getElementById('question-input');
+const filenameInput  = document.getElementById('filename-input');
+const outputBox      = document.getElementById('output-box');
+const copyBtn        = document.getElementById('copy-btn');
+const copyStatus     = document.getElementById('copy-status');
+const outputTabs     = document.querySelectorAll('#output-tabs button');
+
+let points = []; // { x, y } as percentages 0-100
+let activeTab = 'coords';
+let draggingIndex = null;
+
+// ── Load image ──────────────────────────────────────────────────
+dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('over'); });
+dropzone.addEventListener('dragleave', () => dropzone.classList.remove('over'));
+dropzone.addEventListener('drop', e => {
+  e.preventDefault(); dropzone.classList.remove('over');
+  const file = e.dataTransfer.files[0];
+  if (file) loadImage(file);
+});
+fileInput.addEventListener('change', () => { if (fileInput.files[0]) loadImage(fileInput.files[0]); });
+
+function loadImage(file) {
+  const url = URL.createObjectURL(file);
+  targetImage.src = url;
+  targetImage.onload = () => {
+    dropzone.style.display = 'none';
+    workspace.style.display = 'block';
+    points = [];
+    render();
+  };
+}
+
+newImageBtn.addEventListener('click', () => {
+  dropzone.style.display = 'block';
+  workspace.style.display = 'none';
+  fileInput.value = '';
+  points = [];
+});
+
+// ── Point placement ─────────────────────────────────────────────
+overlay.addEventListener('click', e => {
+  if (draggingIndex !== null) return; // don't add a point right after a drag release
+  const pct = eventToPercent(e);
+  points.push(pct);
+  render();
+});
+
+function eventToPercent(e) {
+  const rect = overlay.getBoundingClientRect();
+  const x = ((e.clientX - rect.left) / rect.width) * 100;
+  const y = ((e.clientY - rect.top) / rect.height) * 100;
+  return { x: clamp(x), y: clamp(y) };
+}
+function clamp(n) { return Math.max(0, Math.min(100, Math.round(n * 10) / 10)); }
+
+undoBtn.addEventListener('click', () => { points.pop(); render(); });
+clearBtn.addEventListener('click', () => { points = []; render(); });
+
+// ── Dragging existing points ────────────────────────────────────
+function startDrag(index, e) {
+  e.stopPropagation();
+  draggingIndex = index;
+  const move = moveEvt => {
+    moveEvt.preventDefault();
+    const pt = eventToPercent(moveEvt.touches ? moveEvt.touches[0] : moveEvt);
+    points[index] = pt;
+    render();
+  };
+  const up = () => {
+    window.removeEventListener('pointermove', move);
+    window.removeEventListener('pointerup', up);
+    setTimeout(() => { draggingIndex = null; }, 0);
+  };
+  window.addEventListener('pointermove', move);
+  window.addEventListener('pointerup', up);
+}
+
+// ── Render ───────────────────────────────────────────────────────
+function render() {
+  overlay.innerHTML = '';
+  pointCountEl.textContent = points.length + ' point' + (points.length === 1 ? '' : 's');
+  undoBtn.disabled = points.length === 0;
+  clearBtn.disabled = points.length === 0;
+
+  if (points.length >= 3) {
+    const poly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+    poly.setAttribute('points', points.map(p => `${p.x},${p.y}`).join(' '));
+    poly.setAttribute('class', 'outline');
+    overlay.appendChild(poly);
+  } else if (points.length === 2) {
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', points[0].x); line.setAttribute('y1', points[0].y);
+    line.setAttribute('x2', points[1].x); line.setAttribute('y2', points[1].y);
+    line.setAttribute('stroke', '#FFD700'); line.setAttribute('stroke-width', '0.6');
+    overlay.appendChild(line);
+  }
+
+  points.forEach((p, i) => {
+    const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    dot.setAttribute('cx', p.x); dot.setAttribute('cy', p.y); dot.setAttribute('r', 1.1);
+    dot.setAttribute('class', 'vertex'); dot.setAttribute('vector-effect', 'non-scaling-stroke');
+    dot.addEventListener('pointerdown', e => startDrag(i, e));
+    overlay.appendChild(dot);
+
+    const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    label.setAttribute('x', p.x); label.setAttribute('y', p.y - 1.8);
+    label.setAttribute('class', 'vertex-label'); label.textContent = i + 1;
+    overlay.appendChild(label);
+  });
+
+  overlay.setAttribute('viewBox', '0 0 100 100');
+  overlay.setAttribute('preserveAspectRatio', 'none');
+
+  updateOutput();
+}
+
+// ── Output ───────────────────────────────────────────────────────
+outputTabs.forEach(btn => {
+  btn.addEventListener('click', () => {
+    outputTabs.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeTab = btn.dataset.tab;
+    updateOutput();
+  });
+});
+questionInput.addEventListener('input', updateOutput);
+filenameInput.addEventListener('input', updateOutput);
+
+function updateOutput() {
+  if (points.length < 3) {
+    outputBox.textContent = 'Add at least 3 points to generate output.';
+    copyBtn.disabled = true;
+    return;
+  }
+  copyBtn.disabled = false;
+  const coords = points.map(p => ({ x: p.x, y: p.y }));
+
+  if (activeTab === 'coords') {
+    outputBox.textContent = JSON.stringify(coords);
+  } else {
+    const full = {
+      type: 'tapspot',
+      question: questionInput.value.trim() || 'Tap the correct spot',
+      media: { type: 'image', url: filenameInput.value.trim() || 'media/your-image.jpg' },
+      target: coords
+    };
+    outputBox.textContent = JSON.stringify(full, null, 2);
+  }
+}
+
+copyBtn.addEventListener('click', () => {
+  navigator.clipboard.writeText(outputBox.textContent).then(() => {
+    copyStatus.textContent = '✓ Copied';
+    setTimeout(() => { copyStatus.textContent = ''; }, 1800);
+  });
+});
+</script>
+</body>
+</html>
