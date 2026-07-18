@@ -16,7 +16,7 @@ window.QUIZ_QUESTIONS = {
     {
       "type": "wordsnake",
       "question": "Name the Artist…",
-      "answer": "S",
+      "answer": "Shakira",
       "media": {
         "type": "video",
         "url": "media\\sh.mp4"
@@ -142,7 +142,7 @@ window.QUIZ_QUESTIONS = {
     {
       "type": "wordsnake",
       "question": "Name the Artist…",
-      "answer": "L",
+      "answer": "Lana Del Ray",
       "media": {
         "type": "video",
         "url": "media\\lr.mp4"
@@ -268,7 +268,7 @@ window.QUIZ_QUESTIONS = {
     {
       "type": "wordsnake",
       "question": "Name the Artist…",
-      "answer": "C",
+      "answer": "Chris Martin",
       "media": {
         "type": "video",
         "url": "media\\cm.mp4"
