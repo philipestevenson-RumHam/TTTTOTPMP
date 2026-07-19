@@ -541,7 +541,7 @@ window.QUIZ_QUESTIONS = {
       ],
       "media": {
         "type": "image",
-        "url": "media\\rsars.jpg"
+        "url": "media\\rsars.png"
       }
     },
     {
