@@ -410,6 +410,10 @@ button {
   height: 100%;
   object-fit: contain;
   display: block;
+  pointer-events: none;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 .tapspot-wrap svg {
   position: absolute;
@@ -1922,6 +1926,7 @@ button {
     loupe.appendChild(loupeImg);
     wrap.appendChild(loupe);
 
+    wrap.addEventListener('contextmenu', e => e.preventDefault());
     aPanel.appendChild(wrap); // must be in the live DOM before we measure it below
 
     const reposition = () => positionTapSpotOverlay(img, svg, wrap);
