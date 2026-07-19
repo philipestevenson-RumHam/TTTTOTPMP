@@ -414,38 +414,7 @@ button {
 .tapspot-wrap svg {
   position: absolute;
   cursor: crosshair;
-  touch-action: none;
-}
-.tapspot-loupe {
-  position: absolute;
-  border-radius: 50%;
-  border: 3px solid #f5d76e;
-  box-shadow: 0 6px 20px rgba(0,0,0,0.55);
-  overflow: hidden;
-  background: #07091c;
-  pointer-events: none;
-  z-index: 30;
-  opacity: 0;
-  transition: opacity 0.08s ease;
-}
-.tapspot-loupe.active { opacity: 1; }
-.tapspot-loupe-img {
-  position: absolute;
-  top: 0;
-  left: 0;
-  max-width: none;
-  transform-origin: 0 0;
-}
-.tapspot-loupe::after {
-  content: '';
-  position: absolute;
-  left: 50%; top: 50%;
-  width: 12px; height: 12px;
-  margin: -6px 0 0 -6px;
-  border: 2px solid #f5d76e;
-  border-radius: 50%;
-  background: rgba(245,215,110,0.25);
-  box-shadow: 0 0 0 1px rgba(7,9,28,0.6);
+  touch-action: manipulation;
 }
 .keypad.numbers {
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1904,7 +1873,6 @@ button {
     const img = document.createElement('img');
     img.src = q.media && q.media.url;
     img.alt = '';
-    img.draggable = false;
     wrap.appendChild(img);
 
     const svg = document.createElementNS(SVG_NS, 'svg');
@@ -1912,20 +1880,8 @@ button {
     svg.setAttribute('preserveAspectRatio', 'none');
     wrap.appendChild(svg);
 
-    const loupe = document.createElement('div');
-    loupe.className = 'tapspot-loupe';
-    const loupeImg = document.createElement('img');
-    loupeImg.className = 'tapspot-loupe-img';
-    loupeImg.src = q.media && q.media.url;
-    loupeImg.alt = '';
-    loupeImg.draggable = false;
-    loupe.appendChild(loupeImg);
-    wrap.appendChild(loupe);
-
-    aPanel.appendChild(wrap); // must be in the live DOM before we measure it below
-
     const reposition = () => positionTapSpotOverlay(img, svg, wrap);
-    if (img.complete && img.naturalWidth) { reposition(); requestAnimationFrame(reposition); }
+    if (img.complete && img.naturalWidth) reposition();
     img.addEventListener('load', reposition);
     window.addEventListener('resize', reposition);
     svg._cleanup = () => window.removeEventListener('resize', reposition);
@@ -1939,7 +1895,8 @@ button {
       showFeedback(false, 'Image failed to load', pts);
     }, { once: true });
 
-    setupTapSpotHold(q, wrap, svg, loupe, loupeImg);
+    svg.addEventListener('click', e => onTapSpotClick(e, q, svg));
+    aPanel.appendChild(wrap);
   }
 
   function positionTapSpotOverlay(img, svg, wrap) {
@@ -1977,83 +1934,13 @@ button {
     return inside;
   }
 
-  // Hold-and-drag with a magnifying loupe, release to lock in the selection.
-  // Makes small/fiddly targets on a phone screen actually hittable.
-  function setupTapSpotHold(q, wrap, svg, loupe, loupeImg) {
-    const ZOOM = 2.6;
-    const LOUPE_SIZE = 130;
-    let lastPoint = null;
-
-    function pointFromEvent(e) {
-      const rect = svg.getBoundingClientRect();
-      let x = ((e.clientX - rect.left) / rect.width) * 100;
-      let y = ((e.clientY - rect.top) / rect.height) * 100;
-      x = Math.max(0, Math.min(100, x));
-      y = Math.max(0, Math.min(100, y));
-      return { x, y, rect };
-    }
-
-    function updateLoupe(pt) {
-      const wrapRect = wrap.getBoundingClientRect();
-      const imgX = pt.rect.left - wrapRect.left + (pt.x / 100) * pt.rect.width;
-      const imgY = pt.rect.top - wrapRect.top + (pt.y / 100) * pt.rect.height;
-
-      // Sit above the finger so the loupe isn't covered by it; flip below
-      // near the top edge so it never goes off-screen.
-      let loupeLeft = imgX - LOUPE_SIZE / 2;
-      let loupeTop = imgY - LOUPE_SIZE - 34;
-      if (loupeTop < 0) loupeTop = imgY + 34;
-      loupeLeft = Math.max(0, Math.min(wrapRect.width - LOUPE_SIZE, loupeLeft));
-
-      loupe.style.left = loupeLeft + 'px';
-      loupe.style.top = loupeTop + 'px';
-      loupe.style.width = LOUPE_SIZE + 'px';
-      loupe.style.height = LOUPE_SIZE + 'px';
-
-      // Size the loupe's own copy of the image to match the real displayed
-      // image 1:1, then translate + scale it so the exact point under the
-      // finger lands dead-center in the loupe, magnified.
-      loupeImg.style.width = pt.rect.width + 'px';
-      loupeImg.style.height = pt.rect.height + 'px';
-      const px = (pt.x / 100) * pt.rect.width;
-      const py = (pt.y / 100) * pt.rect.height;
-      const tx = LOUPE_SIZE / 2 - px * ZOOM;
-      const ty = LOUPE_SIZE / 2 - py * ZOOM;
-      loupeImg.style.transform = `translate(${tx}px, ${ty}px) scale(${ZOOM})`;
-
-      loupe.classList.add('active');
-    }
-
-    function onDown(e) {
-      if (answered) return;
-      e.preventDefault();
-      lastPoint = pointFromEvent(e);
-      updateLoupe(lastPoint);
-      window.addEventListener('pointermove', onMove);
-      window.addEventListener('pointerup', onUp);
-      window.addEventListener('pointercancel', onUp);
-    }
-    function onMove(e) {
-      if (answered) return;
-      e.preventDefault();
-      lastPoint = pointFromEvent(e);
-      updateLoupe(lastPoint);
-    }
-    function onUp() {
-      window.removeEventListener('pointermove', onMove);
-      window.removeEventListener('pointerup', onUp);
-      window.removeEventListener('pointercancel', onUp);
-      loupe.classList.remove('active');
-      if (answered || !lastPoint) return;
-      finalizeTapSpot(q, svg, lastPoint.x, lastPoint.y);
-    }
-
-    svg.addEventListener('pointerdown', onDown);
-  }
-
-  function finalizeTapSpot(q, svg, x, y) {
+  function onTapSpotClick(e, q, svg) {
+    if (answered) return;
     answered = true; stopTimer(); revealQuestionTextNow();
     if (svg._cleanup) svg._cleanup();
+    const rect = svg.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
     const isCorrect = pointInPolygon(x, y, q.target);
     const pts = awardPoints(isCorrect);
     drawTapSpotReveal(svg, q.target, { x, y }, isCorrect);
