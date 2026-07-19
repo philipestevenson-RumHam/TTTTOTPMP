@@ -14,10 +14,10 @@
 //                     If Q is blank, the type is inferred from its extension.
 
 window.QUIZ_QUESTIONS = {
-  "2026-07-18": [
+  "2026-07-19": [
     {
       "type": "wordsnake",
-      "question": "Name the Artist…",
+      "question": "Word Snake: Name the Artist…",
       "answer": "Shakira",
       "media": {
         "type": "video",
@@ -140,10 +140,10 @@ window.QUIZ_QUESTIONS = {
       "answer": 2021
     }
   ],
-  "2026-07-17": [
+  "2026-07-18": [
     {
       "type": "wordsnake",
-      "question": "Name the Artist…",
+      "question": "Word Snake: Name the Artist…",
       "answer": "Lana Del Ray",
       "media": {
         "type": "video",
@@ -266,10 +266,10 @@ window.QUIZ_QUESTIONS = {
       "answer": 1995
     }
   ],
-  "2026-07-16": [
+  "2026-07-17": [
     {
       "type": "wordsnake",
-      "question": "Name the Artist…",
+      "question": "Word Snake: Name the Artist…",
       "answer": "Chris Martin",
       "media": {
         "type": "video",
@@ -392,65 +392,179 @@ window.QUIZ_QUESTIONS = {
       "answer": 1970
     }
   ],
-  "2026-07-15": [
+  "2026-07-16": [
     {
-      "type": "tapspot",
-      "question": "Name the Artist from the Album Cover…",
-      "target": [
-        {
-          "x": 35.2,
-          "y": 16
-        },
-        {
-          "x": 32.7,
-          "y": 18.5
-        },
-        {
-          "x": 32,
-          "y": 21.4
-        },
-        {
-          "x": 32,
-          "y": 23.9
-        },
-        {
-          "x": 31.7,
-          "y": 26.4
-        },
-        {
-          "x": 29.8,
-          "y": 27.5
-        },
-        {
-          "x": 27.8,
-          "y": 28.7
-        },
-        {
-          "x": 28.7,
-          "y": 31.5
-        },
-        {
-          "x": 30.9,
-          "y": 32.2
-        },
-        {
-          "x": 33.7,
-          "y": 30.6
-        },
-        {
-          "x": 40.6,
-          "y": 24.3
-        },
-        {
-          "x": 39.5,
-          "y": 19
-        }
+      "type": "wordsnake",
+      "question": "Word Snake: Name the Artist…",
+      "answer": "Bruno Mars",
+      "media": {
+        "type": "video",
+        "url": "media\\bmare.mp4"
+      }
+    },
+    {
+      "type": "sequence",
+      "question": "Put these six chart‑hit songs with the word “Dance” in the title in order of their original release…",
+      "items": [
+        "Dancing in the Street — Martha & The Vandellas",
+        "Dancing Queen — ABBA",
+        "Let’s Dance — David Bowie",
+        "Dancing in the Street — Mick Jagger & David Bowie",
+        "I Wanna Dance with Somebody — Whitney Houston",
+        "Dance Monkey — Tones and I"
       ],
-      "display_answer": "The White Stripes (Elephant)",
+      "answer": [
+        "Dancing in the Street — Martha & The Vandellas",
+        "Dancing Queen — ABBA",
+        "Let’s Dance — David Bowie",
+        "Dancing in the Street — Mick Jagger & David Bowie",
+        "I Wanna Dance with Somebody — Whitney Houston",
+        "Dance Monkey — Tones and I"
+      ]
+    },
+    {
+      "type": "letters",
+      "question": "Name the Artist from the Album Cover…",
+      "answer": "T",
+      "display_answer": "Taylor Swift (1989)",
       "media": {
         "type": "image",
-        "url": "media\\ws.jpg"
+        "url": "media\\tay.png"
       }
+    },
+    {
+      "type": "letters",
+      "question": "Name the Track…",
+      "answer": "E",
+      "display_answer": "Escape (Enrique Iglesias)",
+      "media": {
+        "type": "audio",
+        "url": "media\\eee.mp3"
+      }
+    },
+    {
+      "type": "sequence",
+      "question": "Put the following in Order to make a Track followed by the Artist…",
+      "items": [
+        "THE BE",
+        "AUTIFU",
+        "L SOUT",
+        "H SONG",
+        "FOR W",
+        "HOEVER"
+      ],
+      "answer": [
+        "THE BE",
+        "AUTIFU",
+        "L SOUT",
+        "H SONG",
+        "FOR W",
+        "HOEVER"
+      ]
+    },
+    {
+      "type": "letters",
+      "question": "Name the Track from the opening lyrics…",
+      "answer": "G",
+      "display_answer": "Gangsta's Paradise (Coolio)",
+      "media": {
+        "type": "video",
+        "url": "media\\coolio.mp4"
+      }
+    },
+    {
+      "type": "letters",
+      "question": "One Hit Wonder: Name the Artist…",
+      "answer": "S",
+      "display_answer": "Semisonic (Closing Time)",
+      "media": {
+        "type": "video",
+        "url": "media\\ssct.mp4"
+      }
+    },
+    {
+      "type": "tapspot",
+      "question": "Where is Gene Simmons?",
+      "target": [
+        {
+          "x": 32.8,
+          "y": 73.1
+        },
+        {
+          "x": 30.1,
+          "y": 75.8
+        },
+        {
+          "x": 29.2,
+          "y": 78.8
+        },
+        {
+          "x": 29.1,
+          "y": 81.1
+        },
+        {
+          "x": 27.2,
+          "y": 83.6
+        },
+        {
+          "x": 24.9,
+          "y": 87.6
+        },
+        {
+          "x": 24.8,
+          "y": 92.8
+        },
+        {
+          "x": 26.2,
+          "y": 94
+        },
+        {
+          "x": 29.5,
+          "y": 90.3
+        },
+        {
+          "x": 32.6,
+          "y": 86
+        },
+        {
+          "x": 35.3,
+          "y": 84.6
+        },
+        {
+          "x": 35.5,
+          "y": 78.9
+        },
+        {
+          "x": 35.5,
+          "y": 74.6
+        }
+      ],
+      "media": {
+        "type": "image",
+        "url": "media\\rsars.jpg"
+      }
+    },
+    {
+      "type": "multiple_choice",
+      "question": "Name the Artist who sang the Original…",
+      "options": [
+        "Simple Minds",
+        "Spin Doctors",
+        "Saw Doctors",
+        "Duran Duran",
+        "Tears for Fears",
+        "Spandau Ballet"
+      ],
+      "answer": "Tears for Fears",
+      "media": {
+        "type": "video",
+        "url": "media\\hstff.mp4"
+      }
+    },
+    {
+      "type": "numbers",
+      "question": "What year did Celine Dion’s My Heart Will Go On reach Number One in the UK?",
+      "answer": 1998
     }
   ]
 };
