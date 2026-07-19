@@ -320,20 +320,20 @@ window.QUIZ_QUESTIONS = {
       "type": "sequence",
       "question": "Put the following in Order to make a Track followed by the Artist…",
       "items": [
-        "DIRE",
-        "STRAI",
-        "TS MO",
-        "NEY F",
-        "OR NO",
-        "THING"
+        "MONEY",
+        "FOR",
+        "NOTHI",
+        "NG DI",
+        "RE ST",
+        "RAITS"
       ],
       "answer": [
-        "DIRE",
-        "STRAI",
-        "TS MO",
-        "NEY F",
-        "OR NO",
-        "THING"
+        "MONEY",
+        "FOR",
+        "NOTHI",
+        "NG DI",
+        "RE ST",
+        "RAITS"
       ]
     },
     {
@@ -446,20 +446,20 @@ window.QUIZ_QUESTIONS = {
       "type": "sequence",
       "question": "Put the following in Order to make a Track followed by the Artist…",
       "items": [
-        "THE BE",
-        "AUTIFU",
-        "L SOUT",
-        "H SONG",
-        "FOR W",
-        "HOEVER"
+        "SONG F",
+        "OR WHO",
+        "EVER T",
+        "HE BEA",
+        "UTIFUL",
+        "SOUTH"
       ],
       "answer": [
-        "THE BE",
-        "AUTIFU",
-        "L SOUT",
-        "H SONG",
-        "FOR W",
-        "HOEVER"
+        "SONG F",
+        "OR WHO",
+        "EVER T",
+        "HE BEA",
+        "UTIFUL",
+        "SOUTH"
       ]
     },
     {
@@ -571,90 +571,90 @@ window.QUIZ_QUESTIONS = {
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
-      "answer": "Bruno Mars",
+      "answer": "Martin Kemp",
       "media": {
         "type": "video",
-        "url": "media\\bmare.mp4"
+        "url": "media\\mkemp.mp4"
       }
     },
     {
       "type": "sequence",
-      "question": "Put these six chart‑hit songs with the word “Dance” in the title in order of their original release…",
+      "question": "Put these Glastonbury headliners in order of the year they first headlined the Pyramid Stage (earliest to latest):",
       "items": [
-        "Dancing in the Street — Martha & The Vandellas",
-        "Dancing Queen — ABBA",
-        "Let’s Dance — David Bowie",
-        "Dancing in the Street — Mick Jagger & David Bowie",
-        "I Wanna Dance with Somebody — Whitney Houston",
-        "Dance Monkey — Tones and I"
+        "Beyoncé",
+        "Adele",
+        "Ed Sheeran",
+        "Stormzy",
+        "Billie Eilish",
+        "Dua Lipa"
       ],
       "answer": [
-        "Dancing in the Street — Martha & The Vandellas",
-        "Dancing Queen — ABBA",
-        "Let’s Dance — David Bowie",
-        "Dancing in the Street — Mick Jagger & David Bowie",
-        "I Wanna Dance with Somebody — Whitney Houston",
-        "Dance Monkey — Tones and I"
+        "Beyoncé",
+        "Adele",
+        "Ed Sheeran",
+        "Stormzy",
+        "Billie Eilish",
+        "Dua Lipa"
       ]
     },
     {
       "type": "letters",
       "question": "Name the Artist from the Album Cover…",
-      "answer": "T",
-      "display_answer": "Taylor Swift (1989)",
+      "answer": "R",
+      "display_answer": "Rage Against The Machine (self titled)",
       "media": {
         "type": "image",
-        "url": "media\\tay.png"
+        "url": "media\\rage.png"
       }
     },
     {
       "type": "letters",
-      "question": "Name the Track…",
-      "answer": "E",
-      "display_answer": "Escape (Enrique Iglesias)",
+      "question": "Name the Artist…",
+      "answer": "S",
+      "display_answer": "Snap (Rhythm Is A Dancer)",
       "media": {
         "type": "audio",
-        "url": "media\\eee.mp3"
+        "url": "media\\snap.mp3"
       }
     },
     {
       "type": "sequence",
       "question": "Put the following in Order to make a Track followed by the Artist…",
       "items": [
-        "THE BE",
-        "AUTIFU",
-        "L SOUT",
-        "H SONG",
-        "FOR W",
-        "HOEVER"
+        "PINK",
+        "PONY",
+        "CLUB",
+        "CHAPP",
+        "ELL R",
+        "OAN"
       ],
       "answer": [
-        "THE BE",
-        "AUTIFU",
-        "L SOUT",
-        "H SONG",
-        "FOR W",
-        "HOEVER"
+        "PINK",
+        "PONY",
+        "CLUB",
+        "CHAPP",
+        "ELL R",
+        "OAN"
       ]
     },
     {
       "type": "letters",
       "question": "Name the Track from the opening lyrics…",
-      "answer": "G",
-      "display_answer": "Gangsta's Paradise (Coolio)",
+      "answer": "M",
+      "display_answer": "Man! I Feel Like A Woman! (Shania Twain)",
       "media": {
         "type": "video",
-        "url": "media\\coolio.mp4"
+        "url": "media\\shan.mp4"
       }
     },
     {
       "type": "letters",
       "question": "One Hit Wonder: Name the Artist…",
-      "answer": "S",
-      "display_answer": "Semisonic (Closing Time)",
+      "answer": "C",
+      "display_answer": "Crazy Town (Butterfly)",
       "media": {
         "type": "video",
-        "url": "media\\ssct.mp4"
+        "url": "media\\crazy.mp4"
       }
     },
     {
@@ -724,23 +724,23 @@ window.QUIZ_QUESTIONS = {
       "type": "multiple_choice",
       "question": "Name the Artist who sang the Original…",
       "options": [
-        "Simple Minds",
-        "Spin Doctors",
-        "Saw Doctors",
-        "Duran Duran",
-        "Tears for Fears",
-        "Spandau Ballet"
+        "Joan Jett & The Blackhearts",
+        "Britney Spears",
+        "Five",
+        "Hilary Duff",
+        "The Dollyrots",
+        "Arrows"
       ],
-      "answer": "Tears for Fears",
+      "answer": "Arrows",
       "media": {
         "type": "video",
-        "url": "media\\hstff.mp4"
+        "url": "media\\brit.mp4"
       }
     },
     {
       "type": "numbers",
-      "question": "What year did Celine Dion’s My Heart Will Go On reach Number One in the UK?",
-      "answer": 1998
+      "question": "How many UK Number One singles have Oasis had?",
+      "answer": 8
     }
   ],
   "2026-07-14": [
