@@ -569,6 +569,182 @@ window.QUIZ_QUESTIONS = {
   ],
   "2026-07-15": [
     {
+      "type": "wordsnake",
+      "question": "Word Snake: Name the Artist…",
+      "answer": "Bruno Mars",
+      "media": {
+        "type": "video",
+        "url": "media\\bmare.mp4"
+      }
+    },
+    {
+      "type": "sequence",
+      "question": "Put these six chart‑hit songs with the word “Dance” in the title in order of their original release…",
+      "items": [
+        "Dancing in the Street — Martha & The Vandellas",
+        "Dancing Queen — ABBA",
+        "Let’s Dance — David Bowie",
+        "Dancing in the Street — Mick Jagger & David Bowie",
+        "I Wanna Dance with Somebody — Whitney Houston",
+        "Dance Monkey — Tones and I"
+      ],
+      "answer": [
+        "Dancing in the Street — Martha & The Vandellas",
+        "Dancing Queen — ABBA",
+        "Let’s Dance — David Bowie",
+        "Dancing in the Street — Mick Jagger & David Bowie",
+        "I Wanna Dance with Somebody — Whitney Houston",
+        "Dance Monkey — Tones and I"
+      ]
+    },
+    {
+      "type": "letters",
+      "question": "Name the Artist from the Album Cover…",
+      "answer": "T",
+      "display_answer": "Taylor Swift (1989)",
+      "media": {
+        "type": "image",
+        "url": "media\\tay.png"
+      }
+    },
+    {
+      "type": "letters",
+      "question": "Name the Track…",
+      "answer": "E",
+      "display_answer": "Escape (Enrique Iglesias)",
+      "media": {
+        "type": "audio",
+        "url": "media\\eee.mp3"
+      }
+    },
+    {
+      "type": "sequence",
+      "question": "Put the following in Order to make a Track followed by the Artist…",
+      "items": [
+        "THE BE",
+        "AUTIFU",
+        "L SOUT",
+        "H SONG",
+        "FOR W",
+        "HOEVER"
+      ],
+      "answer": [
+        "THE BE",
+        "AUTIFU",
+        "L SOUT",
+        "H SONG",
+        "FOR W",
+        "HOEVER"
+      ]
+    },
+    {
+      "type": "letters",
+      "question": "Name the Track from the opening lyrics…",
+      "answer": "G",
+      "display_answer": "Gangsta's Paradise (Coolio)",
+      "media": {
+        "type": "video",
+        "url": "media\\coolio.mp4"
+      }
+    },
+    {
+      "type": "letters",
+      "question": "One Hit Wonder: Name the Artist…",
+      "answer": "S",
+      "display_answer": "Semisonic (Closing Time)",
+      "media": {
+        "type": "video",
+        "url": "media\\ssct.mp4"
+      }
+    },
+    {
+      "type": "tapspot",
+      "question": "Where is the lead singer of Blondie?",
+      "target": [
+        {
+          "x": 23.2,
+          "y": 79.7
+        },
+        {
+          "x": 20.8,
+          "y": 80.8
+        },
+        {
+          "x": 19.8,
+          "y": 82.8
+        },
+        {
+          "x": 19.1,
+          "y": 85.1
+        },
+        {
+          "x": 19.5,
+          "y": 86.5
+        },
+        {
+          "x": 21.9,
+          "y": 87.4
+        },
+        {
+          "x": 24.3,
+          "y": 89.5
+        },
+        {
+          "x": 25.5,
+          "y": 93
+        },
+        {
+          "x": 26.2,
+          "y": 94.7
+        },
+        {
+          "x": 27.3,
+          "y": 93.4
+        },
+        {
+          "x": 27.3,
+          "y": 89.1
+        },
+        {
+          "x": 28.4,
+          "y": 84.1
+        },
+        {
+          "x": 26.1,
+          "y": 79.9
+        }
+      ],
+      "display_answer": "Debbie Harry",
+      "media": {
+        "type": "image",
+        "url": "media\\colage.png"
+      }
+    },
+    {
+      "type": "multiple_choice",
+      "question": "Name the Artist who sang the Original…",
+      "options": [
+        "Simple Minds",
+        "Spin Doctors",
+        "Saw Doctors",
+        "Duran Duran",
+        "Tears for Fears",
+        "Spandau Ballet"
+      ],
+      "answer": "Tears for Fears",
+      "media": {
+        "type": "video",
+        "url": "media\\hstff.mp4"
+      }
+    },
+    {
+      "type": "numbers",
+      "question": "What year did Celine Dion’s My Heart Will Go On reach Number One in the UK?",
+      "answer": 1998
+    }
+  ],
+  "2026-07-14": [
+    {
       "type": "tapspot",
       "question": "Where is Gene Simmons?",
       "target": [
