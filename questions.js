@@ -5,8 +5,11 @@
 // Columns by type:
 //   multiple_choice : options (up to 6), answer
 //   letters         : answer (letter), display_answer (full word)
+//   letters_shuffled: same as letters, but the grid is randomly reordered
 //   numbers         : answer (integer)
+//   word            : answer (typed in full), optional accepted variants
 //   sequence        : items (up to 6, shown shuffled), answer (correct order array)
+//   multitap        : options (up to 6), answers (array — every correct one)
 //   wordsnake       : answer (word or phrase, max 20 letters — spaces don't count)
 //   tapspot         : target (JSON array of {x,y} points from the Shape Picker
 //                     tool, min 3), requires an image in the media column
@@ -14,7 +17,7 @@
 //                     If Q is blank, the type is inferred from its extension.
 
 window.QUIZ_QUESTIONS = {
-  "2026-07-19": [
+  "2026-07-20": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
@@ -140,7 +143,7 @@ window.QUIZ_QUESTIONS = {
       "answer": 2021
     }
   ],
-  "2026-07-18": [
+  "2026-07-19": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
@@ -266,7 +269,7 @@ window.QUIZ_QUESTIONS = {
       "answer": 1995
     }
   ],
-  "2026-07-17": [
+  "2026-07-18": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
@@ -392,7 +395,7 @@ window.QUIZ_QUESTIONS = {
       "answer": 1970
     }
   ],
-  "2026-07-16": [
+  "2026-07-17": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
@@ -568,7 +571,7 @@ window.QUIZ_QUESTIONS = {
       "answer": 1998
     }
   ],
-  "2026-07-15": [
+  "2026-07-16": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
@@ -742,6 +745,42 @@ window.QUIZ_QUESTIONS = {
       "type": "numbers",
       "question": "How many UK Number One singles have Oasis had?",
       "answer": 8
+    }
+  ],
+  "2026-07-15": [
+    {
+      "type": "letters_shuffled",
+      "question": "Name the Artist…",
+      "answer": "S",
+      "display_answer": "Shakira",
+      "media": {
+        "type": "video",
+        "url": "media\\sh.mp4"
+      }
+    },
+    {
+      "type": "word",
+      "question": "Name the artist behind this track",
+      "answer": "Fleetwood Mac",
+      "accepted": [
+        "the fleetwoods"
+      ]
+    },
+    {
+      "type": "multitap",
+      "question": "Which of these are Fleetwood Mac albums?",
+      "options": [
+        "Rumours",
+        "Tusk",
+        "Nevermind",
+        "Tango in the Night",
+        "Back in Black",
+        "Rumours"
+      ],
+      "answers": [
+        "Tusk",
+        "Tango in the Night"
+      ]
     }
   ]
 };

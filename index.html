@@ -489,6 +489,11 @@ button {
   pointer-events: none;
 }
 .kbtn.mc-btn .choice-text { text-align: left; position: relative; z-index: 1; }
+.kbtn.multitap-btn.selected {
+  background: #f5d76e !important;
+  color: #07091c !important;
+  box-shadow: 0 0 0 2px #f5a623 inset;
+}
 .kbtn.empty-slot {
   background: var(--sq-empty-slot);
   color: rgba(255,255,255,0.3);
@@ -704,6 +709,18 @@ button {
   40%, 80% { transform: translateX(6px); }
 }
 .name-input.shake { animation: shake 0.4s ease; }
+.word-entry-wrap {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 0 4px;
+}
+.word-entry-wrap .word-input { max-width: 400px; }
+.word-entry-wrap .word-submit-btn { max-width: 400px; }
 
 /* Toast */
 .toast {
@@ -1552,11 +1569,14 @@ button {
     timerFill.offsetWidth;
     switch(q.type) {
       case 'multiple_choice': renderMC(q); break;
-      case 'letters': renderLetters(q); break;
+      case 'letters': renderLetters(q, false); break;
+      case 'letters_shuffled': renderLetters(q, true); break;
+      case 'multitap': renderMultitap(q); break;
       case 'numbers': renderNumbers(q); break;
       case 'sequence': renderSequence(q); break;
       case 'wordsnake': renderWordSnake(q); break;
       case 'tapspot': renderTapSpot(q); break;
+      case 'word': renderWord(q); break;
     }
     if (q.type !== 'tapspot') showQuestionMedia(q);
     typewriterReveal(q.question, () => { if (!answered) startTimer(); });
@@ -1680,11 +1700,72 @@ button {
     showFeedback(isCorrect, q.answer, pts);
   }
 
+  // Multitap — several options can be correct, select every one that applies.
+  // Taps lock in immediately (no undo), and nothing is graded until the timer
+  // runs out — there's no "submit early" moment, unlike every other type.
+  function renderMultitap(q) {
+    const grid = document.createElement('div');
+    grid.className = 'keypad multiple multitap-grid';
+    const labels = ['A','B','C','D','E','F'];
+    for (let i = 0; i < 6; i++) {
+      if (i < q.options.length) {
+        const btn = document.createElement('button');
+        btn.className = 'kbtn mc-btn multitap-btn';
+        btn.innerHTML = `<span class="letter-prefix">${labels[i]}</span><span class="choice-text">${q.options[i]}</span>`;
+        btn.dataset.value = q.options[i];
+        btn.addEventListener('click', () => onMultitapTap(btn));
+        grid.appendChild(btn);
+      } else {
+        const slot = document.createElement('div');
+        slot.className = 'kbtn empty-slot';
+        slot.innerHTML = `<span class="letter-prefix">${labels[i]}</span>`;
+        grid.appendChild(slot);
+      }
+    }
+    aPanel.appendChild(grid);
+    grid.querySelectorAll('.multitap-btn .choice-text').forEach(span => {
+      fitTextToBox(span, span.closest('.kbtn'), { min: 11 });
+    });
+  }
+
+  function onMultitapTap(btn) {
+    if (answered) return;
+    if (btn.classList.contains('selected')) return; // locked in — cannot unselect
+    btn.classList.add('selected');
+  }
+
+  function finalizeMultitap(q) {
+    answered = true; stopTimer(); revealQuestionTextNow();
+    const overlay = aPanel.querySelector('.media-overlay');
+    if (overlay) overlay.remove();
+    const grid = aPanel.querySelector('.multitap-grid');
+    const selected = grid
+      ? Array.from(grid.querySelectorAll('.multitap-btn.selected')).map(b => b.dataset.value)
+      : [];
+    const correctSet = q.answers.slice().sort();
+    const selectedSet = selected.slice().sort();
+    const isCorrect = correctSet.length === selectedSet.length &&
+      correctSet.every((v, i) => v === selectedSet[i]);
+    const pts = awardPoints(isCorrect);
+    if (grid) {
+      grid.querySelectorAll('.multitap-btn').forEach(b => {
+        const isRight = q.answers.includes(b.dataset.value);
+        const wasPicked = b.classList.contains('selected');
+        if (isRight && wasPicked) b.classList.add('correct-state', 'pulse');
+        else if (isRight && !wasPicked) b.classList.add('correct-state');
+        else if (!isRight && wasPicked) b.classList.add('wrong-state');
+        else b.classList.add('dimmed-state');
+      });
+    }
+    showFeedback(isCorrect, q.display_answer || q.answers.join(', '), pts);
+  }
+
   // Letters
-  function renderLetters(q) {
+  function renderLetters(q, shuffled) {
     const grid = document.createElement('div');
     grid.className = 'keypad letters';
-    LETTER_LAYOUT.forEach(lbl => {
+    const layout = shuffled ? shuffle([...LETTER_LAYOUT]) : LETTER_LAYOUT;
+    layout.forEach(lbl => {
       const btn = document.createElement('button');
       btn.className = 'kbtn letter-btn';
       btn.textContent = lbl;
@@ -1709,6 +1790,96 @@ button {
   }
 
   // Numbers
+  // Full word entry — types the whole answer using the device's own keyboard,
+  // checked (case/punctuation-insensitive) against the answer and any
+  // optional accepted spelling variants.
+  function normalizeWordAnswer(str) {
+    return String(str || '')
+      .toLowerCase()
+      .trim()
+      .replace(/[\u2019]/g, "'")
+      .replace(/[^a-z0-9' ]/g, '')
+      .replace(/\s+/g, ' ');
+  }
+
+  // Edit distance between two strings (how many single-character changes
+  // separate them) — used to forgive typos without accepting wrong answers.
+  function levenshtein(a, b) {
+    const m = a.length, n = b.length;
+    if (m === 0) return n;
+    if (n === 0) return m;
+    let prev = new Array(n + 1), curr = new Array(n + 1);
+    for (let j = 0; j <= n; j++) prev[j] = j;
+    for (let i = 1; i <= m; i++) {
+      curr[0] = i;
+      for (let j = 1; j <= n; j++) {
+        const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+        curr[j] = Math.min(prev[j] + 1, curr[j - 1] + 1, prev[j - 1] + cost);
+      }
+      const tmp = prev; prev = curr; curr = tmp;
+    }
+    return prev[n];
+  }
+
+  // How many typo'd characters to forgive, scaled to answer length — short
+  // answers stay strict (a 1-edit tolerance on "U2" would also accept "V2",
+  // a genuinely different answer, not a typo).
+  function typoTolerance(len) {
+    if (len <= 4) return 0;
+    if (len <= 9) return 1;
+    return 2;
+  }
+
+  function isCloseEnough(input, target) {
+    if (input === target) return true;
+    const tolerance = typoTolerance(target.length);
+    if (tolerance === 0) return false;
+    return levenshtein(input, target) <= tolerance;
+  }
+
+  function renderWord(q) {
+    const wrap = document.createElement('div');
+    wrap.className = 'word-entry-wrap';
+
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.className = 'name-input word-input';
+    input.placeholder = 'Type your answer';
+    input.autocomplete = 'off';
+    input.autocorrect = 'off';
+    input.autocapitalize = 'words';
+    input.spellcheck = false;
+    wrap.appendChild(input);
+
+    const submitBtn = document.createElement('button');
+    submitBtn.className = 'screen-btn btn-primary word-submit-btn';
+    submitBtn.textContent = 'Submit';
+    wrap.appendChild(submitBtn);
+
+    function submit() {
+      if (answered) return;
+      onWordSubmit(input.value, q);
+    }
+    submitBtn.addEventListener('click', submit);
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); submit(); }
+    });
+
+    aPanel.appendChild(wrap);
+  }
+
+  function onWordSubmit(value, q) {
+    if (answered) return;
+    answered = true; stopTimer(); revealQuestionTextNow();
+    const input = aPanel.querySelector('.word-input');
+    if (input) input.blur();
+    const normalizedInput = normalizeWordAnswer(value);
+    const accepted = [q.answer].concat(q.accepted || []).map(normalizeWordAnswer);
+    const isCorrect = normalizedInput.length > 0 && accepted.some(a => isCloseEnough(normalizedInput, a));
+    const pts = awardPoints(isCorrect);
+    showFeedback(isCorrect, q.display_answer || q.answer, pts);
+  }
+
   function renderNumbers(q) {
     const display = document.createElement('div');
     display.className = 'number-display'; display.id = 'num-display';
@@ -2165,16 +2336,24 @@ button {
   // Timeout
   function onTimeout() {
     if (answered) return;
+    const q = gameQuestions[currentIndex];
+    if (q.type === 'multitap') { finalizeMultitap(q); return; }
     answered = true; stopTimer(); revealQuestionTextNow();
     awardPoints(false);
     const overlay = aPanel.querySelector('.media-overlay');
     if (overlay) overlay.remove();
-    const q = gameQuestions[currentIndex];
     let correctDisplay = '';
     switch(q.type) {
       case 'multiple_choice': correctDisplay = q.answer; highlightCorrectMC(q); break;
       case 'letters': correctDisplay = q.display_answer || q.answer; highlightCorrectLetters(q); break;
+      case 'letters_shuffled': correctDisplay = q.display_answer || q.answer; highlightCorrectLetters(q); break;
       case 'numbers': correctDisplay = String(q.answer); break;
+      case 'word': {
+        correctDisplay = q.display_answer || q.answer;
+        const wordInput = aPanel.querySelector('.word-input');
+        if (wordInput) wordInput.blur();
+        break;
+      }
       case 'sequence': correctDisplay = q.answer.join(' → '); break;
       case 'wordsnake': {
         correctDisplay = q.display_answer || q.answer;
@@ -2437,7 +2616,9 @@ button {
     { heading: 'Numbers', text: 'Type the correct number using the keypad.', list: ['Use the number pad to enter your answer','Press Enter to submit','C clears your input'] },
     { heading: 'Sequence', text: 'Tap the items in the correct order.', list: ['Items appear in a random order','Tap them in the correct sequence (1st, 2nd, 3rd…)','Get them all right to score points'] },
     { heading: 'Word Snake', text: 'The answer is hidden in the letter grid \u2014 you just have to find it.', list: ['Tap letters one at a time to spell it out','Each letter must be touching the last one (up, down, left or right)','Tap a selected letter again to undo it'] },
-    { heading: 'Tap the Spot', text: 'Tap the correct place on the photo or image.', list: ['Look carefully \u2014 there\u2019s no keypad, the image itself is the answer','You get one tap, so make it count','Get it wrong and the correct area lights up so you can see where it was'] }
+    { heading: 'Tap the Spot', text: 'Tap the correct place on the photo or image.', list: ['Look carefully \u2014 there\u2019s no keypad, the image itself is the answer','You get one tap, so make it count','Get it wrong and the correct area lights up so you can see where it was'] },
+    { heading: 'Type the Answer', text: 'Type out the full answer using your keyboard.', list: ['Tap the box to bring up your keyboard','Spelling doesn\u2019t need to be perfect \u2014 capitals and punctuation don\u2019t matter','Press Enter or Submit when you\u2019re ready'] },
+    { heading: 'Multitap', text: 'More than one answer can be correct \u2014 select all of them.', list: ['Tap every option you think is correct','Once tapped, a choice is locked in \u2014 you can\u2019t undo it','Nothing is marked until the timer runs out, so take your time'] }
   ];
   let htpCurrentSlide = 0;
 

@@ -47,9 +47,9 @@
     <polyline points="17 8 12 3 7 8"/>
     <line x1="12" y1="3" x2="12" y2="15"/>
   </svg>
-  <p>Drop your <span>.xlsx</span> file here<br><span style="font-size:.85rem;font-weight:400;color:#888">or click to browse</span></p>
+  <p>Drop your <span>.xlsx</span> or <span>.xlsb</span> file here<br><span style="font-size:.85rem;font-weight:400;color:#888">or click to browse</span></p>
 </div>
-<input type="file" id="file-input" accept=".xlsx"/>
+<input type="file" id="file-input" accept=".xlsx,.xlsb"/>
 
 <div id="status"></div>
 <button id="convert-btn">⬇ Convert &amp; Download questions.js</button>
@@ -58,8 +58,11 @@
 <div class="legend">
   <span class="chip" style="background:#E2EFDA">multiple_choice</span>
   <span class="chip" style="background:#FFF2CC">letters</span>
+  <span class="chip" style="background:#FFE699">letters_shuffled</span>
   <span class="chip" style="background:#FCE4D6">numbers</span>
+  <span class="chip" style="background:#D6E4F0">word</span>
   <span class="chip" style="background:#EAD1DC">sequence</span>
+  <span class="chip" style="background:#C9DAF8">multitap</span>
   <span class="chip" style="background:#D9E8D3">wordsnake</span>
   <span class="chip" style="background:#F8CBAD">tapspot</span>
   <span class="chip" style="background:#DDEBF7">optional media: image / video / audio</span>
@@ -152,6 +155,14 @@ function processFile(file) {
           if (!letter) { console.warn(`Row ${i+1}: letters missing letter`); errorCount++; continue; }
           q = { type: 'letters', question, answer: letter, display_answer: word || letter };
 
+        } else if (qtype === 'letters_shuffled') {
+          // Same as letters, but the keypad grid is randomly reordered each time.
+          // D = letter, E = full word
+          const letter = String(row[3] || '').trim().toUpperCase();
+          const word   = String(row[4] || '').trim();
+          if (!letter) { console.warn(`Row ${i+1}: letters_shuffled missing letter`); errorCount++; continue; }
+          q = { type: 'letters_shuffled', question, answer: letter, display_answer: word || letter };
+
         } else if (qtype === 'numbers') {
           // D = the number
           const num = String(row[3] || '').trim();
@@ -159,6 +170,18 @@ function processFile(file) {
           const parsed = parseInt(num, 10);
           if (isNaN(parsed)) { console.warn(`Row ${i+1}: numbers value is not an integer`); errorCount++; continue; }
           q = { type: 'numbers', question, answer: parsed };
+
+        } else if (qtype === 'word') {
+          // D = the answer (typed out in full by the player)
+          // E = optional accepted spelling variants, comma-separated
+          const answer = String(row[3] || '').trim();
+          if (!answer) { console.warn(`Row ${i+1}: word missing answer`); errorCount++; continue; }
+          q = { type: 'word', question, answer };
+          const acceptedRaw = String(row[4] || '').trim();
+          if (acceptedRaw) {
+            const accepted = acceptedRaw.split(',').map(v => v.trim()).filter(v => v !== '');
+            if (accepted.length) q.accepted = accepted;
+          }
 
         } else if (qtype === 'sequence') {
           // D–I = items (up to 6, any order), J–O = correct order
@@ -169,6 +192,22 @@ function processFile(file) {
           if (items.length < 2) { console.warn(`Row ${i+1}: sequence needs at least 2 items`); errorCount++; continue; }
           if (answer.length < 2) { console.warn(`Row ${i+1}: sequence needs at least 2 order values`); errorCount++; continue; }
           q = { type: 'sequence', question, items, answer };
+
+        } else if (qtype === 'multitap') {
+          // D–I = options (up to 6), J–O = the ones that are correct (can be
+          // more than one) — each must exactly match one of the D–I options
+          const options = [row[3],row[4],row[5],row[6],row[7],row[8]]
+            .map(v => String(v).trim()).filter(v => v !== '');
+          const answers = [row[9],row[10],row[11],row[12],row[13],row[14]]
+            .map(v => String(v).trim()).filter(v => v !== '');
+          if (options.length < 2) { console.warn(`Row ${i+1}: multitap needs at least 2 options`); errorCount++; continue; }
+          if (answers.length < 1) { console.warn(`Row ${i+1}: multitap needs at least 1 correct answer`); errorCount++; continue; }
+          const badAnswer = answers.find(a => !options.includes(a));
+          if (badAnswer) {
+            console.warn(`Row ${i+1}: multitap answer "${badAnswer}" doesn't exactly match any of the options`);
+            errorCount++; continue;
+          }
+          q = { type: 'multitap', question, options, answers };
 
         } else if (qtype === 'wordsnake') {
           // D = the answer word or phrase (max 20 letters, spaces don't count)
@@ -274,8 +313,11 @@ convertBtn.addEventListener('click', () => {
 // Columns by type:
 //   multiple_choice : options (up to 6), answer
 //   letters         : answer (letter), display_answer (full word)
+//   letters_shuffled: same as letters, but the grid is randomly reordered
 //   numbers         : answer (integer)
+//   word            : answer (typed in full), optional accepted variants
 //   sequence        : items (up to 6, shown shuffled), answer (correct order array)
+//   multitap        : options (up to 6), answers (array \u2014 every correct one)
 //   wordsnake       : answer (word or phrase, max 20 letters — spaces don't count)
 //   tapspot         : target (JSON array of {x,y} points from the Shape Picker
 //                     tool, min 3), requires an image in the media column
