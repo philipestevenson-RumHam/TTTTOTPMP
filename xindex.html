@@ -334,7 +334,6 @@ button {
   font-weight: 500;
   transition: opacity 0.2s;
   line-height: 1.3;
-  transform: translateZ(0);
 }
 .question-text .qchar { opacity: 0; }
 .question-text .qchar.revealed { opacity: 1; }
@@ -344,7 +343,6 @@ button {
   color: var(--sq-text);
   font-weight: 700;
   margin-top: 4px;
-  transform: translateZ(0);
 }
 .answer-panel {
   flex: 1;
@@ -1439,17 +1437,13 @@ button {
   function fitTextToBox(el, box, opts) {
     opts = opts || {};
     const min = opts.min || 11;
-    const startSize = parseFloat(getComputedStyle(el).fontSize);
-    el.style.fontSize = startSize + 'px';
-    if (!box.clientHeight) return; // box not laid out yet — nothing sensible to measure against
-    const ratio = el.scrollHeight / box.clientHeight;
-    if (ratio <= 1) return; // already fits
-    let size = Math.max(min, Math.floor(startSize / ratio));
+    let size = parseFloat(getComputedStyle(el).fontSize);
     el.style.fontSize = size + 'px';
-    // one corrective step in case line-wrap points shifted non-linearly
-    if (el.scrollHeight > box.clientHeight + 1 && size > min) {
-      size = Math.max(min, size - 1);
+    let guard = 0;
+    while (el.scrollHeight > box.clientHeight + 1 && size > min && guard < 30) {
+      size -= 1;
       el.style.fontSize = size + 'px';
+      guard++;
     }
   }
 
