@@ -1432,6 +1432,21 @@ button {
     qText.querySelectorAll('.qchar').forEach(el => el.classList.add('revealed'));
   }
 
+  // Shrinks an element's font-size (down to a floor) until its content fits
+  // within a given box, instead of silently clipping long text.
+  function fitTextToBox(el, box, opts) {
+    opts = opts || {};
+    const min = opts.min || 11;
+    let size = parseFloat(getComputedStyle(el).fontSize);
+    el.style.fontSize = size + 'px';
+    let guard = 0;
+    while (el.scrollHeight > box.clientHeight + 1 && size > min && guard < 30) {
+      size -= 1;
+      el.style.fontSize = size + 'px';
+      guard++;
+    }
+  }
+
   function typewriterReveal(text, onComplete) {
     qText.innerHTML = '';
     const chars = [];
@@ -1442,6 +1457,8 @@ button {
       qText.appendChild(span);
       chars.push(span);
     }
+    qText.style.fontSize = ''; // reset any shrink from a previous question first
+    fitTextToBox(qText, qPanel, { min: 12 });
     let delay = PRE_REVEAL_DELAY_MS;
     for (let i = 0; i < chars.length; i++) {
       const id = setTimeout(() => { chars[i].classList.add('revealed'); }, delay);
@@ -1639,6 +1656,9 @@ button {
       }
     }
     aPanel.appendChild(grid);
+    grid.querySelectorAll('.mc-btn .choice-text').forEach(span => {
+      fitTextToBox(span, span.closest('.kbtn'), { min: 11 });
+    });
   }
 
   function onMCAnswer(btn, q, grid) {
@@ -2097,6 +2117,9 @@ button {
       grid.appendChild(btn);
     });
     aPanel.appendChild(grid);
+    grid.querySelectorAll('.seq-btn .choice-text').forEach(span => {
+      fitTextToBox(span, span.closest('.kbtn'), { min: 11 });
+    });
   }
 
   function onSeqTap(btn, q, grid) {
@@ -2220,6 +2243,9 @@ button {
         : `Wrong! <span class="fb-points fb-points-lost">Back to 1 point.</span>`;
       fbText.style.color = '#ff6b6b';
     }
+    fbText.style.fontSize = '';
+    const remaining = Math.max(30, qPanel.clientHeight - qText.offsetHeight);
+    fitTextToBox(fbText, { clientHeight: remaining }, { min: 12 });
     preloadMedia(gameQuestions[currentIndex + 1]);
     setTimeout(() => { currentIndex++; showQuestion(); }, 2000);
   }
