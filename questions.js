@@ -746,41 +746,5 @@ window.QUIZ_QUESTIONS = {
       "question": "How many UK Number One singles have Oasis had?",
       "answer": 8
     }
-  ],
-  "2026-07-15": [
-    {
-      "type": "letters_shuffled",
-      "question": "Name the Artist…",
-      "answer": "S",
-      "display_answer": "Shakira",
-      "media": {
-        "type": "video",
-        "url": "media\\sh.mp4"
-      }
-    },
-    {
-      "type": "word",
-      "question": "Name the artist behind this track",
-      "answer": "Fleetwood Mac",
-      "accepted": [
-        "the fleetwoods"
-      ]
-    },
-    {
-      "type": "multitap",
-      "question": "Which of these are Fleetwood Mac albums?",
-      "options": [
-        "Rumours",
-        "Tusk",
-        "Nevermind",
-        "Tango in the Night",
-        "Back in Black",
-        "Rumours"
-      ],
-      "answers": [
-        "Tusk",
-        "Tango in the Night"
-      ]
-    }
   ]
 };
