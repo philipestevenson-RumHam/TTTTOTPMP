@@ -747,105 +747,171 @@ window.QUIZ_QUESTIONS = {
       "answer": 8
     }
   ],
-  "2026-05-09": [
+  "2026-07-16": [
     {
-      "type": "letters_shuffled",
-      "question": "Shuffled Letter Test: Press A",
-      "answer": "S",
-      "display_answer": "Shakira"
+      "type": "wordsnake",
+      "question": "Word Snake: Name the Artist…",
+      "answer": "Tom Jones",
+      "media": {
+        "type": "video",
+        "url": "media\\tomjones.mp4"
+      }
     },
     {
-      "type": "word",
-      "question": "Words Test: Type Phil",
-      "answer": "Fleetwood Mac",
-      "accepted": [
-        "the fleetwoods"
-      ]
-    },
-    {
-      "type": "multitap",
-      "question": "Multi Tap Test: Select odd",
-      "options": [
-        "1",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6"
+      "type": "sequence",
+      "question": "Put these six chart‑hit songs with the word “Love” in the title in order of their original release…",
+      "items": [
+        "How Deep Is Your Love – Bee Gees",
+        "Woman in Love – Barbra Streisand",
+        "I Just Called to Say I Love You – Stevie Wonder",
+        "The Power of Love – Jennifer Rush",
+        "I Will Always Love You – Whitney Houston",
+        "Love Is All Around – Wet Wet Wet"
       ],
-      "answers": [
-        "1",
-        "3",
-        "5"
+      "answer": [
+        "How Deep Is Your Love – Bee Gees",
+        "Woman in Love – Barbra Streisand",
+        "I Just Called to Say I Love You – Stevie Wonder",
+        "The Power of Love – Jennifer Rush",
+        "I Will Always Love You – Whitney Houston",
+        "Love Is All Around – Wet Wet Wet"
       ]
     },
     {
-      "type": "letters_shuffled",
-      "question": "Shuffled Letter Test: Press A",
-      "answer": "S",
-      "display_answer": "Shakira"
+      "type": "letters",
+      "question": "Name the Artist from the Album Cover…",
+      "answer": "J",
+      "display_answer": "Joy Division (Unknown Pleasures)",
+      "media": {
+        "type": "image",
+        "url": "media\\joy.png"
+      }
     },
     {
-      "type": "word",
-      "question": "Words Test: Type Phil",
-      "answer": "Fleetwood Mac",
-      "accepted": [
-        "the fleetwoods"
-      ]
+      "type": "letters",
+      "question": "Name the Artist…",
+      "answer": "C",
+      "display_answer": "The Chemical Brothers (Galvanize)",
+      "media": {
+        "type": "audio",
+        "url": "media\\chem.mp3"
+      }
     },
     {
-      "type": "multitap",
-      "question": "Multi Tap Test: Select odd",
-      "options": [
-        "1",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6"
+      "type": "sequence",
+      "question": "Put the following in Order to make a Track followed by the Artist…",
+      "items": [
+        "I'D DO ANY",
+        "THING FOR",
+        "LOVE (BUT",
+        "I WON'T DO",
+        "THAT) MEA",
+        "T LOAF"
       ],
-      "answers": [
-        "1",
-        "3",
-        "5"
+      "answer": [
+        "I'D DO ANY",
+        "THING FOR",
+        "LOVE (BUT",
+        "I WON'T DO",
+        "THAT) MEA",
+        "T LOAF"
       ]
     },
     {
-      "type": "letters_shuffled",
-      "question": "Shuffled Letter Test: Press A",
-      "answer": "S",
-      "display_answer": "Shakira"
+      "type": "letters",
+      "question": "Identify the Artist based on the opening lyrics from one of their well‑known songs...",
+      "answer": "R",
+      "display_answer": "Right Said Fred (I'm Too Sexy)",
+      "media": {
+        "type": "video",
+        "url": "media\\sexy.mp4"
+      }
     },
     {
-      "type": "word",
-      "question": "Words Test: Type Phil",
-      "answer": "Fleetwood Mac",
-      "accepted": [
-        "the fleetwoods"
-      ]
+      "type": "letters",
+      "question": "One Hit Wonder: Name the Artist…",
+      "answer": "P",
+      "display_answer": "Peter Bjorn And John (Young Folks)",
+      "media": {
+        "type": "video",
+        "url": "media\\pbj.mp4"
+      }
     },
     {
-      "type": "multitap",
-      "question": "Multi Tap Test: Select odd",
-      "options": [
-        "1",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6"
+      "type": "tapspot",
+      "question": "Where is Alvin Nathaniel Joiner, better known by his stage name Xzibit?",
+      "target": [
+        {
+          "x": 18.2,
+          "y": 76.6
+        },
+        {
+          "x": 16.4,
+          "y": 79.4
+        },
+        {
+          "x": 16.5,
+          "y": 83.3
+        },
+        {
+          "x": 17.6,
+          "y": 85.1
+        },
+        {
+          "x": 20.2,
+          "y": 85.8
+        },
+        {
+          "x": 20.4,
+          "y": 87.3
+        },
+        {
+          "x": 22.3,
+          "y": 87
+        },
+        {
+          "x": 23.2,
+          "y": 84
+        },
+        {
+          "x": 24,
+          "y": 79.9
+        },
+        {
+          "x": 22.3,
+          "y": 76.6
+        },
+        {
+          "x": 19.8,
+          "y": 75.6
+        }
       ],
-      "answers": [
-        "1",
-        "3",
-        "5"
-      ]
+      "media": {
+        "type": "image",
+        "url": "media\\rap.png"
+      }
     },
     {
-      "type": "letters_shuffled",
-      "question": "Shuffled Letter Test: Press A",
-      "answer": "S",
-      "display_answer": "Shakira"
+      "type": "multiple_choice",
+      "question": "Name the Artist who sang the Original…",
+      "options": [
+        "Oasis",
+        "Richard Ashcroft",
+        "The Verb",
+        "Oasis",
+        "Doves",
+        "The Verve"
+      ],
+      "answer": "The Verve",
+      "media": {
+        "type": "video",
+        "url": "media\\youngblood.mp4"
+      }
+    },
+    {
+      "type": "numbers",
+      "question": "How many ways did Paul Simon claim there were to leave your lover?",
+      "answer": 50
     }
   ]
 };
