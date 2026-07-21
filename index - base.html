@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Ten To The Top of The Pop Master Pyramid</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
@@ -36,7 +36,6 @@ html, body {
   font-family: 'Nunito', Arial, sans-serif;
   overflow: hidden;
   -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
 }
 body::before {
   content: '';
@@ -1386,14 +1385,6 @@ button {
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible' && wakeLockWanted && !wakeLock) requestWakeLock();
   });
-
-  // Belt-and-braces zoom prevention — the viewport meta tag and touch-action
-  // CSS handle most browsers, but Safari doesn't always honor those
-  // consistently (especially once added to the home screen), so block its
-  // pinch-gesture events directly too. This only fires for actual two-finger
-  // pinch gestures, so it can't interfere with normal single-finger tapping.
-  document.addEventListener('gesturestart', (e) => e.preventDefault());
-  document.addEventListener('gesturechange', (e) => e.preventDefault());
 
   // ── Game ──
   function startGame() {
