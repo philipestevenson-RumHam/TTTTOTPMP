@@ -715,9 +715,9 @@ button {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: center;
   gap: 16px;
-  padding: 12px 4px 0;
+  padding: 0 4px;
 }
 .word-entry-wrap .word-input { max-width: 400px; }
 .word-entry-wrap .word-submit-btn { max-width: 400px; }
@@ -1121,11 +1121,6 @@ button {
   let jokerUsed = false;    // has the joker been played this game (voluntarily or auto)
   let jokerActive = false;  // is the joker in effect for the CURRENT question
   let runLog = [];          // per-question record for the end-of-game recap
-  let primedVideo = null;   // { url, el, mutedOnly } — a video element quietly
-                             // played+paused during a real tap on the previous
-                             // question, so its sound-autoplay stays "blessed"
-                             // (iOS Safari ties this permission to the exact
-                             // element instance, not just the page).
   let bestStreak = 0;
   const MAX_POSSIBLE_SCORE = 65; // theoretical max: 1+2+...+10 (=55) with the joker doubling Q10 (10 -> 20)
 
@@ -1402,7 +1397,6 @@ button {
     jokerActive = false;
     runLog = [];
     bestStreak = 0;
-    if (primedVideo) { primedVideo.el.remove(); primedVideo = null; }
     hudScore.textContent = '0';
     hudScore.classList.remove('on-fire');
     hud.classList.remove('hidden');
@@ -1624,22 +1618,11 @@ button {
     const box = document.createElement('div');
     box.className = 'media-overlay-box';
     if (q.media.type === 'video') {
-      let video;
-      let cameFromPrime = false;
-      let primeWasMutedOnly = false;
-      if (primedVideo && primedVideo.url === q.media.url) {
-        video = primedVideo.el;
-        video.style.cssText = ''; // clear the off-screen priming styles
-        cameFromPrime = true;
-        primeWasMutedOnly = primedVideo.mutedOnly;
-        primedVideo = null; // ownership moves here now
-      } else {
-        video = document.createElement('video');
-        video.src = q.media.url;
-        video.playsInline = true;
-        video.muted = false;
-      }
+      const video = document.createElement('video');
+      video.src = q.media.url;
       video.loop = false;
+      video.playsInline = true;
+      video.muted = false;
       video.addEventListener('error', () => { overlay.remove(); }, { once: true });
       box.appendChild(video);
       const soundBadge = document.createElement('button');
@@ -1653,29 +1636,15 @@ button {
         soundBadge.classList.remove('needs-tap');
       });
       overlay.appendChild(soundBadge);
-
-      if (cameFromPrime && !primeWasMutedOnly) {
-        // This exact element already successfully played+paused unmuted
-        // during a real tap — sound-autoplay should carry over with no
-        // fresh gesture needed.
-        video.muted = false;
-        video.play().catch(() => {
+      const p = video.play();
+      if (p && p.catch) {
+        p.catch(() => {
+          // Sound was blocked — fall back to a muted loop so it still plays,
+          // and let the badge above offer sound with one tap.
           video.muted = true;
           video.play().catch(() => {});
           soundBadge.classList.add('needs-tap');
         });
-      } else {
-        if (cameFromPrime) { video.muted = true; soundBadge.classList.add('needs-tap'); }
-        const p = video.play();
-        if (p && p.catch) {
-          p.catch(() => {
-            // Sound was blocked — fall back to a muted loop so it still plays,
-            // and let the badge above offer sound with one tap.
-            video.muted = true;
-            video.play().catch(() => {});
-            soundBadge.classList.add('needs-tap');
-          });
-        }
       }
     } else {
       const img = document.createElement('img');
@@ -1763,10 +1732,6 @@ button {
     if (answered) return;
     if (btn.classList.contains('selected')) return; // locked in — cannot unselect
     btn.classList.add('selected');
-    // Grading only happens at timeout (no gesture then), so use this tap —
-    // any tap — as the opportunity to prime the next question's video.
-    const nextQ = gameQuestions[currentIndex + 1];
-    if (nextQ && nextQ.media && nextQ.media.type === 'video') primeVideoElement(nextQ.media.url);
   }
 
   function finalizeMultitap(q) {
@@ -2428,51 +2393,13 @@ button {
     });
   }
 
-  // Quietly play+pause a video element during a real tap so its sound stays
-  // "blessed" for later — iOS ties autoplay-with-sound permission to the
-  // exact element instance that first played during a gesture, not the page
-  // in general. Must be called synchronously from within a real event
-  // handler (no setTimeout/await in between) for iOS to count it as such.
-  function primeVideoElement(url) {
-    if (primedVideo && primedVideo.url === url) return; // already primed/priming
-    if (primedVideo) { primedVideo.el.remove(); primedVideo = null; }
-    const video = document.createElement('video');
-    video.src = url;
-    video.playsInline = true;
-    video.muted = false;
-    video.style.cssText = 'position:fixed; left:-9999px; width:1px; height:1px; opacity:0; pointer-events:none;';
-    document.body.appendChild(video);
-    const entry = { url: url, el: video, mutedOnly: false };
-    primedVideo = entry;
-    const attempt = video.play();
-    if (attempt && attempt.then) {
-      attempt.then(() => {
-        video.pause();
-        video.currentTime = 0;
-      }).catch(() => {
-        // Unmuted priming blocked — muted priming at least guarantees the
-        // real question won't stall waiting to start; sound falls back to
-        // the tap badge same as before.
-        video.muted = true;
-        entry.mutedOnly = true;
-        const mutedAttempt = video.play();
-        if (mutedAttempt && mutedAttempt.then) {
-          mutedAttempt.then(() => { video.pause(); video.currentTime = 0; })
-            .catch(() => { if (primedVideo === entry) primedVideo = null; video.remove(); });
-        }
-      });
-    }
-  }
-
   function preloadMedia(q) {
     if (!q || !q.media || !q.media.url) return;
     if (q.media.type === 'image') {
       const img = new Image();
       img.src = q.media.url;
-    } else if (q.media.type === 'video') {
-      primeVideoElement(q.media.url);
     } else {
-      const el = document.createElement('audio');
+      const el = document.createElement(q.media.type === 'video' ? 'video' : 'audio');
       el.preload = 'auto';
       el.src = q.media.url;
       el.load();

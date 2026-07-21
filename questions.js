@@ -17,7 +17,7 @@
 //                     If Q is blank, the type is inferred from its extension.
 
 window.QUIZ_QUESTIONS = {
-  "2026-07-20": [
+  "2026-07-21": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
@@ -143,7 +143,7 @@ window.QUIZ_QUESTIONS = {
       "answer": 2021
     }
   ],
-  "2026-07-19": [
+  "2026-07-20": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
@@ -269,7 +269,7 @@ window.QUIZ_QUESTIONS = {
       "answer": 1995
     }
   ],
-  "2026-07-18": [
+  "2026-07-19": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
@@ -395,7 +395,7 @@ window.QUIZ_QUESTIONS = {
       "answer": 1970
     }
   ],
-  "2026-07-17": [
+  "2026-07-18": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
@@ -571,7 +571,7 @@ window.QUIZ_QUESTIONS = {
       "answer": 1998
     }
   ],
-  "2026-07-16": [
+  "2026-07-17": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
@@ -745,6 +745,107 @@ window.QUIZ_QUESTIONS = {
       "type": "numbers",
       "question": "How many UK Number One singles have Oasis had?",
       "answer": 8
+    }
+  ],
+  "2026-05-09": [
+    {
+      "type": "letters_shuffled",
+      "question": "Shuffled Letter Test: Press A",
+      "answer": "S",
+      "display_answer": "Shakira"
+    },
+    {
+      "type": "word",
+      "question": "Words Test: Type Phil",
+      "answer": "Fleetwood Mac",
+      "accepted": [
+        "the fleetwoods"
+      ]
+    },
+    {
+      "type": "multitap",
+      "question": "Multi Tap Test: Select odd",
+      "options": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6"
+      ],
+      "answers": [
+        "1",
+        "3",
+        "5"
+      ]
+    },
+    {
+      "type": "letters_shuffled",
+      "question": "Shuffled Letter Test: Press A",
+      "answer": "S",
+      "display_answer": "Shakira"
+    },
+    {
+      "type": "word",
+      "question": "Words Test: Type Phil",
+      "answer": "Fleetwood Mac",
+      "accepted": [
+        "the fleetwoods"
+      ]
+    },
+    {
+      "type": "multitap",
+      "question": "Multi Tap Test: Select odd",
+      "options": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6"
+      ],
+      "answers": [
+        "1",
+        "3",
+        "5"
+      ]
+    },
+    {
+      "type": "letters_shuffled",
+      "question": "Shuffled Letter Test: Press A",
+      "answer": "S",
+      "display_answer": "Shakira"
+    },
+    {
+      "type": "word",
+      "question": "Words Test: Type Phil",
+      "answer": "Fleetwood Mac",
+      "accepted": [
+        "the fleetwoods"
+      ]
+    },
+    {
+      "type": "multitap",
+      "question": "Multi Tap Test: Select odd",
+      "options": [
+        "1",
+        "2",
+        "3",
+        "4",
+        "5",
+        "6"
+      ],
+      "answers": [
+        "1",
+        "3",
+        "5"
+      ]
+    },
+    {
+      "type": "letters_shuffled",
+      "question": "Shuffled Letter Test: Press A",
+      "answer": "S",
+      "display_answer": "Shakira"
     }
   ]
 };
