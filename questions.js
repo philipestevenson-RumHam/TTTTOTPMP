@@ -913,5 +913,37 @@ window.QUIZ_QUESTIONS = {
       "question": "How many ways did Paul Simon claim there were to leave your lover?",
       "answer": 50
     }
+  ],
+  "2026-07-02": [
+    {
+      "type": "letters_shuffled",
+      "question": "Name the Artist…",
+      "answer": "S",
+      "display_answer": "Shakira"
+    },
+    {
+      "type": "word",
+      "question": "Name the artist behind this track",
+      "answer": "Fleetwood Mac",
+      "accepted": [
+        "the fleetwoods"
+      ]
+    },
+    {
+      "type": "multitap",
+      "question": "Which of these are Fleetwood Mac albums?",
+      "options": [
+        "Rumours",
+        "Tusk",
+        "Nevermind",
+        "Tango in the Night",
+        "Back in Black",
+        "Rumours"
+      ],
+      "answers": [
+        "Tusk",
+        "Tango in the Night"
+      ]
+    }
   ]
 };
