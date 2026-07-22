@@ -259,20 +259,6 @@ button {
   font-size: 0.9rem;
   color: var(--sq-text-muted);
 }
-.continue-next-type {
-  font-size: 1rem;
-  color: var(--sq-text);
-  background: rgba(0,200,232,0.1);
-  border: 1px solid rgba(0,200,232,0.3);
-  border-radius: 20px;
-  padding: 6px 16px;
-}
-.continue-next-type b { color: var(--sq-gold); }
-.continue-stat {
-  font-size: 0.95rem;
-  color: var(--sq-text-muted);
-}
-.continue-stat b { color: var(--sq-text); }
 .media-overlay {
   position: absolute;
   inset: 0;
@@ -1125,17 +1111,6 @@ button {
   let questions = [];
   let gameQuestions = [];
   const QUESTIONS_PER_GAME = 10;
-  const TYPE_LABELS = {
-    multiple_choice: 'Multiple Choice',
-    letters: 'Letters',
-    letters_shuffled: 'Letters (Shuffled)',
-    numbers: 'Numbers',
-    word: 'Type the Answer',
-    sequence: 'Sequence',
-    multitap: 'Multitap',
-    wordsnake: 'Word Snake',
-    tapspot: 'Tap the Spot'
-  };
   let currentIndex = 0;
   let score = 0;
   let playerName = '';
@@ -1540,64 +1515,49 @@ button {
     if (currentIndex >= gameQuestions.length) { showFinal(); return; }
     jokerActive = false;
     updateHudSub();
-    const isLastQuestion = currentIndex === gameQuestions.length - 1;
-    showContinueScreen(!jokerUsed && isLastQuestion);
+    if (!jokerUsed) {
+      const isLastQuestion = currentIndex === gameQuestions.length - 1;
+      showJokerPrompt(isLastQuestion);
+    } else {
+      beginQuestion();
+    }
   }
 
-  function showContinueScreen(forced) {
+  function showJokerPrompt(forced) {
     qPanel.classList.add('hidden');
     hud.classList.add('hidden');
     hudSub.classList.add('hidden');
     streakLadder.classList.add('hidden');
+    const q = gameQuestions[currentIndex];
+    const value = pointsForStreak(streak);
+    const doubled = value * 2;
     const screen = document.createElement('div');
     screen.className = 'screen';
-
-    const jokerAvailable = !jokerUsed;
-    let jokerBlockHTML = '';
-    if (jokerAvailable) {
-      const value = pointsForStreak(streak);
-      const doubled = value * 2;
-      const subtitle = forced
-        ? `This is your last chance to play your joker \u2014 it\u2019s the final question, so it must be played now.`
-        : `Play your joker now to make this question worth <b style="color:var(--sq-gold)">${doubled}</b> points?`;
-      const warning = forced
-        ? `It doesn\u2019t come back if you get this wrong \u2014 but if you don\u2019t play it now, it\u2019s gone for good.`
-        : `You only get one joker, and it doesn't come back if you get this wrong.`;
-      jokerBlockHTML = `
-        <div class="joker-card">🃏</div>
-        <div class="joker-value">${value} <span style="font-size:0.5em;color:var(--sq-text-muted)">pts</span></div>
-        <div class="screen-subtitle">${subtitle}</div>
-        <div class="streak-warning">${warning}</div>
-        <button class="screen-btn btn-primary" id="btn-play-joker">Play Joker</button>
-      `;
-    }
-
-    const nextQ = gameQuestions[currentIndex];
-    const typeLabel = TYPE_LABELS[nextQ.type] || nextQ.type;
-    const streakStatHTML = streak > 0
-      ? `<div class="continue-stat">Score: <b>${score}</b> &nbsp;&middot;&nbsp; Streak: <b>${streak}</b>${streak >= 3 ? ' 🔥' : ''}</div>`
-      : `<div class="continue-stat">Score: <b>${score}</b></div>`;
-
+    const subtitle = forced
+      ? `This is your last chance to play your joker \u2014 it\u2019s the final question, so it must be played now.`
+      : `Play your joker now to make this question worth <b style="color:var(--sq-gold)">${doubled}</b> points?`;
+    const warning = forced
+      ? `It doesn\u2019t come back if you get this wrong \u2014 but if you don\u2019t play it now, it\u2019s gone for good.`
+      : `You only get one joker, and it doesn't come back if you get this wrong.`;
     screen.innerHTML = `
-      <div class="screen-title">Question ${currentIndex + 1} <span style="color:var(--sq-text-muted);font-weight:400">of ${gameQuestions.length}</span></div>
-      <div class="continue-next-type">Next up: <b>${typeLabel}</b></div>
-      ${streakStatHTML}
-      ${jokerBlockHTML}
-      <button class="screen-btn ${jokerAvailable ? 'btn-secondary' : 'btn-primary'}" id="btn-continue" ${forced ? 'disabled' : ''}>Continue</button>
+      <div class="joker-card">🃏</div>
+      <div class="screen-title">Question ${currentIndex + 1}</div>
+      <div class="joker-value">${value} <span style="font-size:0.5em;color:var(--sq-text-muted)">pts</span></div>
+      <div class="screen-subtitle">${subtitle}</div>
+      <div class="streak-warning">${warning}</div>
+      <button class="screen-btn btn-primary" id="btn-play-joker">Play Joker (${doubled}pts)</button>
+      <button class="screen-btn btn-secondary" id="btn-skip-joker" ${forced ? 'disabled' : ''}>Don't Play Joker (${value}pts)</button>
     `;
     aPanel.innerHTML = '';
     aPanel.appendChild(screen);
-
-    if (jokerAvailable) {
-      document.getElementById('btn-play-joker').addEventListener('click', () => {
-        jokerUsed = true;
-        jokerActive = true;
-        updateHudSub();
-        beginQuestion();
-      });
-    }
+    document.getElementById('btn-play-joker').addEventListener('click', () => {
+      jokerUsed = true;
+      jokerActive = true;
+      updateHudSub();
+      beginQuestion();
+    });
     if (!forced) {
-      document.getElementById('btn-continue').addEventListener('click', () => {
+      document.getElementById('btn-skip-joker').addEventListener('click', () => {
         beginQuestion();
       });
     }
