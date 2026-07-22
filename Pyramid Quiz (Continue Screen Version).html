@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Ten To The Top of The Pop Master Pyramid</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
@@ -36,6 +36,7 @@ html, body {
   font-family: 'Nunito', Arial, sans-serif;
   overflow: hidden;
   -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 body::before {
   content: '';
@@ -215,6 +216,13 @@ button {
   color: #ffb4b4;
   font-weight: 900;
 }
+.fb-prefix {
+  text-shadow:
+    -1px -1px 0 #fff,
+     1px -1px 0 #fff,
+    -1px  1px 0 #fff,
+     1px  1px 0 #fff;
+}
 .timer-fill.timer-urgent {
   animation: timer-urgent-pulse 0.5s ease-in-out infinite;
 }
@@ -251,6 +259,20 @@ button {
   font-size: 0.9rem;
   color: var(--sq-text-muted);
 }
+.continue-next-type {
+  font-size: 1rem;
+  color: var(--sq-text);
+  background: rgba(0,200,232,0.1);
+  border: 1px solid rgba(0,200,232,0.3);
+  border-radius: 20px;
+  padding: 6px 16px;
+}
+.continue-next-type b { color: var(--sq-gold); }
+.continue-stat {
+  font-size: 0.95rem;
+  color: var(--sq-text-muted);
+}
+.continue-stat b { color: var(--sq-text); }
 .media-overlay {
   position: absolute;
   inset: 0;
@@ -1103,6 +1125,17 @@ button {
   let questions = [];
   let gameQuestions = [];
   const QUESTIONS_PER_GAME = 10;
+  const TYPE_LABELS = {
+    multiple_choice: 'Multiple Choice',
+    letters: 'Letters',
+    letters_shuffled: 'Letters (Shuffled)',
+    numbers: 'Numbers',
+    word: 'Type the Answer',
+    sequence: 'Sequence',
+    multitap: 'Multitap',
+    wordsnake: 'Word Snake',
+    tapspot: 'Tap the Spot'
+  };
   let currentIndex = 0;
   let score = 0;
   let playerName = '';
@@ -1121,11 +1154,6 @@ button {
   let jokerUsed = false;    // has the joker been played this game (voluntarily or auto)
   let jokerActive = false;  // is the joker in effect for the CURRENT question
   let runLog = [];          // per-question record for the end-of-game recap
-  let primedVideo = null;   // { url, el, mutedOnly } — a video element quietly
-                             // played+paused during a real tap on the previous
-                             // question, so its sound-autoplay stays "blessed"
-                             // (iOS Safari ties this permission to the exact
-                             // element instance, not just the page).
   let bestStreak = 0;
   const MAX_POSSIBLE_SCORE = 65; // theoretical max: 1+2+...+10 (=55) with the joker doubling Q10 (10 -> 20)
 
@@ -1391,6 +1419,14 @@ button {
     if (document.visibilityState === 'visible' && wakeLockWanted && !wakeLock) requestWakeLock();
   });
 
+  // Belt-and-braces zoom prevention — the viewport meta tag and touch-action
+  // CSS handle most browsers, but Safari doesn't always honor those
+  // consistently (especially once added to the home screen), so block its
+  // pinch-gesture events directly too. This only fires for actual two-finger
+  // pinch gestures, so it can't interfere with normal single-finger tapping.
+  document.addEventListener('gesturestart', (e) => e.preventDefault());
+  document.addEventListener('gesturechange', (e) => e.preventDefault());
+
   // ── Game ──
   function startGame() {
     requestWakeLock();
@@ -1402,7 +1438,6 @@ button {
     jokerActive = false;
     runLog = [];
     bestStreak = 0;
-    if (primedVideo) { primedVideo.el.remove(); primedVideo = null; }
     hudScore.textContent = '0';
     hudScore.classList.remove('on-fire');
     hud.classList.remove('hidden');
@@ -1505,49 +1540,64 @@ button {
     if (currentIndex >= gameQuestions.length) { showFinal(); return; }
     jokerActive = false;
     updateHudSub();
-    if (!jokerUsed) {
-      const isLastQuestion = currentIndex === gameQuestions.length - 1;
-      showJokerPrompt(isLastQuestion);
-    } else {
-      beginQuestion();
-    }
+    const isLastQuestion = currentIndex === gameQuestions.length - 1;
+    showContinueScreen(!jokerUsed && isLastQuestion);
   }
 
-  function showJokerPrompt(forced) {
+  function showContinueScreen(forced) {
     qPanel.classList.add('hidden');
     hud.classList.add('hidden');
     hudSub.classList.add('hidden');
     streakLadder.classList.add('hidden');
-    const q = gameQuestions[currentIndex];
-    const value = pointsForStreak(streak);
-    const doubled = value * 2;
     const screen = document.createElement('div');
     screen.className = 'screen';
-    const subtitle = forced
-      ? `This is your last chance to play your joker \u2014 it\u2019s the final question, so it must be played now.`
-      : `Play your joker now to make this question worth <b style="color:var(--sq-gold)">${doubled}</b> points?`;
-    const warning = forced
-      ? `It doesn\u2019t come back if you get this wrong \u2014 but if you don\u2019t play it now, it\u2019s gone for good.`
-      : `You only get one joker, and it doesn't come back if you get this wrong.`;
+
+    const jokerAvailable = !jokerUsed;
+    let jokerBlockHTML = '';
+    if (jokerAvailable) {
+      const value = pointsForStreak(streak);
+      const doubled = value * 2;
+      const subtitle = forced
+        ? `This is your last chance to play your joker \u2014 it\u2019s the final question, so it must be played now.`
+        : `Play your joker now to make this question worth <b style="color:var(--sq-gold)">${doubled}</b> points?`;
+      const warning = forced
+        ? `It doesn\u2019t come back if you get this wrong \u2014 but if you don\u2019t play it now, it\u2019s gone for good.`
+        : `You only get one joker, and it doesn't come back if you get this wrong.`;
+      jokerBlockHTML = `
+        <div class="joker-card">🃏</div>
+        <div class="joker-value">${value} <span style="font-size:0.5em;color:var(--sq-text-muted)">pts</span></div>
+        <div class="screen-subtitle">${subtitle}</div>
+        <div class="streak-warning">${warning}</div>
+        <button class="screen-btn btn-primary" id="btn-play-joker">Play Joker</button>
+      `;
+    }
+
+    const nextQ = gameQuestions[currentIndex];
+    const typeLabel = TYPE_LABELS[nextQ.type] || nextQ.type;
+    const streakStatHTML = streak > 0
+      ? `<div class="continue-stat">Score: <b>${score}</b> &nbsp;&middot;&nbsp; Streak: <b>${streak}</b>${streak >= 3 ? ' 🔥' : ''}</div>`
+      : `<div class="continue-stat">Score: <b>${score}</b></div>`;
+
     screen.innerHTML = `
-      <div class="joker-card">🃏</div>
-      <div class="screen-title">Question ${currentIndex + 1}</div>
-      <div class="joker-value">${value} <span style="font-size:0.5em;color:var(--sq-text-muted)">pts</span></div>
-      <div class="screen-subtitle">${subtitle}</div>
-      <div class="streak-warning">${warning}</div>
-      <button class="screen-btn btn-primary" id="btn-play-joker">Play Joker (${doubled}pts)</button>
-      <button class="screen-btn btn-secondary" id="btn-skip-joker" ${forced ? 'disabled' : ''}>Don't Play Joker (${value}pts)</button>
+      <div class="screen-title">Question ${currentIndex + 1} <span style="color:var(--sq-text-muted);font-weight:400">of ${gameQuestions.length}</span></div>
+      <div class="continue-next-type">Next up: <b>${typeLabel}</b></div>
+      ${streakStatHTML}
+      ${jokerBlockHTML}
+      <button class="screen-btn ${jokerAvailable ? 'btn-secondary' : 'btn-primary'}" id="btn-continue" ${forced ? 'disabled' : ''}>Continue</button>
     `;
     aPanel.innerHTML = '';
     aPanel.appendChild(screen);
-    document.getElementById('btn-play-joker').addEventListener('click', () => {
-      jokerUsed = true;
-      jokerActive = true;
-      updateHudSub();
-      beginQuestion();
-    });
+
+    if (jokerAvailable) {
+      document.getElementById('btn-play-joker').addEventListener('click', () => {
+        jokerUsed = true;
+        jokerActive = true;
+        updateHudSub();
+        beginQuestion();
+      });
+    }
     if (!forced) {
-      document.getElementById('btn-skip-joker').addEventListener('click', () => {
+      document.getElementById('btn-continue').addEventListener('click', () => {
         beginQuestion();
       });
     }
@@ -1624,22 +1674,11 @@ button {
     const box = document.createElement('div');
     box.className = 'media-overlay-box';
     if (q.media.type === 'video') {
-      let video;
-      let cameFromPrime = false;
-      let primeWasMutedOnly = false;
-      if (primedVideo && primedVideo.url === q.media.url) {
-        video = primedVideo.el;
-        video.style.cssText = ''; // clear the off-screen priming styles
-        cameFromPrime = true;
-        primeWasMutedOnly = primedVideo.mutedOnly;
-        primedVideo = null; // ownership moves here now
-      } else {
-        video = document.createElement('video');
-        video.src = q.media.url;
-        video.playsInline = true;
-        video.muted = false;
-      }
+      const video = document.createElement('video');
+      video.src = q.media.url;
       video.loop = false;
+      video.playsInline = true;
+      video.muted = false;
       video.addEventListener('error', () => { overlay.remove(); }, { once: true });
       box.appendChild(video);
       const soundBadge = document.createElement('button');
@@ -1653,29 +1692,15 @@ button {
         soundBadge.classList.remove('needs-tap');
       });
       overlay.appendChild(soundBadge);
-
-      if (cameFromPrime && !primeWasMutedOnly) {
-        // This exact element already successfully played+paused unmuted
-        // during a real tap — sound-autoplay should carry over with no
-        // fresh gesture needed.
-        video.muted = false;
-        video.play().catch(() => {
+      const p = video.play();
+      if (p && p.catch) {
+        p.catch(() => {
+          // Sound was blocked — fall back to a muted loop so it still plays,
+          // and let the badge above offer sound with one tap.
           video.muted = true;
           video.play().catch(() => {});
           soundBadge.classList.add('needs-tap');
         });
-      } else {
-        if (cameFromPrime) { video.muted = true; soundBadge.classList.add('needs-tap'); }
-        const p = video.play();
-        if (p && p.catch) {
-          p.catch(() => {
-            // Sound was blocked — fall back to a muted loop so it still plays,
-            // and let the badge above offer sound with one tap.
-            video.muted = true;
-            video.play().catch(() => {});
-            soundBadge.classList.add('needs-tap');
-          });
-        }
       }
     } else {
       const img = document.createElement('img');
@@ -1763,10 +1788,6 @@ button {
     if (answered) return;
     if (btn.classList.contains('selected')) return; // locked in — cannot unselect
     btn.classList.add('selected');
-    // Grading only happens at timeout (no gesture then), so use this tap —
-    // any tap — as the opportunity to prime the next question's video.
-    const nextQ = gameQuestions[currentIndex + 1];
-    if (nextQ && nextQ.media && nextQ.media.type === 'video') primeVideoElement(nextQ.media.url);
   }
 
   function finalizeMultitap(q) {
@@ -2428,51 +2449,13 @@ button {
     });
   }
 
-  // Quietly play+pause a video element during a real tap so its sound stays
-  // "blessed" for later — iOS ties autoplay-with-sound permission to the
-  // exact element instance that first played during a gesture, not the page
-  // in general. Must be called synchronously from within a real event
-  // handler (no setTimeout/await in between) for iOS to count it as such.
-  function primeVideoElement(url) {
-    if (primedVideo && primedVideo.url === url) return; // already primed/priming
-    if (primedVideo) { primedVideo.el.remove(); primedVideo = null; }
-    const video = document.createElement('video');
-    video.src = url;
-    video.playsInline = true;
-    video.muted = false;
-    video.style.cssText = 'position:fixed; left:-9999px; width:1px; height:1px; opacity:0; pointer-events:none;';
-    document.body.appendChild(video);
-    const entry = { url: url, el: video, mutedOnly: false };
-    primedVideo = entry;
-    const attempt = video.play();
-    if (attempt && attempt.then) {
-      attempt.then(() => {
-        video.pause();
-        video.currentTime = 0;
-      }).catch(() => {
-        // Unmuted priming blocked — muted priming at least guarantees the
-        // real question won't stall waiting to start; sound falls back to
-        // the tap badge same as before.
-        video.muted = true;
-        entry.mutedOnly = true;
-        const mutedAttempt = video.play();
-        if (mutedAttempt && mutedAttempt.then) {
-          mutedAttempt.then(() => { video.pause(); video.currentTime = 0; })
-            .catch(() => { if (primedVideo === entry) primedVideo = null; video.remove(); });
-        }
-      });
-    }
-  }
-
   function preloadMedia(q) {
     if (!q || !q.media || !q.media.url) return;
     if (q.media.type === 'image') {
       const img = new Image();
       img.src = q.media.url;
-    } else if (q.media.type === 'video') {
-      primeVideoElement(q.media.url);
     } else {
-      const el = document.createElement('audio');
+      const el = document.createElement(q.media.type === 'video' ? 'video' : 'audio');
       el.preload = 'auto';
       el.src = q.media.url;
       el.load();
@@ -2490,15 +2473,15 @@ button {
     const safeAnswer = escapeHtml(answer || '');
     const answerLabel = safeAnswer ? `${safeAnswer}` : '';
     if (timeout) {
-      fbText.innerHTML = safeAnswer ? `Time's up! Answer: ${safeAnswer}` : `Time's up!`;
+      fbText.innerHTML = safeAnswer ? `<span class="fb-prefix">Time's up! Answer:</span> ${safeAnswer}` : `<span class="fb-prefix">Time's up!</span>`;
       fbText.style.color = '#ff6b6b';
     } else if (isCorrect) {
-      fbText.innerHTML = `Correct! ${answerLabel} <span class="fb-points">+${pts}${jokerNote}</span>`;
+      fbText.innerHTML = `<span class="fb-prefix">Correct!</span> ${answerLabel} <span class="fb-points">+${pts}${jokerNote}</span>`;
       fbText.style.color = '#00c8e8';
     } else {
       fbText.innerHTML = safeAnswer
-        ? `Wrong! Answer: ${safeAnswer}. <span class="fb-points fb-points-lost">Back to 1 point.</span>`
-        : `Wrong! <span class="fb-points fb-points-lost">Back to 1 point.</span>`;
+        ? `<span class="fb-prefix">Wrong! Answer:</span> ${safeAnswer}. <span class="fb-points fb-points-lost">Back to 1 point.</span>`
+        : `<span class="fb-prefix">Wrong!</span> <span class="fb-points fb-points-lost">Back to 1 point.</span>`;
       fbText.style.color = '#ff6b6b';
     }
     fbText.style.fontSize = '';

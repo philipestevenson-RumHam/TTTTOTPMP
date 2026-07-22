@@ -216,6 +216,13 @@ button {
   color: #ffb4b4;
   font-weight: 900;
 }
+.fb-prefix {
+  text-shadow:
+    -1px -1px 0 #fff,
+     1px -1px 0 #fff,
+    -1px  1px 0 #fff,
+     1px  1px 0 #fff;
+}
 .timer-fill.timer-urgent {
   animation: timer-urgent-pulse 0.5s ease-in-out infinite;
 }
@@ -2426,15 +2433,15 @@ button {
     const safeAnswer = escapeHtml(answer || '');
     const answerLabel = safeAnswer ? `${safeAnswer}` : '';
     if (timeout) {
-      fbText.innerHTML = safeAnswer ? `Time's up! Answer: ${safeAnswer}` : `Time's up!`;
+      fbText.innerHTML = safeAnswer ? `<span class="fb-prefix">Time's up! Answer:</span> ${safeAnswer}` : `<span class="fb-prefix">Time's up!</span>`;
       fbText.style.color = '#ff6b6b';
     } else if (isCorrect) {
-      fbText.innerHTML = `Correct! ${answerLabel} <span class="fb-points">+${pts}${jokerNote}</span>`;
+      fbText.innerHTML = `<span class="fb-prefix">Correct!</span> ${answerLabel} <span class="fb-points">+${pts}${jokerNote}</span>`;
       fbText.style.color = '#00c8e8';
     } else {
       fbText.innerHTML = safeAnswer
-        ? `Wrong! Answer: ${safeAnswer}. <span class="fb-points fb-points-lost">Back to 1 point.</span>`
-        : `Wrong! <span class="fb-points fb-points-lost">Back to 1 point.</span>`;
+        ? `<span class="fb-prefix">Wrong! Answer:</span> ${safeAnswer}. <span class="fb-points fb-points-lost">Back to 1 point.</span>`
+        : `<span class="fb-prefix">Wrong!</span> <span class="fb-points fb-points-lost">Back to 1 point.</span>`;
       fbText.style.color = '#ff6b6b';
     }
     fbText.style.fontSize = '';
