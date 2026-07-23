@@ -101,7 +101,7 @@ window.QUIZ_QUESTIONS = {
       "type": "letters",
       "question": "One Hit Wonder: Name the Artist…",
       "answer": "B",
-      "display_answer": "Baz Lurman (Everyone's Free To Wear Sunscreen)",
+      "display_answer": "Baz Luhrmann (Everyone's Free To Wear Sunscreen)",
       "media": {
         "type": "video",
         "url": "media\\bl.mp4"
@@ -139,7 +139,7 @@ window.QUIZ_QUESTIONS = {
     },
     {
       "type": "numbers",
-      "question": "In what year did Wham! reach Number One in the UK with Last Christmas?",
+      "question": "In what year did ‘Last Christmas’ by Wham! first reach UK Number One?”",
       "answer": 2021
     }
   ],
@@ -147,7 +147,7 @@ window.QUIZ_QUESTIONS = {
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
-      "answer": "Lana Del Ray",
+      "answer": "Lana Del Rey",
       "media": {
         "type": "video",
         "url": "media\\lr.mp4"
@@ -366,11 +366,11 @@ window.QUIZ_QUESTIONS = {
         "Nathan Nickelson",
         "Calvin Cordozar Broadus Jr.",
         "O’Shea Jackson",
-        "Curtis Jackson",
+        "Curtis James Jackson III",
         "Arthur Dollar",
         "Shawn Corey Carter"
       ],
-      "answer": "Curtis Jackson"
+      "answer": "Curtis James Jackson III"
     },
     {
       "type": "multiple_choice",
@@ -487,7 +487,7 @@ window.QUIZ_QUESTIONS = {
     },
     {
       "type": "tapspot",
-      "question": "Where is the lead singer of Kiss?",
+      "question": "Where is Gene Simmons?",
       "target": [
         {
           "x": 32.8,
@@ -542,7 +542,6 @@ window.QUIZ_QUESTIONS = {
           "y": 74.6
         }
       ],
-      "display_answer": "Gene Simmons",
       "media": {
         "type": "image",
         "url": "media\\rsars.png"
@@ -615,7 +614,7 @@ window.QUIZ_QUESTIONS = {
       "type": "letters",
       "question": "Name the Artist…",
       "answer": "S",
-      "display_answer": "Snap (Rhythm Is A Dancer)",
+      "display_answer": "Snap! (Rhythm Is A Dancer)",
       "media": {
         "type": "audio",
         "url": "media\\snap.mp3"
@@ -898,7 +897,7 @@ window.QUIZ_QUESTIONS = {
         "Oasis",
         "Richard Ashcroft",
         "The Verb",
-        "Oasis",
+        "Pulp",
         "Doves",
         "The Verve"
       ],
