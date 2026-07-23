@@ -761,20 +761,20 @@ window.QUIZ_QUESTIONS = {
       "type": "sequence",
       "question": "Put these six chart‑hit songs with the word “Love” in the title in order of their original release…",
       "items": [
-        "How Deep Is Your Love – Bee Gees",
-        "Woman in Love – Barbra Streisand",
-        "I Just Called to Say I Love You – Stevie Wonder",
-        "The Power of Love – Jennifer Rush",
-        "I Will Always Love You – Whitney Houston",
-        "Love Is All Around – Wet Wet Wet"
+        "How Deep Is Your Love - Bee Gees",
+        "Woman in Love - Barbra Streisand",
+        "I Just Called to Say I Love You - Stevie Wonder",
+        "The Power of Love - Jennifer Rush",
+        "I Will Always Love You - Whitney Houston",
+        "Love Is All Around - Wet Wet Wet"
       ],
       "answer": [
-        "How Deep Is Your Love – Bee Gees",
-        "Woman in Love – Barbra Streisand",
-        "I Just Called to Say I Love You – Stevie Wonder",
-        "The Power of Love – Jennifer Rush",
-        "I Will Always Love You – Whitney Houston",
-        "Love Is All Around – Wet Wet Wet"
+        "How Deep Is Your Love - Bee Gees",
+        "Woman in Love - Barbra Streisand",
+        "I Just Called to Say I Love You - Stevie Wonder",
+        "The Power of Love - Jennifer Rush",
+        "I Will Always Love You - Whitney Houston",
+        "Love Is All Around - Wet Wet Wet"
       ]
     },
     {
