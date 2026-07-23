@@ -17,7 +17,7 @@
 //                     If Q is blank, the type is inferred from its extension.
 
 window.QUIZ_QUESTIONS = {
-  "2026-07-21": [
+  "2026-07-23": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
@@ -143,7 +143,7 @@ window.QUIZ_QUESTIONS = {
       "answer": 2021
     }
   ],
-  "2026-07-20": [
+  "2026-07-22": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
@@ -269,7 +269,7 @@ window.QUIZ_QUESTIONS = {
       "answer": 1995
     }
   ],
-  "2026-07-19": [
+  "2026-07-21": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
@@ -395,7 +395,7 @@ window.QUIZ_QUESTIONS = {
       "answer": 1970
     }
   ],
-  "2026-07-18": [
+  "2026-07-20": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
@@ -571,7 +571,7 @@ window.QUIZ_QUESTIONS = {
       "answer": 1998
     }
   ],
-  "2026-07-17": [
+  "2026-07-19": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
@@ -747,7 +747,7 @@ window.QUIZ_QUESTIONS = {
       "answer": 8
     }
   ],
-  "2026-07-16": [
+  "2026-07-18": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
@@ -914,36 +914,164 @@ window.QUIZ_QUESTIONS = {
       "answer": 50
     }
   ],
-  "2026-07-02": [
+  "2026-07-17": [
     {
-      "type": "letters_shuffled",
-      "question": "Name the Artist…",
-      "answer": "S",
-      "display_answer": "Shakira"
+      "type": "wordsnake",
+      "question": "Word Snake: Name the Artist…",
+      "answer": "Stevie Wonder",
+      "media": {
+        "type": "video",
+        "url": "media\\steview.mp4"
+      }
     },
     {
-      "type": "word",
-      "question": "Name the artist behind this track",
-      "answer": "Fleetwood Mac",
-      "accepted": [
-        "the fleetwoods"
-      ]
-    },
-    {
-      "type": "multitap",
-      "question": "Which of these are Fleetwood Mac albums?",
-      "options": [
-        "Rumours",
-        "Tusk",
-        "Nevermind",
-        "Tango in the Night",
-        "Back in Black",
-        "Rumours"
+      "type": "sequence",
+      "question": "Put these six chart‑hit songs with the word “Heart” in the title in order of their original release…",
+      "items": [
+        "Heartbreak Hotel - Elvis Presley",
+        "Heart of Gold - Neil Young",
+        "Heart of Glass - Blondie",
+        "Total Eclipse of the Heart - Bonnie Tyler",
+        "Heart‑Shaped Box - Nirvana",
+        "Cold Heart - Elton John & Dua Lipa"
       ],
-      "answers": [
-        "Tusk",
-        "Tango in the Night"
+      "answer": [
+        "Heartbreak Hotel - Elvis Presley",
+        "Heart of Gold - Neil Young",
+        "Heart of Glass - Blondie",
+        "Total Eclipse of the Heart - Bonnie Tyler",
+        "Heart‑Shaped Box - Nirvana",
+        "Cold Heart - Elton John & Dua Lipa"
       ]
+    },
+    {
+      "type": "letters",
+      "question": "Name the Artist from the Album Cover…",
+      "answer": "P",
+      "display_answer": "Pink Floyd (The Division Bell)",
+      "media": {
+        "type": "image",
+        "url": "media\\pinkf.png"
+      }
+    },
+    {
+      "type": "letters",
+      "question": "Name the Artist…",
+      "answer": "D",
+      "display_answer": "Duran Duran (A View To A Kill)",
+      "media": {
+        "type": "audio",
+        "url": "media\\durdur.mp3"
+      }
+    },
+    {
+      "type": "sequence",
+      "question": "Put the following in Order to make a Track followed by the Artist…",
+      "items": [
+        "MR TA",
+        "MBOUR",
+        "INE M",
+        "AN TH",
+        "E BYR",
+        "DS"
+      ],
+      "answer": [
+        "MR TA",
+        "MBOUR",
+        "INE M",
+        "AN TH",
+        "E BYR",
+        "DS"
+      ]
+    },
+    {
+      "type": "letters",
+      "question": "Identify the Artist based on the opening lyrics from one of their well‑known songs...",
+      "answer": "K",
+      "display_answer": "Kate Bush (Running Up That Hill)",
+      "media": {
+        "type": "video",
+        "url": "media\\kateb.mp4"
+      }
+    },
+    {
+      "type": "letters",
+      "question": "One Hit Wonder: Name the Artist…",
+      "answer": "M",
+      "display_answer": "The Mavericks (Dance The Night Away)",
+      "media": {
+        "type": "video",
+        "url": "media\\maver.mp4"
+      }
+    },
+    {
+      "type": "tapspot",
+      "question": "Find the original lead singer of Black Sabbath..",
+      "target": [
+        {
+          "x": 30.8,
+          "y": 86.8
+        },
+        {
+          "x": 27.6,
+          "y": 86.6
+        },
+        {
+          "x": 25.4,
+          "y": 88.4
+        },
+        {
+          "x": 25.5,
+          "y": 92.2
+        },
+        {
+          "x": 26.1,
+          "y": 95.9
+        },
+        {
+          "x": 28,
+          "y": 98
+        },
+        {
+          "x": 31.2,
+          "y": 97
+        },
+        {
+          "x": 32.5,
+          "y": 94.1
+        },
+        {
+          "x": 31.8,
+          "y": 88.7
+        }
+      ],
+      "display_answer": "Ozzy Osbourne",
+      "media": {
+        "type": "image",
+        "url": "media\\ozzy.png"
+      }
+    },
+    {
+      "type": "multiple_choice",
+      "question": "Name the Artist who sang the Original…",
+      "options": [
+        "Foreigner",
+        "Journey",
+        "REO Speedwagon",
+        "Survivor",
+        "Toto",
+        "Boston"
+      ],
+      "answer": "Survivor",
+      "media": {
+        "type": "video",
+        "url": "media\\cilla.mp4"
+      }
+    },
+    {
+      "type": "numbers",
+      "question": "In what year did Bob the Builder reach the UK Christmas Number One with “Can We Fix It?”",
+      "answer": 2000
     }
   ]
 };
