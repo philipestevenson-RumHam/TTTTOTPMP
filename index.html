@@ -1133,6 +1133,17 @@ button {
     wordsnake: 'Word Snake',
     tapspot: 'Tap the Spot'
   };
+  const TYPE_ICONS = {
+    multiple_choice: '🔘',
+    letters: '🔤',
+    letters_shuffled: '🔀',
+    numbers: '🔢',
+    word: '⌨️',
+    sequence: '📶',
+    multitap: '✅',
+    wordsnake: '🐍',
+    tapspot: '📍'
+  };
   let currentIndex = 0;
   let score = 0;
   let playerName = '';
@@ -1344,6 +1355,10 @@ button {
       <div class="name-input-wrap">
         <input type="text" class="name-input" id="name-input" placeholder="Enter your name" maxlength="30" value="${playerName || ''}">
       </div>
+      <div class="name-input-wrap hidden" id="jump-input-wrap">
+        <label class="date-picker-label" for="jump-input">Jump to question (test mode)</label>
+        <input type="number" class="name-input" id="jump-input" min="1" max="10" value="1">
+      </div>
       <button class="screen-btn btn-primary" id="btn-start">Start Quiz</button>
       <button class="screen-btn btn-secondary" id="btn-leaderboard">🏆 Leaderboard</button>
       <button class="screen-btn btn-secondary" id="btn-howto">How to Play</button>
@@ -1358,6 +1373,13 @@ button {
     });
 
     const nameInput = document.getElementById('name-input');
+    const jumpInputWrap = document.getElementById('jump-input-wrap');
+    const jumpInput = document.getElementById('jump-input');
+    function isTesterName(v) { return v.trim().toLowerCase() === 'rumhamtester'; }
+    nameInput.addEventListener('input', () => {
+      jumpInputWrap.classList.toggle('hidden', !isTesterName(nameInput.value));
+    });
+    jumpInputWrap.classList.toggle('hidden', !isTesterName(nameInput.value));
 
     document.getElementById('btn-start').addEventListener('click', async () => {
       const name = nameInput.value.trim();
@@ -1365,6 +1387,15 @@ button {
         nameInput.classList.add('shake');
         nameInput.focus();
         setTimeout(() => nameInput.classList.remove('shake'), 400);
+        return;
+      }
+      if (isTesterName(name)) {
+        // Test mode: skip the duplicate-play check and skip saving a score,
+        // so testing doesn't pollute the real leaderboard or block replays.
+        currentPlayerId = null;
+        playerName = name;
+        const jumpTo = parseInt(jumpInput.value, 10) || 1;
+        startGame(jumpTo);
         return;
       }
       const btn = document.getElementById('btn-start');
@@ -1425,10 +1456,10 @@ button {
   document.addEventListener('gesturechange', (e) => e.preventDefault());
 
   // ── Game ──
-  function startGame() {
+  function startGame(startAtIndex) {
     requestWakeLock();
     gameQuestions = questions.slice(0, QUESTIONS_PER_GAME);
-    currentIndex = 0;
+    currentIndex = Math.max(0, Math.min(gameQuestions.length - 1, (startAtIndex || 1) - 1));
     score = 0;
     streak = 0;
     jokerUsed = false;
@@ -1460,7 +1491,7 @@ button {
     renderStreakLadder();
   }
 
-  function renderStreakLadder() {
+  function buildLadderHTML() {
     let html = '';
     for (let i = 0; i < 10; i++) {
       let cls = 'ladder-pip';
@@ -1468,7 +1499,11 @@ button {
       else if (i === streak) cls += ' current';
       html += `<div class="${cls}"></div>`;
     }
-    streakLadder.innerHTML = html;
+    return html;
+  }
+
+  function renderStreakLadder() {
+    streakLadder.innerHTML = buildLadderHTML();
   }
 
   const CHAR_REVEAL_MS = 45;
@@ -1571,13 +1606,15 @@ button {
 
     const nextQ = gameQuestions[currentIndex];
     const typeLabel = TYPE_LABELS[nextQ.type] || nextQ.type;
+    const typeIcon = TYPE_ICONS[nextQ.type] || '❓';
     const streakStatHTML = streak > 0
       ? `<div class="continue-stat">Score: <b>${score}</b> &nbsp;&middot;&nbsp; Streak: <b>${streak}</b>${streak >= 3 ? ' 🔥' : ''}</div>`
       : `<div class="continue-stat">Score: <b>${score}</b></div>`;
 
     screen.innerHTML = `
       <div class="screen-title">Question ${currentIndex + 1} <span style="color:var(--sq-text-muted);font-weight:400">of ${gameQuestions.length}</span></div>
-      <div class="continue-next-type">Next up: <b>${typeLabel}</b></div>
+      <div class="streak-ladder" style="height:14px; width:100%; max-width:400px;">${buildLadderHTML()}</div>
+      <div class="continue-next-type">Next up: ${typeIcon} <b>${typeLabel}</b></div>
       ${streakStatHTML}
       ${jokerBlockHTML}
       <button class="screen-btn ${jokerAvailable ? 'btn-secondary' : 'btn-primary'}" id="btn-continue" ${forced ? 'disabled' : ''}>Continue</button>
