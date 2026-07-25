@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Ten To The Top of The Pop Master Pyramid</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
@@ -36,6 +36,7 @@ html, body {
   font-family: 'Nunito', Arial, sans-serif;
   overflow: hidden;
   -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 body::before {
   content: '';
@@ -214,6 +215,10 @@ button {
 .fb-points-lost {
   color: #ffb4b4;
   font-weight: 900;
+}
+.fb-prefix {
+  -webkit-text-stroke: 0.4px #fff;
+  text-stroke: 0.4px #fff;
 }
 .timer-fill.timer-urgent {
   animation: timer-urgent-pulse 0.5s ease-in-out infinite;
@@ -591,6 +596,12 @@ button {
   font-size: 1rem;
   color: var(--sq-text-muted);
   text-align: center;
+}
+.preload-status {
+  font-size: 0.85rem;
+  color: var(--sq-text-muted);
+  text-align: center;
+  min-height: 1.2em;
 }
 .game-title {
   display: flex;
@@ -1317,6 +1328,7 @@ button {
       <button class="screen-btn btn-primary" id="btn-start">Start Quiz</button>
       <button class="screen-btn btn-secondary" id="btn-leaderboard">🏆 Leaderboard</button>
       <button class="screen-btn btn-secondary" id="btn-howto">How to Play</button>
+      <div class="preload-status" id="preload-status"></div>
     `;
     aPanel.appendChild(screen);
 
@@ -1365,6 +1377,7 @@ button {
     nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('btn-start').click(); });
     document.getElementById('btn-leaderboard').addEventListener('click', openLeaderboard);
     document.getElementById('btn-howto').addEventListener('click', openHowToPlay);
+    preloadAllMedia();
   }
 
   // ── Screen Wake Lock (keeps the phone from dimming/locking during a game) ──
@@ -1385,6 +1398,14 @@ button {
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible' && wakeLockWanted && !wakeLock) requestWakeLock();
   });
+
+  // Belt-and-braces zoom prevention — the viewport meta tag and touch-action
+  // CSS handle most browsers, but Safari doesn't always honor those
+  // consistently (especially once added to the home screen), so block its
+  // pinch-gesture events directly too. This only fires for actual two-finger
+  // pinch gestures, so it can't interfere with normal single-finger tapping.
+  document.addEventListener('gesturestart', (e) => e.preventDefault());
+  document.addEventListener('gesturechange', (e) => e.preventDefault());
 
   // ── Game ──
   function startGame() {
@@ -2393,6 +2414,48 @@ button {
     });
   }
 
+  // Fetch every media file for the questions that will actually be played
+  // (the first QUESTIONS_PER_GAME of the day), so nothing has to buffer
+  // mid-question at a live event on unreliable wifi.
+  function preloadAllMedia() {
+    const list = questions.slice(0, QUESTIONS_PER_GAME)
+      .filter(q => q.media && q.media.url)
+      .map(q => q.media);
+    const statusEl = document.getElementById('preload-status');
+    if (!list.length || !statusEl) return; // nothing to preload, or screen already moved on
+    let done = 0;
+    const total = list.length;
+    const update = () => { if (statusEl.isConnected) statusEl.textContent = `Preparing today's media\u2026 ${done} / ${total}`; };
+    update();
+    list.forEach(media => {
+      let settled = false;
+      const finish = () => {
+        if (settled) return;
+        settled = true;
+        done++;
+        if (done === total) {
+          if (statusEl.isConnected) statusEl.textContent = `✅ Today's media is ready`;
+        } else {
+          update();
+        }
+      };
+      const safetyTimer = setTimeout(finish, 30000); // don't hang forever on one stalled file
+      if (media.type === 'image') {
+        const img = new Image();
+        img.onload = () => { clearTimeout(safetyTimer); finish(); };
+        img.onerror = () => { clearTimeout(safetyTimer); finish(); };
+        img.src = media.url;
+      } else {
+        const el = document.createElement(media.type === 'video' ? 'video' : 'audio');
+        el.preload = 'auto';
+        el.oncanplaythrough = () => { clearTimeout(safetyTimer); finish(); };
+        el.onerror = () => { clearTimeout(safetyTimer); finish(); };
+        el.src = media.url;
+        el.load();
+      }
+    });
+  }
+
   function preloadMedia(q) {
     if (!q || !q.media || !q.media.url) return;
     if (q.media.type === 'image') {
@@ -2417,15 +2480,15 @@ button {
     const safeAnswer = escapeHtml(answer || '');
     const answerLabel = safeAnswer ? `${safeAnswer}` : '';
     if (timeout) {
-      fbText.innerHTML = safeAnswer ? `Time's up! Answer: ${safeAnswer}` : `Time's up!`;
+      fbText.innerHTML = safeAnswer ? `<span class="fb-prefix">Time's up! Answer:</span> ${safeAnswer}` : `<span class="fb-prefix">Time's up!</span>`;
       fbText.style.color = '#ff6b6b';
     } else if (isCorrect) {
-      fbText.innerHTML = `Correct! ${answerLabel} <span class="fb-points">+${pts}${jokerNote}</span>`;
+      fbText.innerHTML = `<span class="fb-prefix">Correct!</span> ${answerLabel} <span class="fb-points">+${pts}${jokerNote}</span>`;
       fbText.style.color = '#00c8e8';
     } else {
       fbText.innerHTML = safeAnswer
-        ? `Wrong! Answer: ${safeAnswer}. <span class="fb-points fb-points-lost">Back to 1 point.</span>`
-        : `Wrong! <span class="fb-points fb-points-lost">Back to 1 point.</span>`;
+        ? `<span class="fb-prefix">Wrong! Answer:</span> ${safeAnswer}. <span class="fb-points fb-points-lost">Back to 1 point.</span>`
+        : `<span class="fb-prefix">Wrong!</span> <span class="fb-points fb-points-lost">Back to 1 point.</span>`;
       fbText.style.color = '#ff6b6b';
     }
     fbText.style.fontSize = '';

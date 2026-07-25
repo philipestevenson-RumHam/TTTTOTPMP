@@ -611,6 +611,12 @@ button {
   color: var(--sq-text-muted);
   text-align: center;
 }
+.preload-status {
+  font-size: 0.85rem;
+  color: var(--sq-text-muted);
+  text-align: center;
+  min-height: 1.2em;
+}
 .game-title {
   display: flex;
   flex-direction: column;
@@ -1362,6 +1368,7 @@ button {
       <button class="screen-btn btn-primary" id="btn-start">Start Quiz</button>
       <button class="screen-btn btn-secondary" id="btn-leaderboard">🏆 Leaderboard</button>
       <button class="screen-btn btn-secondary" id="btn-howto">How to Play</button>
+      <div class="preload-status" id="preload-status"></div>
     `;
     aPanel.appendChild(screen);
 
@@ -1426,6 +1433,7 @@ button {
     nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('btn-start').click(); });
     document.getElementById('btn-leaderboard').addEventListener('click', openLeaderboard);
     document.getElementById('btn-howto').addEventListener('click', openHowToPlay);
+    preloadAllMedia();
   }
 
   // ── Screen Wake Lock (keeps the phone from dimming/locking during a game) ──
@@ -2480,6 +2488,48 @@ button {
     aPanel.querySelectorAll('.letter-btn').forEach(b => {
       if (b.dataset.value.includes(q.answer)) b.classList.add('correct-state','pulse');
       else b.classList.add('dimmed-state');
+    });
+  }
+
+  // Fetch every media file for the questions that will actually be played
+  // (the first QUESTIONS_PER_GAME of the day), so nothing has to buffer
+  // mid-question at a live event on unreliable wifi.
+  function preloadAllMedia() {
+    const list = questions.slice(0, QUESTIONS_PER_GAME)
+      .filter(q => q.media && q.media.url)
+      .map(q => q.media);
+    const statusEl = document.getElementById('preload-status');
+    if (!list.length || !statusEl) return; // nothing to preload, or screen already moved on
+    let done = 0;
+    const total = list.length;
+    const update = () => { if (statusEl.isConnected) statusEl.textContent = `Preparing today's media\u2026 ${done} / ${total}`; };
+    update();
+    list.forEach(media => {
+      let settled = false;
+      const finish = () => {
+        if (settled) return;
+        settled = true;
+        done++;
+        if (done === total) {
+          if (statusEl.isConnected) statusEl.textContent = `✅ Today's media is ready`;
+        } else {
+          update();
+        }
+      };
+      const safetyTimer = setTimeout(finish, 30000); // don't hang forever on one stalled file
+      if (media.type === 'image') {
+        const img = new Image();
+        img.onload = () => { clearTimeout(safetyTimer); finish(); };
+        img.onerror = () => { clearTimeout(safetyTimer); finish(); };
+        img.src = media.url;
+      } else {
+        const el = document.createElement(media.type === 'video' ? 'video' : 'audio');
+        el.preload = 'auto';
+        el.oncanplaythrough = () => { clearTimeout(safetyTimer); finish(); };
+        el.onerror = () => { clearTimeout(safetyTimer); finish(); };
+        el.src = media.url;
+        el.load();
+      }
     });
   }
 
