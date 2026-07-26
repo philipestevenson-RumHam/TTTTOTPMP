@@ -1589,6 +1589,11 @@ button {
     hud.classList.add('hidden');
     hudSub.classList.add('hidden');
     streakLadder.classList.add('hidden');
+    // However long someone lingers here deciding on the joker, use that time
+    // to make sure this question's own media is loading — a fallback in case
+    // the start-screen preload missed it (started the game too fast, or a
+    // file gave up after 30s during that pass).
+    preloadMedia(gameQuestions[currentIndex]);
     const screen = document.createElement('div');
     screen.className = 'screen';
 
@@ -1615,6 +1620,10 @@ button {
     const nextQ = gameQuestions[currentIndex];
     const typeLabel = TYPE_LABELS[nextQ.type] || nextQ.type;
     const typeIcon = TYPE_ICONS[nextQ.type] || '❓';
+    const MEDIA_ICONS = { image: '📷', video: '🎬', audio: '🔊' };
+    const mediaBadge = (nextQ.type !== 'tapspot' && nextQ.media && MEDIA_ICONS[nextQ.media.type])
+      ? ` ${MEDIA_ICONS[nextQ.media.type]}`
+      : '';
     const streakStatHTML = streak > 0
       ? `<div class="continue-stat">Score: <b>${score}</b> &nbsp;&middot;&nbsp; Streak: <b>${streak}</b>${streak >= 3 ? ' 🔥' : ''}</div>`
       : `<div class="continue-stat">Score: <b>${score}</b></div>`;
@@ -1622,7 +1631,7 @@ button {
     screen.innerHTML = `
       <div class="screen-title">Question ${currentIndex + 1} <span style="color:var(--sq-text-muted);font-weight:400">of ${gameQuestions.length}</span></div>
       <div class="streak-ladder" style="height:14px; width:100%; max-width:400px;">${buildLadderHTML()}</div>
-      <div class="continue-next-type">Next up: ${typeIcon} <b>${typeLabel}</b></div>
+      <div class="continue-next-type">Next up: ${typeIcon} <b>${typeLabel}</b>${mediaBadge}</div>
       ${streakStatHTML}
       ${jokerBlockHTML}
       <button class="screen-btn ${jokerAvailable ? 'btn-secondary' : 'btn-primary'}" id="btn-continue" ${forced ? 'disabled' : ''}>Continue</button>
