@@ -544,7 +544,7 @@ button {
   flex-shrink: 0;
 }
 .assemble-preview {
-  min-height: 56px;
+  height: 56px;
   border-radius: 12px;
   background: var(--sq-number-display);
   display: flex;
@@ -552,13 +552,17 @@ button {
   justify-content: center;
   padding: 0 16px;
   color: var(--sq-gold);
-  font-size: clamp(1.3rem, 6vw, 2rem);
   font-weight: 800;
   letter-spacing: 0.02em;
   flex-shrink: 0;
   margin-bottom: 8px;
   word-break: break-word;
   text-align: center;
+  overflow: hidden;
+}
+.assemble-preview span {
+  font-size: clamp(1.3rem, 6vw, 2rem);
+  line-height: 1.1;
 }
 .kbtn.seq-btn {
   font-size: clamp(1rem, 2.8vw, 1.24rem);
@@ -2455,7 +2459,7 @@ button {
     const preview = document.createElement('div');
     preview.className = 'assemble-preview';
     preview.id = 'assemble-preview';
-    preview.textContent = '\u00A0';
+    preview.innerHTML = '<span>\u00A0</span>';
     aPanel.appendChild(preview);
 
     const grid = document.createElement('div');
@@ -2480,8 +2484,11 @@ button {
   function updateAssemblePreview() {
     const el = document.getElementById('assemble-preview');
     if (!el) return;
+    const span = el.querySelector('span');
     const text = assembleTaps.map(t => t.text).join('');
-    el.textContent = text || '\u00A0';
+    span.textContent = text || '\u00A0';
+    span.style.fontSize = '';
+    fitTextToBox(span, el, { min: 12 });
   }
 
   function onAssembleTap(btn, q, grid) {
