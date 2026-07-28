@@ -543,23 +543,6 @@ button {
   font-weight: 700;
   flex-shrink: 0;
 }
-.assemble-preview {
-  min-height: 56px;
-  border-radius: 12px;
-  background: var(--sq-number-display);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 16px;
-  color: var(--sq-gold);
-  font-size: clamp(1.3rem, 6vw, 2rem);
-  font-weight: 800;
-  letter-spacing: 0.02em;
-  flex-shrink: 0;
-  margin-bottom: 8px;
-  word-break: break-word;
-  text-align: center;
-}
 .kbtn.seq-btn {
   font-size: clamp(1rem, 2.8vw, 1.24rem);
   justify-content: center;
@@ -1152,7 +1135,6 @@ button {
     numbers: 'Numbers',
     word: 'Type the Answer',
     sequence: 'Sequence',
-    assemble: 'Assemble',
     multitap: 'Multitap',
     wordsnake: 'Word Snake',
     tapspot: 'Tap the Spot'
@@ -1164,7 +1146,6 @@ button {
     numbers: '🔢',
     word: '⌨️',
     sequence: '📶',
-    assemble: '🧩',
     multitap: '✅',
     wordsnake: '🐍',
     tapspot: '📍'
@@ -1180,7 +1161,6 @@ button {
   const timerDuration = 15000;
   let answered = false;
   let seqTaps = [];
-  let assembleTaps = [];
   let numberInput = '';
 
   // Pyramid scoring state
@@ -1679,7 +1659,6 @@ button {
     answered = false;
     timerStarted = false;
     seqTaps = [];
-    assembleTaps = [];
     numberInput = '';
     hud.classList.remove('hidden');
     hud.classList.toggle('joker-glow', jokerActive);
@@ -1702,7 +1681,6 @@ button {
       case 'multitap': renderMultitap(q); break;
       case 'numbers': renderNumbers(q); break;
       case 'sequence': renderSequence(q); break;
-      case 'assemble': renderAssemble(q); break;
       case 'wordsnake': renderWordSnake(q); break;
       case 'tapspot': renderTapSpot(q); break;
       case 'word': renderWord(q); break;
@@ -2428,104 +2406,6 @@ button {
     });
   }
 
-  // Assemble — like Sequence, but instead of you supplying the items, the
-  // answer itself gets automatically split into up to 6 chunks (single
-  // letters for short answers, a few multi-letter chunks for longer ones),
-  // shuffled, and tapped back together in the right order.
-  function chunkAnswerForAssemble(answer) {
-    const str = String(answer);
-    const len = str.length;
-    const numChunks = Math.min(6, len);
-    if (numChunks <= 0) return [];
-    const base = Math.floor(len / numChunks);
-    const remainder = len % numChunks;
-    const chunks = [];
-    let pos = 0;
-    for (let i = 0; i < numChunks; i++) {
-      const size = base + (i >= numChunks - remainder ? 1 : 0);
-      chunks.push(str.slice(pos, pos + size));
-      pos += size;
-    }
-    return chunks;
-  }
-
-  function renderAssemble(q) {
-    const chunks = chunkAnswerForAssemble(q.answer);
-
-    const preview = document.createElement('div');
-    preview.className = 'assemble-preview';
-    preview.id = 'assemble-preview';
-    preview.textContent = '\u00A0';
-    aPanel.appendChild(preview);
-
-    const grid = document.createElement('div');
-    grid.className = 'keypad sequence';
-    const order = shuffle(chunks.map((text, i) => i));
-    grid.style.gridTemplateRows = `repeat(${chunks.length}, minmax(0, 1fr))`;
-    order.forEach(origIndex => {
-      const btn = document.createElement('button');
-      btn.className = 'kbtn seq-btn assemble-btn';
-      btn.innerHTML = `<span class="choice-text">${escapeHtml(chunks[origIndex])}</span>`;
-      btn.dataset.index = origIndex;
-      btn.dataset.text = chunks[origIndex];
-      btn.addEventListener('click', () => onAssembleTap(btn, q, grid));
-      grid.appendChild(btn);
-    });
-    aPanel.appendChild(grid);
-    grid.querySelectorAll('.assemble-btn .choice-text').forEach(span => {
-      fitTextToBox(span, span.closest('.kbtn'), { min: 11 });
-    });
-  }
-
-  function updateAssemblePreview() {
-    const el = document.getElementById('assemble-preview');
-    if (!el) return;
-    const text = assembleTaps.map(t => t.text).join('');
-    el.textContent = text || '\u00A0';
-  }
-
-  function onAssembleTap(btn, q, grid) {
-    if (answered) return;
-    const index = parseInt(btn.dataset.index, 10);
-
-    // Unselect: tapping an already-tapped chunk removes just that one,
-    // same as Sequence — the rest stay picked, order badges renumber.
-    if (btn.classList.contains('dimmed-state')) {
-      const pos = assembleTaps.findIndex(t => t.index === index);
-      if (pos !== -1) assembleTaps.splice(pos, 1);
-      btn.classList.remove('dimmed-state');
-      const os = btn.querySelector('.seq-order');
-      if (os) os.remove();
-      grid.querySelectorAll('.assemble-btn.dimmed-state').forEach(b => {
-        const bIndex = parseInt(b.dataset.index, 10);
-        const idx = assembleTaps.findIndex(t => t.index === bIndex);
-        const bOs = b.querySelector('.seq-order');
-        if (bOs && idx !== -1) bOs.textContent = idx + 1;
-      });
-      updateAssemblePreview();
-      return;
-    }
-
-    assembleTaps.push({ index: index, text: btn.dataset.text });
-    btn.classList.add('dimmed-state');
-    const os = document.createElement('span');
-    os.className = 'seq-order'; os.textContent = assembleTaps.length;
-    btn.appendChild(os);
-    updateAssemblePreview();
-
-    const total = grid.querySelectorAll('.assemble-btn').length;
-    if (assembleTaps.length === total) {
-      answered = true; stopTimer(); revealQuestionTextNow();
-      const assembled = assembleTaps.map(t => t.text).join('');
-      const isCorrect = assembled === String(q.answer);
-      const pts = awardPoints(isCorrect);
-      const btns = grid.querySelectorAll('.assemble-btn');
-      if (isCorrect) btns.forEach(b => b.classList.add('correct-state', 'pulse'));
-      else btns.forEach(b => { b.classList.remove('dimmed-state'); b.classList.add('wrong-state'); });
-      showFeedback(isCorrect, q.display_answer || q.answer, pts);
-    }
-  }
-
   function onSeqTap(btn, q, grid) {
     if (answered) return;
     // Unselect: if already tapped, remove it from the sequence
@@ -2582,17 +2462,6 @@ button {
         break;
       }
       case 'sequence': correctDisplay = q.answer.join(' → '); break;
-      case 'assemble': {
-        correctDisplay = q.display_answer || q.answer;
-        const assembleGrid = aPanel.querySelector('.keypad.sequence');
-        if (assembleGrid) {
-          assembleGrid.querySelectorAll('.assemble-btn').forEach(b => {
-            b.classList.remove('dimmed-state');
-            b.classList.add(assembleTaps.length ? 'wrong-state' : 'dimmed-state');
-          });
-        }
-        break;
-      }
       case 'wordsnake': {
         correctDisplay = q.display_answer || q.answer;
         const snakeGrid = aPanel.querySelector('.snake-grid');
@@ -2895,7 +2764,6 @@ button {
     { heading: 'Letters', text: 'Tap the letter grid to choose the first letter of the answer.', list: ['Tap the letter that starts the answer','The full answer is revealed afterwards','Q/V and X/Z share buttons'] },
     { heading: 'Numbers', text: 'Type the correct number using the keypad.', list: ['Use the number pad to enter your answer','Press Enter to submit','C clears your input'] },
     { heading: 'Sequence', text: 'Tap the items in the correct order.', list: ['Items appear in a random order','Tap them in the correct sequence (1st, 2nd, 3rd…)','Get them all right to score points'] },
-    { heading: 'Assemble', text: 'The answer has been chopped into pieces \u2014 tap them back together in order.', list: ['Watch the answer build up above the tiles as you tap','Tap a piece again to undo it','Get the order exactly right to score'] },
     { heading: 'Word Snake', text: 'The answer is hidden in the letter grid \u2014 you just have to find it.', list: ['Tap letters one at a time to spell it out','Each letter must be touching the last one (up, down, left or right)','Tap a selected letter again to undo it'] },
     { heading: 'Tap the Spot', text: 'Tap the correct place on the photo or image.', list: ['Look carefully \u2014 there\u2019s no keypad, the image itself is the answer','You get one tap, so make it count','Get it wrong and the correct area lights up so you can see where it was'] },
     { heading: 'Type the Answer', text: 'Type out the full answer using your keyboard.', list: ['Tap the box to bring up your keyboard','Spelling doesn\u2019t need to be perfect \u2014 capitals and punctuation don\u2019t matter','Press Enter or Submit when you\u2019re ready'] },

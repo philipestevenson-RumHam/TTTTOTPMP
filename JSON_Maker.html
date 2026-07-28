@@ -62,6 +62,7 @@
   <span class="chip" style="background:#FCE4D6">numbers</span>
   <span class="chip" style="background:#D6E4F0">word</span>
   <span class="chip" style="background:#EAD1DC">sequence</span>
+  <span class="chip" style="background:#D5D9F2">assemble</span>
   <span class="chip" style="background:#C9DAF8">multitap</span>
   <span class="chip" style="background:#D9E8D3">wordsnake</span>
   <span class="chip" style="background:#F8CBAD">tapspot</span>
@@ -193,6 +194,13 @@ function processFile(file) {
           if (answer.length < 2) { console.warn(`Row ${i+1}: sequence needs at least 2 order values`); errorCount++; continue; }
           q = { type: 'sequence', question, items, answer };
 
+        } else if (qtype === 'assemble') {
+          // D = the answer \u2014 the app automatically splits it into up to 6
+          // shuffled pieces for the player to tap back together in order
+          const answer = String(row[3] || '').trim();
+          if (!answer) { console.warn(`Row ${i+1}: assemble missing answer`); errorCount++; continue; }
+          q = { type: 'assemble', question, answer };
+
         } else if (qtype === 'multitap') {
           // D–I = options (up to 6), J–O = the ones that are correct (can be
           // more than one) — each must exactly match one of the D–I options
@@ -317,6 +325,7 @@ convertBtn.addEventListener('click', () => {
 //   numbers         : answer (integer)
 //   word            : answer (typed in full), optional accepted variants
 //   sequence        : items (up to 6, shown shuffled), answer (correct order array)
+//   assemble        : answer (auto-split into up to 6 shuffled pieces by the app)
 //   multitap        : options (up to 6), answers (array \u2014 every correct one)
 //   wordsnake       : answer (word or phrase, max 20 letters — spaces don't count)
 //   tapspot         : target (JSON array of {x,y} points from the Shape Picker

@@ -9,6 +9,7 @@
 //   numbers         : answer (integer)
 //   word            : answer (typed in full), optional accepted variants
 //   sequence        : items (up to 6, shown shuffled), answer (correct order array)
+//   assemble        : answer (auto-split into up to 6 shuffled pieces by the app)
 //   multitap        : options (up to 6), answers (array — every correct one)
 //   wordsnake       : answer (word or phrase, max 20 letters — spaces don't count)
 //   tapspot         : target (JSON array of {x,y} points from the Shape Picker
@@ -17,7 +18,7 @@
 //                     If Q is blank, the type is inferred from its extension.
 
 window.QUIZ_QUESTIONS = {
-  "2026-07-23": [
+  "2026-07-28": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
@@ -68,24 +69,9 @@ window.QUIZ_QUESTIONS = {
       }
     },
     {
-      "type": "sequence",
+      "type": "assemble",
       "question": "Put the following in Order to make a Track followed by the Artist…",
-      "items": [
-        "WON",
-        "DER",
-        "WAL",
-        "L O",
-        "ASI",
-        "S"
-      ],
-      "answer": [
-        "WON",
-        "DER",
-        "WAL",
-        "L O",
-        "ASI",
-        "S"
-      ]
+      "answer": "WONDERWALL OASIS"
     },
     {
       "type": "letters",
@@ -143,7 +129,7 @@ window.QUIZ_QUESTIONS = {
       "answer": 2021
     }
   ],
-  "2026-07-22": [
+  "2026-07-27": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
@@ -194,24 +180,9 @@ window.QUIZ_QUESTIONS = {
       }
     },
     {
-      "type": "sequence",
+      "type": "assemble",
       "question": "Put the following in Order to make a Track followed by the Artist…",
-      "items": [
-        "CALL",
-        "ME MA",
-        "YBE C",
-        "ARLY",
-        "RAE J",
-        "EPSEN"
-      ],
-      "answer": [
-        "CALL",
-        "ME MA",
-        "YBE C",
-        "ARLY",
-        "RAE J",
-        "EPSEN"
-      ]
+      "answer": "CALL ME MAYBE CARLY RAE JEPSEN"
     },
     {
       "type": "letters",
@@ -269,7 +240,7 @@ window.QUIZ_QUESTIONS = {
       "answer": 1995
     }
   ],
-  "2026-07-21": [
+  "2026-07-26": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
@@ -320,24 +291,9 @@ window.QUIZ_QUESTIONS = {
       }
     },
     {
-      "type": "sequence",
+      "type": "assemble",
       "question": "Put the following in Order to make a Track followed by the Artist…",
-      "items": [
-        "MONEY",
-        "FOR",
-        "NOTHI",
-        "NG DI",
-        "RE ST",
-        "RAITS"
-      ],
-      "answer": [
-        "MONEY",
-        "FOR",
-        "NOTHI",
-        "NG DI",
-        "RE ST",
-        "RAITS"
-      ]
+      "answer": "MONEY FOR NOTHING DIRE STRAITS"
     },
     {
       "type": "letters",
@@ -395,7 +351,7 @@ window.QUIZ_QUESTIONS = {
       "answer": 1970
     }
   ],
-  "2026-07-20": [
+  "2026-07-25": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
@@ -446,24 +402,9 @@ window.QUIZ_QUESTIONS = {
       }
     },
     {
-      "type": "sequence",
+      "type": "assemble",
       "question": "Put the following in Order to make a Track followed by the Artist…",
-      "items": [
-        "SONG F",
-        "OR WHO",
-        "EVER T",
-        "HE BEA",
-        "UTIFUL",
-        "SOUTH"
-      ],
-      "answer": [
-        "SONG F",
-        "OR WHO",
-        "EVER T",
-        "HE BEA",
-        "UTIFUL",
-        "SOUTH"
-      ]
+      "answer": "SONG FOR WHOEVER THE BEAUTIFUL SOUTH"
     },
     {
       "type": "letters",
@@ -570,7 +511,7 @@ window.QUIZ_QUESTIONS = {
       "answer": 1998
     }
   ],
-  "2026-07-19": [
+  "2026-07-24": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
@@ -621,24 +562,9 @@ window.QUIZ_QUESTIONS = {
       }
     },
     {
-      "type": "sequence",
+      "type": "assemble",
       "question": "Put the following in Order to make a Track followed by the Artist…",
-      "items": [
-        "PINK",
-        "PONY",
-        "CLUB",
-        "CHAPP",
-        "ELL R",
-        "OAN"
-      ],
-      "answer": [
-        "PINK",
-        "PONY",
-        "CLUB",
-        "CHAPP",
-        "ELL R",
-        "OAN"
-      ]
+      "answer": "PINK PONY CLUB CHAPPELL ROAN"
     },
     {
       "type": "letters",
@@ -746,7 +672,7 @@ window.QUIZ_QUESTIONS = {
       "answer": 8
     }
   ],
-  "2026-07-18": [
+  "2026-07-23": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
@@ -797,24 +723,9 @@ window.QUIZ_QUESTIONS = {
       }
     },
     {
-      "type": "sequence",
+      "type": "assemble",
       "question": "Put the following in Order to make a Track followed by the Artist…",
-      "items": [
-        "I'D DO ANY",
-        "THING FOR",
-        "LOVE (BUT",
-        "I WON'T DO",
-        "THAT) MEA",
-        "T LOAF"
-      ],
-      "answer": [
-        "I'D DO ANY",
-        "THING FOR",
-        "LOVE (BUT",
-        "I WON'T DO",
-        "THAT) MEA",
-        "T LOAF"
-      ]
+      "answer": "I'D DO ANYTHING FOR LOVE (BUT I WON'T DO THAT) MEAT LOAF"
     },
     {
       "type": "letters",
@@ -894,7 +805,6 @@ window.QUIZ_QUESTIONS = {
       "type": "multiple_choice",
       "question": "Name the Artist who sang the Original…",
       "options": [
-        "Oasis",
         "Richard Ashcroft",
         "The Verb",
         "Pulp",
@@ -913,7 +823,7 @@ window.QUIZ_QUESTIONS = {
       "answer": 50
     }
   ],
-  "2026-07-17": [
+  "2026-07-22": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
@@ -964,24 +874,9 @@ window.QUIZ_QUESTIONS = {
       }
     },
     {
-      "type": "sequence",
+      "type": "assemble",
       "question": "Put the following in Order to make a Track followed by the Artist…",
-      "items": [
-        "MR TA",
-        "MBOUR",
-        "INE M",
-        "AN TH",
-        "E BYR",
-        "DS"
-      ],
-      "answer": [
-        "MR TA",
-        "MBOUR",
-        "INE M",
-        "AN TH",
-        "E BYR",
-        "DS"
-      ]
+      "answer": "MR TAMBOURINE MAN THE BYRDS"
     },
     {
       "type": "letters",

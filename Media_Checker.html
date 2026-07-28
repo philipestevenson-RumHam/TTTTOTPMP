@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Media Compatibility Checker</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: system-ui, sans-serif; background: #f0f4f8; display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 40px 20px; }
+  h1 { font-size: 1.6rem; color: #1F3864; margin-bottom: 6px; }
+  p.sub { color: #555; margin-bottom: 28px; text-align: center; max-width: 620px; }
+
+  #dropzone {
+    border: 3px dashed #2E75B6; border-radius: 16px; background: #fff;
+    width: 100%; max-width: 640px; padding: 60px 20px;
+    text-align: center; cursor: pointer; transition: background .2s;
+  }
+  #dropzone.over { background: #e8f4ff; }
+  #dropzone svg { margin-bottom: 14px; }
+  #dropzone p { color: #444; font-size: 1rem; }
+  #dropzone span { color: #2E75B6; font-weight: 600; }
+  #file-input { display: none; }
+
+  #summary { display: none; width: 100%; max-width: 640px; margin-top: 22px; }
+  #summary-bar {
+    display: flex; gap: 10px; background: #fff; border-radius: 12px; padding: 14px 16px;
+    margin-bottom: 16px; font-size: .9rem; font-weight: 600; flex-wrap: wrap;
+  }
+  #summary-bar span { padding: 4px 10px; border-radius: 8px; }
+  .count-ok { background: #E2EFDA; color: #1e6b2e; }
+  .count-warn { background: #FFF2CC; color: #8a6d00; }
+  .count-bad { background: #FCE0E0; color: #a11616; }
+  #add-more { margin-left: auto; background: #eef3f9; color: #1F3864; border: none; border-radius: 8px; padding: 8px 14px; font-size: .82rem; font-weight: 600; cursor: pointer; }
+  #add-more:hover { background: #dde8f5; }
+
+  .file-row {
+    background: #fff; border-radius: 12px; padding: 14px 16px; margin-bottom: 10px;
+    display: flex; align-items: flex-start; gap: 12px;
+  }
+  .file-row .icon { font-size: 1.4rem; line-height: 1.3; }
+  .file-row .body { flex: 1; min-width: 0; }
+  .file-row .name { font-weight: 700; color: #1F3864; word-break: break-all; font-size: .92rem; }
+  .file-row .detail { font-size: .82rem; color: #555; margin-top: 3px; }
+  .file-row .verdict { font-size: .82rem; font-weight: 700; margin-top: 5px; }
+  .verdict-ok { color: #1e6b2e; }
+  .verdict-warn { color: #8a6d00; }
+  .verdict-bad { color: #a11616; }
+  .badge {
+    display: inline-block; font-size: .72rem; font-weight: 700; padding: 2px 8px;
+    border-radius: 20px; margin-top: 6px; margin-right: 4px;
+  }
+  .badge-ok { background: #E2EFDA; color: #1e6b2e; }
+  .badge-warn { background: #FFF2CC; color: #8a6d00; }
+  .badge-bad { background: #FCE0E0; color: #a11616; }
+</style>
+</head>
+<body>
+
+<h1>🔍 Media Compatibility Checker</h1>
+<p class="sub">Drop in your video, audio, or image files — this reads the real codec straight out of each file's own bytes (not the filename, not what your editing tool claims) and tells you whether it'll actually play on iPad/iPhone Safari.</p>
+
+<div id="dropzone" onclick="document.getElementById('file-input').click()">
+  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#2E75B6" stroke-width="1.6">
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+    <polyline points="17 8 12 3 7 8"/>
+    <line x1="12" y1="3" x2="12" y2="15"/>
+  </svg>
+  <p>Drop <span>video, audio, or image files</span> here<br><span style="font-size:.85rem;font-weight:400;color:#888">or click to browse — you can select many at once</span></p>
+</div>
+<input type="file" id="file-input" accept="video/*,audio/*,image/*" multiple/>
+
+<div id="summary">
+  <div id="summary-bar"></div>
+  <div id="results"></div>
+</div>
+
+<script>
+const dropzone  = document.getElementById('dropzone');
+const fileInput = document.getElementById('file-input');
+const summary   = document.getElementById('summary');
+const summaryBar = document.getElementById('summary-bar');
+const results   = document.getElementById('results');
+let counts = { ok: 0, warn: 0, bad: 0 };
+
+dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('over'); });
+dropzone.addEventListener('dragleave', () => dropzone.classList.remove('over'));
+dropzone.addEventListener('drop', e => {
+  e.preventDefault(); dropzone.classList.remove('over');
+  handleFiles(e.dataTransfer.files);
+});
+fileInput.addEventListener('change', () => { handleFiles(fileInput.files); fileInput.value = ''; });
+
+function handleFiles(fileList) {
+  const files = Array.from(fileList);
+  if (!files.length) return;
+  summary.style.display = 'block';
+  files.forEach(checkFile);
+}
+
+// ── Container / codec detection ─────────────────────────────────────────
+async function checkFile(file) {
+  const row = document.createElement('div');
+  row.className = 'file-row';
+  row.innerHTML = `<div class="icon">⏳</div><div class="body"><div class="name">${escapeHtml(file.name)}</div><div class="detail">Checking…</div></div>`;
+  results.appendChild(row);
+
+  try {
+    const head = await readBytes(file, 0, Math.min(file.size, 65536)); // enough for most stsd boxes near the start
+    const verdict = await classify(file, head);
+    renderRow(row, file, verdict);
+  } catch (err) {
+    renderRow(row, file, { icon: '❓', title: 'Could not read this file', detail: String(err && err.message || err), tier: 'warn' });
+  }
+}
+
+function readBytes(file, start, end) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(new Uint8Array(reader.result));
+    reader.onerror = () => reject(new Error('read error'));
+    reader.readAsArrayBuffer(file.slice(start, end));
+  });
+}
+
+async function classify(file, bytes) {
+  const type = (file.type || '').toLowerCase();
+  const name = file.name.toLowerCase();
+
+  if (type.startsWith('image/') || /\.(jpe?g|png|gif|webp|heic|heif|avif|bmp|svg)$/.test(name)) {
+    return classifyImage(bytes, name, type);
+  }
+
+  // WebM / Matroska container — EBML magic 0x1A45DFA3. Safari does not
+  // support this container at all, regardless of the codec inside it.
+  if (bytes.length >= 4 && bytes[0]===0x1A && bytes[1]===0x45 && bytes[2]===0xDF && bytes[3]===0xA3) {
+    return { icon: '❌', title: 'WebM container', detail: 'Safari does not support WebM at all, regardless of the codec inside. Re-export as MP4.', tier: 'bad' };
+  }
+
+  // Ogg container — "OggS" magic. Safari does not support Ogg audio/video.
+  if (bytes.length >= 4 && bytes[0]===0x4F && bytes[1]===0x67 && bytes[2]===0x67 && bytes[3]===0x53) {
+    return { icon: '❌', title: 'Ogg container', detail: 'Safari does not support Ogg (Vorbis/Opus) audio. Re-export as MP3 or AAC/M4A.', tier: 'bad' };
+  }
+
+  // MP3 — ID3 tag or raw frame sync.
+  if ((bytes[0]===0x49 && bytes[1]===0x44 && bytes[2]===0x33) /* ID3 */ ||
+      (bytes.length >= 2 && bytes[0]===0xFF && (bytes[1] & 0xE0) === 0xE0)) {
+    return { icon: '✅', title: 'MP3 audio', detail: 'Universally supported.', tier: 'ok' };
+  }
+
+  // ISO Base Media (MP4/MOV/M4A) — look for "ftyp" box near the start.
+  const ftypIdx = findAscii(bytes, 'ftyp', 0, 32);
+  if (ftypIdx >= 0) {
+    return classifyIsoBaseMedia(bytes, file);
+  }
+
+  return { icon: '❓', title: 'Unrecognized format', detail: 'Could not identify this as a known container from its bytes — double-check it manually.', tier: 'warn' };
+}
+
+function classifyImage(bytes, name, type) {
+  if (/\.heic$/.test(name) || /\.heif$/.test(name) || type.includes('heic') || type.includes('heif')) {
+    return { icon: '⚠️', title: 'HEIC/HEIF image', detail: 'Displays fine on Safari/iPad, but many non-Apple browsers can\'t show it. Safe here, risky if this quiz ever runs on Android too.', tier: 'warn' };
+  }
+  if (/\.avif$/.test(name) || type.includes('avif')) {
+    return { icon: '⚠️', title: 'AVIF image', detail: 'Supported on recent Safari versions, but not universally — a JPG/PNG/WebP fallback is safer.', tier: 'warn' };
+  }
+  return { icon: '✅', title: 'Standard image format', detail: 'JPG/PNG/GIF/WebP all display fine on Safari.', tier: 'ok' };
+}
+
+// Walk MP4/MOV box structure to find the REAL codec fourcc for each track,
+// rather than trusting the file extension or claimed MIME type.
+function classifyIsoBaseMedia(bytes, file) {
+  const codecs = []; // { trackType: 'video'|'audio'|'unknown', fourcc }
+  let pos = 0;
+  const n = bytes.length;
+
+  function readBox(start, end, insideTrak) {
+    let offset = start;
+    while (offset + 8 <= end) {
+      let size = readU32(offset);
+      const type = ascii(offset + 4, 4);
+      let headerLen = 8;
+      if (size === 1) {
+        // 64-bit size in the next 8 bytes — rare, approximate is fine here
+        if (offset + 16 > end) break;
+        const hi = readU32(offset + 8), lo = readU32(offset + 12);
+        size = hi * 4294967296 + lo;
+        headerLen = 16;
+      }
+      if (size === 0) size = end - offset; // box extends to end of parent
+      const boxEnd = Math.min(offset + size, end);
+
+      if (['moov', 'trak', 'mdia', 'minf', 'stbl'].includes(type)) {
+        readBox(offset + headerLen, boxEnd, insideTrak || type === 'trak');
+      } else if (type === 'hdlr' && offset + headerLen + 16 + 4 <= boxEnd) {
+        const handlerType = ascii(offset + headerLen + 8, 4);
+        currentTrackType = handlerType === 'vide' ? 'video' : (handlerType === 'soun' ? 'audio' : 'other');
+      } else if (type === 'stsd' && offset + headerLen + 8 + 8 <= boxEnd) {
+        const fourcc = ascii(offset + headerLen + 8 + 4, 4);
+        codecs.push({ trackType: currentTrackType || 'unknown', fourcc });
+      }
+      if (size <= 0 || boxEnd <= offset) break;
+      offset = boxEnd;
+    }
+  }
+  let currentTrackType = null;
+
+  function readU32(o) { return (bytes[o]<<24 | bytes[o+1]<<16 | bytes[o+2]<<8 | bytes[o+3]) >>> 0; }
+  function ascii(o, len) {
+    let s = '';
+    for (let i = 0; i < len; i++) {
+      const c = bytes[o+i];
+      s += (c >= 32 && c <= 126) ? String.fromCharCode(c) : '';
+    }
+    return s;
+  }
+
+  readBox(0, n, false);
+
+  if (!codecs.length) {
+    return { icon: '❓', title: 'MP4/MOV file, but codec could not be located', detail: 'The moov/stsd box may be near the end of the file, beyond what this tool reads for large files. Try a shorter clip, or verify manually.', tier: 'warn' };
+  }
+
+  const KNOWN = {
+    avc1: { name: 'H.264 / AVC', ok: true },
+    avc3: { name: 'H.264 / AVC', ok: true },
+    hvc1: { name: 'HEVC / H.265', ok: 'maybe' },
+    hev1: { name: 'HEVC / H.265', ok: 'maybe' },
+    vp09: { name: 'VP9', ok: false },
+    av01: { name: 'AV1', ok: false },
+    mp4a: { name: 'AAC', ok: true },
+    Opus: { name: 'Opus', ok: false },
+    alac: { name: 'ALAC', ok: true },
+    'ac-3': { name: 'Dolby Digital (AC-3)', ok: 'maybe' },
+  };
+
+  const video = codecs.find(c => c.trackType === 'video');
+  const audio = codecs.find(c => c.trackType === 'audio');
+  const parts = [];
+  let tier = 'ok';
+
+  [['Video', video], ['Audio', audio]].forEach(([label, entry]) => {
+    if (!entry) return;
+    const info = KNOWN[entry.fourcc] || { name: entry.fourcc + ' (unrecognized)', ok: 'unknown' };
+    parts.push(`${label}: ${info.name}`);
+    if (info.ok === false) tier = 'bad';
+    else if ((info.ok === 'maybe' || info.ok === 'unknown') && tier !== 'bad') tier = 'warn';
+  });
+
+  const titleMap = { ok: '✅ Should play fine on iPad/Safari', warn: '⚠️ May not play reliably on iPad/Safari', bad: '❌ Will not play on iPad/Safari' };
+  const iconMap = { ok: '✅', warn: '⚠️', bad: '❌' };
+
+  return {
+    icon: iconMap[tier],
+    title: titleMap[tier],
+    detail: parts.join(' · ') || 'No recognizable video/audio track found.',
+    tier
+  };
+}
+
+function findAscii(bytes, str, start, maxScan) {
+  const target = str.split('').map(c => c.charCodeAt(0));
+  const end = Math.min(bytes.length - target.length, start + maxScan);
+  for (let i = start; i <= end; i++) {
+    let match = true;
+    for (let j = 0; j < target.length; j++) {
+      if (bytes[i+j] !== target[j]) { match = false; break; }
+    }
+    if (match) return i;
+  }
+  return -1;
+}
+
+function renderRow(row, file, v) {
+  counts[v.tier]++;
+  updateSummaryBar();
+  const sizeStr = (file.size / 1048576).toFixed(1) + ' MB';
+  row.innerHTML = `
+    <div class="icon">${v.icon}</div>
+    <div class="body">
+      <div class="name">${escapeHtml(file.name)} <span style="color:#999;font-weight:400">(${sizeStr})</span></div>
+      <div class="verdict verdict-${v.tier}">${escapeHtml(v.title)}</div>
+      <div class="detail">${escapeHtml(v.detail)}</div>
+    </div>
+  `;
+}
+
+function updateSummaryBar() {
+  summaryBar.innerHTML = `
+    <span class="count-ok">✅ ${counts.ok} fine</span>
+    <span class="count-warn">⚠️ ${counts.warn} risky</span>
+    <span class="count-bad">❌ ${counts.bad} broken</span>
+    <button id="add-more">+ Add more files</button>
+  `;
+  document.getElementById('add-more').addEventListener('click', () => fileInput.click());
+}
+
+function escapeHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
+</body>
+</html>
