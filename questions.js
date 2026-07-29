@@ -18,7 +18,7 @@
 //                     If Q is blank, the type is inferred from its extension.
 
 window.QUIZ_QUESTIONS = {
-  "2026-07-28": [
+  "2026-07-29": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
@@ -129,7 +129,7 @@ window.QUIZ_QUESTIONS = {
       "answer": 2021
     }
   ],
-  "2026-07-27": [
+  "2026-07-28": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
@@ -240,7 +240,7 @@ window.QUIZ_QUESTIONS = {
       "answer": 1995
     }
   ],
-  "2026-07-26": [
+  "2026-07-27": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
@@ -351,7 +351,7 @@ window.QUIZ_QUESTIONS = {
       "answer": 1970
     }
   ],
-  "2026-07-25": [
+  "2026-07-26": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
@@ -511,7 +511,7 @@ window.QUIZ_QUESTIONS = {
       "answer": 1998
     }
   ],
-  "2026-07-24": [
+  "2026-07-25": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
@@ -672,7 +672,7 @@ window.QUIZ_QUESTIONS = {
       "answer": 8
     }
   ],
-  "2026-07-23": [
+  "2026-07-24": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
@@ -805,6 +805,7 @@ window.QUIZ_QUESTIONS = {
       "type": "multiple_choice",
       "question": "Name the Artist who sang the Original…",
       "options": [
+        "Blur",
         "Richard Ashcroft",
         "The Verb",
         "Pulp",
@@ -823,7 +824,7 @@ window.QUIZ_QUESTIONS = {
       "answer": 50
     }
   ],
-  "2026-07-22": [
+  "2026-07-23": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
