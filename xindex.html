@@ -479,27 +479,6 @@ button {
 .keypad.sequence {
   grid-template-columns: 1fr;
 }
-.keypad.match {
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-}
-.kbtn.match-btn {
-  font-size: clamp(0.8rem, 3vw, 1rem);
-  position: relative;
-}
-.kbtn.match-btn.selected {
-  background: #f5d76e !important;
-  color: #07091c !important;
-  box-shadow: 0 0 0 2px #f5a623 inset;
-}
-.kbtn.match-btn.matched {
-  opacity: 0.5;
-  cursor: default;
-  pointer-events: none;
-}
-.kbtn.match-btn.shake {
-  animation: shake 0.4s ease;
-}
 .kbtn {
   border-radius: 10px;
   font-weight: 700;
@@ -1178,7 +1157,6 @@ button {
     word: 'Type the Answer',
     sequence: 'Sequence',
     assemble: 'Assemble',
-    match: 'Match Pairs',
     multitap: 'Multitap',
     wordsnake: 'Word Snake',
     tapspot: 'Tap the Spot'
@@ -1191,7 +1169,6 @@ button {
     word: '⌨️',
     sequence: '📶',
     assemble: '🧩',
-    match: '🔗',
     multitap: '✅',
     wordsnake: '🐍',
     tapspot: '📍'
@@ -1208,9 +1185,6 @@ button {
   let answered = false;
   let seqTaps = [];
   let assembleTaps = [];
-  let matchSelected = null;
-  let matchMatchedCount = 0;
-  let matchLockedPairs = [];
   let numberInput = '';
 
   // Pyramid scoring state
@@ -1710,9 +1684,6 @@ button {
     timerStarted = false;
     seqTaps = [];
     assembleTaps = [];
-    matchSelected = null;
-    matchMatchedCount = 0;
-    matchLockedPairs = [];
     numberInput = '';
     hud.classList.remove('hidden');
     hud.classList.toggle('joker-glow', jokerActive);
@@ -1736,7 +1707,6 @@ button {
       case 'numbers': renderNumbers(q); break;
       case 'sequence': renderSequence(q); break;
       case 'assemble': renderAssemble(q); break;
-      case 'match': renderMatch(q); break;
       case 'wordsnake': renderWordSnake(q); break;
       case 'tapspot': renderTapSpot(q); break;
       case 'word': renderWord(q); break;
@@ -2563,113 +2533,6 @@ button {
     }
   }
 
-  // Match Pairs — left items and right items are shuffled independently (so
-  // row position never gives the pairing away), tap one from each side to
-  // attempt a match. Wrong attempts just bounce back — no penalty beyond the
-  // time it costs, since the timer keeps running throughout.
-  function renderMatch(q) {
-    const grid = document.createElement('div');
-    grid.className = 'keypad match';
-    const n = q.left.length;
-    grid.style.gridTemplateRows = `repeat(${n}, minmax(0, 1fr))`;
-    const leftOrder = shuffle(q.left.map((_, i) => i));
-    const rightOrder = shuffle(q.right.map((_, i) => i));
-    for (let row = 0; row < n; row++) {
-      const leftIdx = leftOrder[row];
-      const rightIdx = rightOrder[row];
-
-      const leftBtn = document.createElement('button');
-      leftBtn.className = 'kbtn match-btn';
-      leftBtn.innerHTML = `<span class="choice-text">${escapeHtml(q.left[leftIdx])}</span>`;
-      leftBtn.dataset.side = 'left';
-      leftBtn.dataset.pairIndex = leftIdx;
-      leftBtn.addEventListener('click', () => onMatchTap(leftBtn, q, grid));
-      grid.appendChild(leftBtn);
-
-      const rightBtn = document.createElement('button');
-      rightBtn.className = 'kbtn match-btn';
-      rightBtn.innerHTML = `<span class="choice-text">${escapeHtml(q.right[rightIdx])}</span>`;
-      rightBtn.dataset.side = 'right';
-      rightBtn.dataset.pairIndex = rightIdx;
-      rightBtn.addEventListener('click', () => onMatchTap(rightBtn, q, grid));
-      grid.appendChild(rightBtn);
-    }
-    aPanel.appendChild(grid);
-    grid.querySelectorAll('.match-btn .choice-text').forEach(span => {
-      fitTextToBox(span, span.closest('.kbtn'), { min: 10 });
-    });
-  }
-
-  function onMatchTap(btn, q, grid) {
-    if (answered) return;
-    if (btn.classList.contains('matched')) return; // already locked in — inert
-
-    if (btn.classList.contains('selected')) {
-      btn.classList.remove('selected');
-      matchSelected = null;
-      return;
-    }
-
-    if (!matchSelected) {
-      btn.classList.add('selected');
-      matchSelected = btn;
-      return;
-    }
-
-    if (matchSelected.dataset.side === btn.dataset.side) {
-      // Switching selection within the same side — still fine, nothing's
-      // committed yet at this point
-      matchSelected.classList.remove('selected');
-      btn.classList.add('selected');
-      matchSelected = btn;
-      return;
-    }
-
-    // Opposite sides selected — this pair is now locked in permanently,
-    // right or wrong. No more guessing this one — that's the whole point.
-    const a = matchSelected, b = btn;
-    matchSelected = null;
-    const isCorrect = a.dataset.pairIndex === b.dataset.pairIndex;
-    matchLockedPairs.push({ correct: isCorrect });
-    matchMatchedCount++;
-
-    a.classList.remove('selected'); b.classList.remove('selected');
-    a.classList.add('matched'); b.classList.add('matched');
-    a.disabled = true; b.disabled = true;
-    const pairNum = matchMatchedCount;
-    [a, b].forEach(el => {
-      const badge = document.createElement('span');
-      badge.className = 'seq-order';
-      badge.textContent = String(pairNum);
-      el.appendChild(badge);
-    });
-
-    if (matchMatchedCount === q.left.length) {
-      answered = true; stopTimer(); revealQuestionTextNow();
-      const allCorrect = matchLockedPairs.every(p => p.correct);
-      const pts = awardPoints(allCorrect);
-      showFeedback(allCorrect, q.display_answer || '', pts);
-      revealMatchCorrectness(grid, q);
-    }
-  }
-
-  // After all pairs are committed, colour each locked pair green/red based
-  // on whether it was actually correct — nothing is revealed before this.
-  function revealMatchCorrectness(grid, q) {
-    const groups = {};
-    grid.querySelectorAll('.match-btn.matched').forEach(el => {
-      const badge = el.querySelector('.seq-order');
-      const num = badge ? badge.textContent : null;
-      if (!num) return;
-      (groups[num] = groups[num] || []).push(el);
-    });
-    Object.values(groups).forEach(pairEls => {
-      if (pairEls.length !== 2) return;
-      const isCorrect = pairEls[0].dataset.pairIndex === pairEls[1].dataset.pairIndex;
-      pairEls.forEach(el => el.classList.add(isCorrect ? 'correct-state' : 'wrong-state'));
-    });
-  }
-
   function onSeqTap(btn, q, grid) {
     if (answered) return;
     // Unselect: if already tapped, remove it from the sequence
@@ -2726,20 +2589,6 @@ button {
         break;
       }
       case 'sequence': correctDisplay = q.answer.join(' → '); break;
-      case 'match': {
-        correctDisplay = q.display_answer || '';
-        const matchGrid = aPanel.querySelector('.keypad.match');
-        if (matchGrid) {
-          revealMatchCorrectness(matchGrid, q);
-          matchGrid.querySelectorAll('.match-btn').forEach(b => {
-            if (!b.classList.contains('matched')) {
-              b.classList.remove('selected');
-              b.classList.add('wrong-state');
-            }
-          });
-        }
-        break;
-      }
       case 'assemble': {
         correctDisplay = q.display_answer || q.answer;
         const assembleGrid = aPanel.querySelector('.keypad.sequence');
@@ -3054,7 +2903,6 @@ button {
     { heading: 'Numbers', text: 'Type the correct number using the keypad.', list: ['Use the number pad to enter your answer','Press Enter to submit','C clears your input'] },
     { heading: 'Sequence', text: 'Tap the items in the correct order.', list: ['Items appear in a random order','Tap them in the correct sequence (1st, 2nd, 3rd…)','Get them all right to score points'] },
     { heading: 'Assemble', text: 'The answer has been chopped into pieces \u2014 tap them back together in order.', list: ['Watch the answer build up above the tiles as you tap','Tap a piece again to undo it','Get the order exactly right to score'] },
-    { heading: 'Match Pairs', text: 'Link each item on the left to its match on the right.', list: ['Tap one on the left, then its match on the right','Get it wrong and both bounce back \u2014 no penalty, just try again','Match every pair before time runs out'] },
     { heading: 'Word Snake', text: 'The answer is hidden in the letter grid \u2014 you just have to find it.', list: ['Tap letters one at a time to spell it out','Each letter must be touching the last one (up, down, left or right)','Tap a selected letter again to undo it'] },
     { heading: 'Tap the Spot', text: 'Tap the correct place on the photo or image.', list: ['Look carefully \u2014 there\u2019s no keypad, the image itself is the answer','You get one tap, so make it count','Get it wrong and the correct area lights up so you can see where it was'] },
     { heading: 'Type the Answer', text: 'Type out the full answer using your keyboard.', list: ['Tap the box to bring up your keyboard','Spelling doesn\u2019t need to be perfect \u2014 capitals and punctuation don\u2019t matter','Press Enter or Submit when you\u2019re ready'] },
