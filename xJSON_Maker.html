@@ -63,7 +63,6 @@
   <span class="chip" style="background:#D6E4F0">word</span>
   <span class="chip" style="background:#EAD1DC">sequence</span>
   <span class="chip" style="background:#D5D9F2">assemble</span>
-  <span class="chip" style="background:#C6DBE1">match</span>
   <span class="chip" style="background:#C9DAF8">multitap</span>
   <span class="chip" style="background:#D9E8D3">wordsnake</span>
   <span class="chip" style="background:#F8CBAD">tapspot</span>
@@ -202,21 +201,6 @@ function processFile(file) {
           if (!answer) { console.warn(`Row ${i+1}: assemble missing answer`); errorCount++; continue; }
           q = { type: 'assemble', question, answer };
 
-        } else if (qtype === 'match') {
-          // D–I = left-side items (up to 6). J–O = the matching right-side
-          // item at the SAME position \u2014 J matches D, K matches E, and so on.
-          const left = [row[3],row[4],row[5],row[6],row[7],row[8]]
-            .map(v => String(v).trim());
-          const right = [row[9],row[10],row[11],row[12],row[13],row[14]]
-            .map(v => String(v).trim());
-          const pairCount = Math.min(left.length, right.length);
-          const pairedLeft = [], pairedRight = [];
-          for (let p = 0; p < pairCount; p++) {
-            if (left[p] !== '' && right[p] !== '') { pairedLeft.push(left[p]); pairedRight.push(right[p]); }
-          }
-          if (pairedLeft.length < 2) { console.warn(`Row ${i+1}: match needs at least 2 complete pairs (a left AND right value at the same column position)`); errorCount++; continue; }
-          q = { type: 'match', question, left: pairedLeft, right: pairedRight };
-
         } else if (qtype === 'multitap') {
           // D–I = options (up to 6), J–O = the ones that are correct (can be
           // more than one) — each must exactly match one of the D–I options
@@ -342,7 +326,6 @@ convertBtn.addEventListener('click', () => {
 //   word            : answer (typed in full), optional accepted variants
 //   sequence        : items (up to 6, shown shuffled), answer (correct order array)
 //   assemble        : answer (auto-split into up to 6 shuffled pieces by the app)
-//   match           : left items (D-I) paired with right items (J-O) at the same position
 //   multitap        : options (up to 6), answers (array \u2014 every correct one)
 //   wordsnake       : answer (word or phrase, max 20 letters — spaces don't count)
 //   tapspot         : target (JSON array of {x,y} points from the Shape Picker
