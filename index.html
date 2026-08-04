@@ -616,6 +616,13 @@ button {
   color: red;
   font-weight: 700;
 }
+.kbtn.match-btn .match-pair-badge {
+  position: absolute;
+  top: 4px; right: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  opacity: 0.7;
+}
 .kbtn.dimmed-state { background: var(--sq-cyan-dark) !important; color: var(--sq-btn-text) !important; }
 .kbtn.snake-cell { position: relative; font-size: 2.2rem; }
 .kbtn.snake-cell.tapped { background: #f5d76e !important; color: #07091c !important; }
@@ -2639,7 +2646,7 @@ button {
     const pairNum = matchMatchedCount;
     [a, b].forEach(el => {
       const badge = document.createElement('span');
-      badge.className = 'seq-order';
+      badge.className = 'match-pair-badge';
       badge.textContent = String(pairNum);
       el.appendChild(badge);
     });
@@ -2658,7 +2665,7 @@ button {
   function revealMatchCorrectness(grid, q) {
     const groups = {};
     grid.querySelectorAll('.match-btn.matched').forEach(el => {
-      const badge = el.querySelector('.seq-order');
+      const badge = el.querySelector('.match-pair-badge');
       const num = badge ? badge.textContent : null;
       if (!num) return;
       (groups[num] = groups[num] || []).push(el);
