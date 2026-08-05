@@ -69,6 +69,7 @@
   <span class="chip" style="background:#D9E8D3">wordsnake</span>
   <span class="chip" style="background:#F8CBAD">tapspot</span>
   <span class="chip" style="background:#DDEBF7">optional media: image / video / audio</span>
+  <span class="chip" style="background:#FFF9C4">optional time: seconds (col R)</span>
 </div>
 
 <!-- SheetJS -->
@@ -125,7 +126,7 @@ function processFile(file) {
 
       for (let i = startRow; i < rows.length; i++) {
         const row = rows[i];
-        // Cols: A–O hold question data; P=media file/URL; Q=optional media type
+        // Cols: A–O hold question data; P=media file/URL; Q=optional media type; R=optional time limit (seconds)
         const dateStr = String(row[0] || '').trim();
         const qtype   = String(row[1] || '').trim().toLowerCase();
         const question = String(row[2] || '').trim();
@@ -313,6 +314,19 @@ function processFile(file) {
           q.media = { type: mediaType, url: mediaUrl };
         }
 
+        // R = optional time limit in seconds for this question — overrides
+        // the app's default (15s). Leave blank to use the default.
+        const timeRaw = String(row[17] || '').trim();
+        if (timeRaw) {
+          const timeLimit = parseFloat(timeRaw);
+          if (isNaN(timeLimit) || timeLimit <= 0) {
+            console.warn(`Row ${i+1}: Time value "${timeRaw}" isn't a valid positive number of seconds`);
+            errorCount++;
+            continue;
+          }
+          q.timeLimit = timeLimit;
+        }
+
         if (q.type === 'tapspot' && !q.media) {
           console.warn(`Row ${i+1}: tapspot needs an image in the media column — the image is the question`);
           errorCount++;
@@ -377,6 +391,8 @@ convertBtn.addEventListener('click', () => {
 //                     tool, min 3), requires an image in the media column
 //   optional media  : column P is the file/URL; column Q can specify image, video, or audio.
 //                     If Q is blank, the type is inferred from its extension.
+//   optional time   : column R is a time limit in seconds for that question, overriding
+//                     the app's default of 15s. Leave blank to use the default.
 
 window.QUIZ_QUESTIONS = ${JSON.stringify(parsedData, null, 2)};
 `;

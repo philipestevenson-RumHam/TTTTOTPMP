@@ -19,6 +19,8 @@
 //                     tool, min 3), requires an image in the media column
 //   optional media  : column P is the file/URL; column Q can specify image, video, or audio.
 //                     If Q is blank, the type is inferred from its extension.
+//   optional time   : column R is a time limit in seconds for that question, overriding
+//                     the app's default of 15s. Leave blank to use the default.
 
 window.QUIZ_QUESTIONS = {
   "2026-08-05": [
@@ -1215,7 +1217,8 @@ window.QUIZ_QUESTIONS = {
             "Anni-Frid"
           ]
         }
-      ]
+      ],
+      "timeLimit": 30
     },
     {
       "type": "connections",
@@ -1257,7 +1260,8 @@ window.QUIZ_QUESTIONS = {
             "Fields"
           ]
         }
-      ]
+      ],
+      "timeLimit": 30
     },
     {
       "type": "connections",
@@ -1299,7 +1303,8 @@ window.QUIZ_QUESTIONS = {
             "Aretha"
           ]
         }
-      ]
+      ],
+      "timeLimit": 30
     }
   ]
 };

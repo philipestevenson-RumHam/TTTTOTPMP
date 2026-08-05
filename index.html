@@ -1291,7 +1291,8 @@ button {
   let timerInterval = null;
   let timerStart = 0;
   let timerStarted = false;
-  const timerDuration = 15000;
+  const DEFAULT_TIMER_DURATION = 15000; // ms — used whenever a question doesn't set its own time limit
+  let timerDuration = DEFAULT_TIMER_DURATION;
   let answered = false;
   let seqTaps = [];
   let assembleTaps = [];
@@ -1817,6 +1818,11 @@ button {
     streakLadder.classList.remove('hidden');
     qPanel.classList.remove('hidden');
     const q = gameQuestions[currentIndex];
+    // Per-question time limit (seconds, from the spreadsheet's Time column) —
+    // falls back to the default when a question doesn't set one.
+    timerDuration = (typeof q.timeLimit === 'number' && q.timeLimit > 0)
+      ? Math.round(q.timeLimit * 1000)
+      : DEFAULT_TIMER_DURATION;
     qText.classList.remove('dimmed');
     fbText.textContent = '';
     hudPoints.textContent = String(currentQuestionValue());
