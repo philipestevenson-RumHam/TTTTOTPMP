@@ -567,6 +567,10 @@ button {
 .connections-solved-row.locked-1 { background: var(--sq-conn-2); }
 .connections-solved-row.locked-2 { background: var(--sq-conn-3); }
 .connections-solved-row.locked-3 { background: var(--sq-conn-4); }
+.connections-solved-row.unsolved-reveal {
+  background: #e5484d;
+  color: #fff;
+}
 .connections-solved-label {
   font-weight: 800;
   font-size: clamp(0.72rem, 2.6vw, 0.92rem);
@@ -2837,6 +2841,38 @@ button {
     });
   }
 
+  // Called when time runs out mid-solve: keeps whatever merged rows are
+  // already locked in (green/gold/etc.), and reveals every remaining
+  // unsolved group as its own merged row too, coloured red, in the rows
+  // below the solved ones — no bare tiles left dangling.
+  function revealUnsolvedConnections(q) {
+    const grid = aPanel.querySelector('.keypad.connections');
+    if (!grid) return;
+    grid.innerHTML = '';
+
+    connectionsSolvedGroups.forEach((groupIndex, rowSlot) => {
+      const group = q.groups[groupIndex];
+      const row = document.createElement('div');
+      row.className = `connections-solved-row locked-${rowSlot}`;
+      row.style.gridRow = String(rowSlot + 1);
+      row.style.gridColumn = '1 / -1';
+      row.innerHTML = `<div class="connections-solved-label">${escapeHtml(group.label)}</div><div class="connections-solved-members">${escapeHtml(group.items.join(', '))}</div>`;
+      grid.appendChild(row);
+    });
+
+    let nextRow = connectionsSolvedGroups.length + 1;
+    q.groups.forEach((group, groupIndex) => {
+      if (connectionsSolvedGroups.includes(groupIndex)) return;
+      const row = document.createElement('div');
+      row.className = 'connections-solved-row unsolved-reveal';
+      row.style.gridRow = String(nextRow);
+      row.style.gridColumn = '1 / -1';
+      row.innerHTML = `<div class="connections-solved-label">${escapeHtml(group.label)}</div><div class="connections-solved-members">${escapeHtml(group.items.join(', '))}</div>`;
+      grid.appendChild(row);
+      nextRow++;
+    });
+  }
+
   function onConnectionsTap(btn, q) {
     if (answered || connectionsChecking) return;
     const idx = Number(btn.dataset.index);
@@ -2980,14 +3016,7 @@ button {
       }
       case 'connections': {
         correctDisplay = q.groups.map(g => g.label).join(', ');
-        const connGrid = aPanel.querySelector('.keypad.connections');
-        if (connGrid) {
-          connGrid.querySelectorAll('.connections-btn').forEach(b => {
-            b.classList.remove('selected');
-            b.classList.add('wrong-state');
-            b.disabled = true;
-          });
-        }
+        revealUnsolvedConnections(q);
         const banner = aPanel.querySelector('.connections-banner');
         if (banner) banner.classList.remove('show');
         break;
@@ -3122,7 +3151,11 @@ button {
     const remaining = Math.max(30, qPanel.clientHeight - qText.offsetHeight);
     fitTextToBox(fbText, { clientHeight: remaining }, { min: 12 });
     preloadMedia(gameQuestions[currentIndex + 1]);
-    setTimeout(() => { currentIndex++; showQuestion(); }, 2000);
+    // Connections leaves a lot more to read (up to 4 group labels + their
+    // members sitting in the grid), so give it longer before advancing.
+    const currentQ = gameQuestions[currentIndex];
+    const advanceDelay = (currentQ && currentQ.type === 'connections') ? 5000 : 2000;
+    setTimeout(() => { currentIndex++; showQuestion(); }, advanceDelay);
   }
 
   // Already played
