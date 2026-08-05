@@ -64,7 +64,6 @@
   <span class="chip" style="background:#EAD1DC">sequence</span>
   <span class="chip" style="background:#D5D9F2">assemble</span>
   <span class="chip" style="background:#C6DBE1">match</span>
-  <span class="chip" style="background:#D0BFFF">connections</span>
   <span class="chip" style="background:#C9DAF8">multitap</span>
   <span class="chip" style="background:#D9E8D3">wordsnake</span>
   <span class="chip" style="background:#F8CBAD">tapspot</span>
@@ -218,31 +217,6 @@ function processFile(file) {
           if (pairedLeft.length < 2) { console.warn(`Row ${i+1}: match needs at least 2 complete pairs (a left AND right value at the same column position)`); errorCount++; continue; }
           q = { type: 'match', question, left: pairedLeft, right: pairedRight };
 
-        } else if (qtype === 'connections') {
-          // D-G = the four groups, each a comma-separated list of exactly 4
-          // items (e.g. D = "Emma, Mel C, Mel B, Geri"). J-M = the connection
-          // label for that same group -- J labels D, K labels E, L labels F,
-          // M labels G (e.g. J = "Spice Girls").
-          const groupCells = [row[3], row[4], row[5], row[6]];
-          const labelCells = [row[9], row[10], row[11], row[12]];
-          const groups = [];
-          let groupError = null;
-          for (let g = 0; g < 4; g++) {
-            const cell = String(groupCells[g] || '').trim();
-            const label = String(labelCells[g] || '').trim();
-            if (!cell && !label) continue; // empty group slot
-            if (!label) { groupError = `group ${g+1} (column ${String.fromCharCode(68+g)}) is missing its connection label in column ${String.fromCharCode(74+g)}`; break; }
-            const items = cell.split(',').map(v => v.trim()).filter(v => v !== '');
-            if (items.length !== 4) { groupError = `group ${g+1} ("${label}") needs exactly 4 comma-separated items, found ${items.length}`; break; }
-            groups.push({ label, items });
-          }
-          if (groupError) { console.warn(`Row ${i+1}: connections ${groupError}`); errorCount++; continue; }
-          if (groups.length !== 4) { console.warn(`Row ${i+1}: connections needs exactly 4 groups filled in across columns D-G / J-M, found ${groups.length}`); errorCount++; continue; }
-          const allItems = groups.flatMap(g => g.items);
-          const dupe = allItems.find((v, idx) => allItems.indexOf(v) !== idx);
-          if (dupe) { console.warn(`Row ${i+1}: connections has the item "${dupe}" appearing in more than one group`); errorCount++; continue; }
-          q = { type: 'connections', question, groups };
-
         } else if (qtype === 'multitap') {
           // D–I = options (up to 6), J–O = the ones that are correct (can be
           // more than one) — each must exactly match one of the D–I options
@@ -369,8 +343,6 @@ convertBtn.addEventListener('click', () => {
 //   sequence        : items (up to 6, shown shuffled), answer (correct order array)
 //   assemble        : answer (auto-split into up to 6 shuffled pieces by the app)
 //   match           : left items (D-I) paired with right items (J-O) at the same position
-//   connections     : 4 groups of 4 items each (D-G, comma-separated), each
-//                     paired with its connection label (J-M at the same position)
 //   multitap        : options (up to 6), answers (array \u2014 every correct one)
 //   wordsnake       : answer (word or phrase, max 20 letters — spaces don't count)
 //   tapspot         : target (JSON array of {x,y} points from the Shape Picker

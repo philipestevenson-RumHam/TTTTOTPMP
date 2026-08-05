@@ -11,8 +11,6 @@
 //   sequence        : items (up to 6, shown shuffled), answer (correct order array)
 //   assemble        : answer (auto-split into up to 6 shuffled pieces by the app)
 //   match           : left items (D-I) paired with right items (J-O) at the same position
-//   connections     : 4 groups of 4 items each (D-G, comma-separated), each
-//                     paired with its connection label (J-M at the same position)
 //   multitap        : options (up to 6), answers (array — every correct one)
 //   wordsnake       : answer (word or phrase, max 20 letters — spaces don't count)
 //   tapspot         : target (JSON array of {x,y} points from the Shape Picker
@@ -21,7 +19,7 @@
 //                     If Q is blank, the type is inferred from its extension.
 
 window.QUIZ_QUESTIONS = {
-  "2026-08-05": [
+  "2026-08-04": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
@@ -132,7 +130,7 @@ window.QUIZ_QUESTIONS = {
       "answer": 2021
     }
   ],
-  "2026-08-04": [
+  "2026-08-03": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
@@ -243,7 +241,7 @@ window.QUIZ_QUESTIONS = {
       "answer": 1995
     }
   ],
-  "2026-08-03": [
+  "2026-08-02": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
@@ -354,7 +352,7 @@ window.QUIZ_QUESTIONS = {
       "answer": 1970
     }
   ],
-  "2026-08-02": [
+  "2026-08-01": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
@@ -514,7 +512,7 @@ window.QUIZ_QUESTIONS = {
       "answer": 1998
     }
   ],
-  "2026-08-01": [
+  "2026-07-31": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
@@ -675,7 +673,7 @@ window.QUIZ_QUESTIONS = {
       "answer": 8
     }
   ],
-  "2026-07-31": [
+  "2026-07-30": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
@@ -827,7 +825,7 @@ window.QUIZ_QUESTIONS = {
       "answer": 50
     }
   ],
-  "2026-07-30": [
+  "2026-07-29": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
@@ -972,7 +970,7 @@ window.QUIZ_QUESTIONS = {
       "answer": 2000
     }
   ],
-  "2026-07-29": [
+  "2026-07-28": [
     {
       "type": "match",
       "question": "Match the Artist to the Group",
@@ -1171,134 +1169,6 @@ window.QUIZ_QUESTIONS = {
         "Jeff Lynne",
         "Freddie Mercury",
         "Tom Johnston"
-      ]
-    }
-  ],
-  "2026-07-28": [
-    {
-      "type": "connections",
-      "question": "Sort these 16 into four groups of four",
-      "groups": [
-        {
-          "label": "Spice Girls nicknames",
-          "items": [
-            "Scary",
-            "Sporty",
-            "Posh",
-            "Baby"
-          ]
-        },
-        {
-          "label": "Members of Queen",
-          "items": [
-            "Freddie",
-            "Brian",
-            "Roger",
-            "John"
-          ]
-        },
-        {
-          "label": "___ + Star",
-          "items": [
-            "Rock",
-            "Pop",
-            "Super",
-            "All"
-          ]
-        },
-        {
-          "label": "Members of ABBA",
-          "items": [
-            "Agnetha",
-            "Björn",
-            "Benny",
-            "Anni-Frid"
-          ]
-        }
-      ]
-    },
-    {
-      "type": "connections",
-      "question": "Sort these 16 into four groups of four",
-      "groups": [
-        {
-          "label": "Michael Jackson albums",
-          "items": [
-            "Thriller",
-            "Bad",
-            "Dangerous",
-            "Invincible"
-          ]
-        },
-        {
-          "label": "Rihanna one-word songs",
-          "items": [
-            "Umbrella",
-            "Diamonds",
-            "Work",
-            "Anti"
-          ]
-        },
-        {
-          "label": "Prince song titles",
-          "items": [
-            "Purple",
-            "Rain",
-            "Kiss",
-            "Doves"
-          ]
-        },
-        {
-          "label": "One-name British female singers",
-          "items": [
-            "Adele",
-            "Duffy",
-            "Winehouse",
-            "Fields"
-          ]
-        }
-      ]
-    },
-    {
-      "type": "connections",
-      "question": "Sort these 16 into four groups of four",
-      "groups": [
-        {
-          "label": "ABBA musicals",
-          "items": [
-            "Waterloo",
-            "Chess",
-            "Mamma Mia",
-            "Cats"
-          ]
-        },
-        {
-          "label": "One-word anthems",
-          "items": [
-            "Believe",
-            "Freedom",
-            "Respect",
-            "Chandelier"
-          ]
-        },
-        {
-          "label": "90s/00s boybands",
-          "items": [
-            "Take That",
-            "Boyzone",
-            "Westlife",
-            "JLS"
-          ]
-        },
-        {
-          "label": "Singers with the surname omitted",
-          "items": [
-            "Diana",
-            "Whitney",
-            "Tina",
-            "Aretha"
-          ]
-        }
       ]
     }
   ]
