@@ -909,9 +909,10 @@ button {
 .how-to-play-card {
   position: relative;
   width: 100%; height: 100%;
-  background: #000;
+  background: linear-gradient(180deg, #10163a 0%, #07091c 65%);
   border-radius: 10px;
-  border: 1px solid rgba(255,255,255,0.18);
+  border: 1px solid rgba(0,200,232,0.25);
+  box-shadow: 0 0 40px rgba(0,200,232,0.10), inset 0 1px 0 rgba(255,255,255,0.05);
   padding: 16px;
   display: flex;
   flex-direction: column;
@@ -920,26 +921,63 @@ button {
 .how-to-play-card-header { text-align: center; }
 .how-to-play-close {
   position: absolute;
-  top: 12px; right: 12px;
-  background: none; border: none;
-  color: rgba(255,255,255,0.6);
-  font-size: 1.4rem; cursor: pointer;
-  padding: 4px 8px;
-  transition: color 0.15s;
+  top: 10px; right: 10px;
+  width: 30px; height: 30px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 50%;
+  color: rgba(255,255,255,0.75);
+  font-size: 1.2rem; line-height: 1; cursor: pointer;
+  transition: background 0.15s, color 0.15s;
 }
-.how-to-play-close:active { color: #fff; }
+.how-to-play-close:active { background: rgba(255,255,255,0.2); color: #fff; }
 .how-to-play-title {
   margin: 0; text-align: center;
   font-size: 1.4rem; line-height: 1.2; color: #fff;
+}
+.how-to-play-tabs {
+  display: flex;
+  gap: 6px;
+  padding: 2px 2px 4px;
+  flex-shrink: 0;
+}
+.how-to-play-tab {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 6px 8px;
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.05);
+  color: rgba(255,255,255,0.6);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: 'Nunito', Arial, sans-serif;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.how-to-play-tab.active {
+  background: var(--sq-gold);
+  color: var(--sq-btn-text);
+  border-color: var(--sq-gold);
 }
 .how-to-play-content {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
   justify-content: center;
   overflow-y: auto;
   padding: 4px;
+}
+.how-to-play-slide-icon {
+  font-size: 2.4rem;
+  text-align: center;
+  line-height: 1;
 }
 .how-to-play-slide-heading {
   margin: 0; font-size: 1.3rem;
@@ -958,7 +996,12 @@ button {
 }
 .how-to-play-footer {
   display: flex; flex-direction: column;
-  align-items: center; gap: 14px;
+  align-items: center; gap: 10px;
+}
+.how-to-play-counter {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.45);
 }
 .how-to-play-dots { display: flex; gap: 8px; align-items: center; }
 .how-to-play-dot {
@@ -976,6 +1019,75 @@ button {
   font-size: 1.1rem; font-weight: 700; cursor: pointer;
   font-family: 'Nunito', Arial, sans-serif;
 }
+
+/* How to Play mini mockups */
+.htp-mock {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  padding: 2px 0 6px;
+}
+.htp-mock-grid {
+  display: grid;
+  gap: 4px;
+}
+.htp-mock-tile {
+  background: var(--sq-gold);
+  color: var(--sq-btn-text);
+  border-radius: 5px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.62rem;
+  font-weight: 800;
+  width: 32px; height: 24px;
+  position: relative;
+  white-space: nowrap;
+}
+.htp-mock-tile.correct { background: var(--sq-correct); }
+.htp-mock-tile.wrong { background: var(--sq-wrong); color: var(--sq-text); }
+.htp-mock-tile.selected { background: #f5d76e; }
+.htp-mock-tile.ghost { background: transparent; border: 1px dashed rgba(255,255,255,0.35); color: rgba(255,255,255,0.55); }
+.htp-mock-row {
+  grid-column: 1 / -1;
+  background: var(--sq-gold);
+  color: var(--sq-btn-text);
+  border-radius: 5px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.6rem; font-weight: 800;
+  height: 22px;
+}
+.htp-mock-badge {
+  position: absolute; top: -6px; left: -6px;
+  width: 15px; height: 15px;
+  border-radius: 50%;
+  background: #fff; color: #07091c;
+  font-size: 0.58rem; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+}
+.htp-mock-input {
+  width: 130px; height: 26px;
+  border-radius: 5px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(0,200,232,0.4);
+  display: flex; align-items: center; padding: 0 8px;
+  font-size: 0.7rem; color: rgba(255,255,255,0.8);
+  font-weight: 700;
+}
+.htp-mock-cursor {
+  display: inline-block; width: 2px; height: 12px; background: var(--sq-gold);
+  margin-left: 2px;
+  animation: htp-blink 1s step-end infinite;
+}
+.htp-mock-arrow { color: rgba(255,255,255,0.4); font-size: 0.85rem; }
+.htp-mock-photo {
+  width: 96px; height: 68px;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(0,200,232,0.3);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.3rem;
+}
+@keyframes htp-blink { 50% { opacity: 0; } }
 
 /* Leaderboard Modal */
 .lb-panel {
@@ -1172,8 +1284,10 @@ button {
       <button class="how-to-play-close" id="htpClose">&times;</button>
       <div class="how-to-play-title">How to Play</div>
     </div>
+    <div class="how-to-play-tabs" id="htpTabs"></div>
     <div class="how-to-play-content" id="htpContent"></div>
     <div class="how-to-play-footer">
+      <div class="how-to-play-counter" id="htpCounter"></div>
       <div class="how-to-play-dots" id="htpDots"></div>
       <button class="how-to-play-next-btn" id="htpNext">Next</button>
     </div>
@@ -2910,6 +3024,13 @@ button {
       }
     } else {
       connectionsHadMistake = true;
+      // "One away" — exactly 3 of the 4 picks share a group, so the guess
+      // was one swap away from correct. Worth a distinct hint, same as the
+      // real NYT Connections game.
+      const groupCounts = {};
+      picked.forEach(p => { groupCounts[p.groupIndex] = (groupCounts[p.groupIndex] || 0) + 1; });
+      const maxGroupCount = Math.max(...Object.values(groupCounts));
+      if (maxGroupCount === 3) showConnectionsOneAwayBanner();
       solvedIndexes.forEach(idx => {
         const el = grid.querySelector(`.connections-btn[data-index="${idx}"]`);
         if (el) el.classList.add('shake');
@@ -2934,6 +3055,18 @@ button {
     banner.style.background = 'var(--sq-gold)';
     banner.classList.add('show');
     setTimeout(() => { banner.classList.remove('show'); }, 1600);
+  }
+
+  // Shows a brief amber "One away!" hint when a wrong guess had 3 of its 4
+  // picks sharing a group — distinct from the blue "solved" banner so it
+  // can't be mistaken for a correct answer.
+  function showConnectionsOneAwayBanner() {
+    const banner = aPanel.querySelector('.connections-banner');
+    if (!banner) return;
+    banner.textContent = 'One away!';
+    banner.style.background = '#f5a623';
+    banner.classList.add('show');
+    setTimeout(() => { banner.classList.remove('show'); }, 1200);
   }
 
   function onSeqTap(btn, q, grid) {
@@ -3322,27 +3455,95 @@ button {
   }
 
   // ── How to Play ──
+  // Each slide carries a category (for the tab bar) and a type (used to pick
+  // its icon and, for question-type slides, a small illustrative mockup).
   const htpSlides = [
-    { heading: 'Welcome to Ten To The Top of The Pop Master Pyramid!', text: 'Answer 10 questions. Each correct answer is worth one point more than the last.', list: ['Question 1 = 1pt, Q2 = 2pts, Q3 = 3pts... up to Q10 = 10pts','Get a question wrong and you drop straight back to 1 point','The quiz always runs the full 10 questions'] },
-    { heading: 'The Joker', text: 'You get one joker for the whole game. Play it before any question to double what that question is worth.', list: ['You choose when to play it — early and safe, or late for a bigger prize','If you haven\u2019t played it by question 10, you\u2019ll be made to play it then','It only pays off if you get that question right'] },
-    { heading: 'Photos, Video & Sound', text: 'Some questions come with media to help (or trick!) you.', list: ['A photo or video shows full-screen \u2014 tap it to reveal the keypad underneath','Audio clips play automatically; tap the 🔊 icon if you don\u2019t hear it','The clock keeps running while you\u2019re looking, so don\u2019t linger too long'] },
-    { heading: 'Multiple Choice', text: 'Pick the correct answer from up to 6 options.', list: ['Tap the answer you think is correct','Green = correct, Red = wrong'] },
-    { heading: 'Letters', text: 'Tap the letter grid to choose the first letter of the answer.', list: ['Tap the letter that starts the answer','The full answer is revealed afterwards','Q/V and X/Z share buttons'] },
-    { heading: 'Numbers', text: 'Type the correct number using the keypad.', list: ['Use the number pad to enter your answer','Press Enter to submit','C clears your input'] },
-    { heading: 'Sequence', text: 'Tap the items in the correct order.', list: ['Items appear in a random order','Tap them in the correct sequence (1st, 2nd, 3rd…)','Get them all right to score points'] },
-    { heading: 'Assemble', text: 'The answer has been chopped into pieces \u2014 tap them back together in order.', list: ['Watch the answer build up above the tiles as you tap','Tap a piece again to undo it','Get the order exactly right to score'] },
-    { heading: 'Match Pairs', text: 'Link each item on the left to its match on the right.', list: ['Tap one on the left, then one on the right to lock in that pair','Once locked, that\u2019s final \u2014 right or wrong, there\u2019s no retry','Nothing is revealed until every pair is locked in or time runs out'] },
-    { heading: 'Word Snake', text: 'The answer is hidden in the letter grid \u2014 you just have to find it.', list: ['Tap letters one at a time to spell it out','Each letter must be touching the last one (up, down, left or right)','Tap a selected letter again to undo it'] },
-    { heading: 'Tap the Spot', text: 'Tap the correct place on the photo or image.', list: ['Look carefully \u2014 there\u2019s no keypad, the image itself is the answer','You get one tap, so make it count','Get it wrong and the correct area lights up so you can see where it was'] },
-    { heading: 'Type the Answer', text: 'Type out the full answer using your keyboard.', list: ['Tap the box to bring up your keyboard','Spelling doesn\u2019t need to be perfect \u2014 capitals and punctuation don\u2019t matter','Press Enter or Submit when you\u2019re ready'] },
-    { heading: 'Multitap', text: 'More than one answer can be correct \u2014 select all of them.', list: ['Tap every option you think is correct','Once tapped, a choice is locked in \u2014 you can\u2019t undo it','Nothing is marked until the timer runs out, so take your time'] },
-    { heading: 'Connections', text: 'Find the four hidden groups of four in the 4\u00d74 grid.', list: ['Tap 4 tiles and your guess checks itself automatically','Get it wrong and the tiles shake, then unselect \u2014 try again, no penalty for retrying','You need all four groups solved with no wrong guesses to score points'] }
+    { type: 'welcome', category: 'General', icon: '🎮', heading: 'Welcome to Ten To The Top of The Pop Master Pyramid!', text: 'Answer 10 questions. Each correct answer is worth one point more than the last.', list: ['Question 1 = 1pt, Q2 = 2pts, Q3 = 3pts... up to Q10 = 10pts','Get a question wrong and you drop straight back to 1 point','The quiz always runs the full 10 questions'] },
+    { type: 'joker', category: 'General', icon: '🃏', heading: 'The Joker', text: 'You get one joker for the whole game. Play it before any question to double what that question is worth.', list: ['You choose when to play it — early and safe, or late for a bigger prize','If you haven\u2019t played it by question 10, you\u2019ll be made to play it then','It only pays off if you get that question right'] },
+    { type: 'media', category: 'General', icon: '🎬', heading: 'Photos, Video & Sound', text: 'Some questions come with media to help (or trick!) you.', list: ['A photo or video shows full-screen \u2014 tap it to reveal the keypad underneath','Audio clips play automatically; tap the 🔊 icon if you don\u2019t hear it','The clock keeps running while you\u2019re looking, so don\u2019t linger too long'] },
+    { type: 'multiple_choice', category: 'Tap & Select', icon: '🔘', heading: 'Multiple Choice', text: 'Pick the correct answer from up to 6 options.', list: ['Tap the answer you think is correct','Green = correct, Red = wrong'] },
+    { type: 'letters', category: 'Tap & Select', icon: '🔤', heading: 'Letters', text: 'Tap the letter grid to choose the first letter of the answer.', list: ['Tap the letter that starts the answer','The full answer is revealed afterwards','Q/V and X/Z share buttons'] },
+    { type: 'letters_shuffled', category: 'Tap & Select', icon: '🔀', heading: 'Letters (Shuffled)', text: 'Just like Letters, but the grid order is shuffled fresh each time.', list: ['Tap the letter that starts the answer','The grid layout changes every question, so read carefully','Q/V and X/Z still share buttons'] },
+    { type: 'multitap', category: 'Tap & Select', icon: '✅', heading: 'Multitap', text: 'More than one answer can be correct \u2014 select all of them.', list: ['Tap every option you think is correct','Once tapped, a choice is locked in \u2014 you can\u2019t undo it','Nothing is marked until the timer runs out, so take your time'] },
+    { type: 'tapspot', category: 'Tap & Select', icon: '📍', heading: 'Tap the Spot', text: 'Tap the correct place on the photo or image.', list: ['Look carefully \u2014 there\u2019s no keypad, the image itself is the answer','You get one tap, so make it count','Get it wrong and the correct area lights up so you can see where it was'] },
+    { type: 'numbers', category: 'Type & Build', icon: '🔢', heading: 'Numbers', text: 'Type the correct number using the keypad.', list: ['Use the number pad to enter your answer','Press Enter to submit','C clears your input'] },
+    { type: 'word', category: 'Type & Build', icon: '⌨️', heading: 'Type the Answer', text: 'Type out the full answer using your keyboard.', list: ['Tap the box to bring up your keyboard','Spelling doesn\u2019t need to be perfect \u2014 capitals and punctuation don\u2019t matter','Press Enter or Submit when you\u2019re ready'] },
+    { type: 'sequence', category: 'Type & Build', icon: '📶', heading: 'Sequence', text: 'Tap the items in the correct order.', list: ['Items appear in a random order','Tap them in the correct sequence (1st, 2nd, 3rd…)','Get them all right to score points'] },
+    { type: 'assemble', category: 'Type & Build', icon: '🧩', heading: 'Assemble', text: 'The answer has been chopped into pieces \u2014 tap them back together in order.', list: ['Watch the answer build up above the tiles as you tap','Tap a piece again to undo it','Get the order exactly right to score'] },
+    { type: 'match', category: 'Puzzle', icon: '🔗', heading: 'Match Pairs', text: 'Link each item on the left to its match on the right.', list: ['Tap one on the left, then one on the right to lock in that pair','Once locked, that\u2019s final \u2014 right or wrong, there\u2019s no retry','Nothing is revealed until every pair is locked in or time runs out'] },
+    { type: 'wordsnake', category: 'Puzzle', icon: '🐍', heading: 'Word Snake', text: 'The answer is hidden in the letter grid \u2014 you just have to find it.', list: ['Tap letters one at a time to spell it out','Each letter must be touching the last one (up, down, left or right)','Tap a selected letter again to undo it'] },
+    { type: 'connections', category: 'Puzzle', icon: '🧠', heading: 'Connections', text: 'Find the four hidden groups of four in the 4\u00d74 grid.', list: ['Tap 4 tiles and your guess checks itself automatically','3 of your 4 in the same group? You\u2019ll see a \u201cOne away!\u201d hint','Get it wrong and the tiles shake, then unselect \u2014 try again, no penalty for retrying','You need all four groups solved with no wrong guesses to score points'] }
   ];
+
+  // Small illustrative mockups, one per question type, shown between the
+  // slide's icon and its heading. General (non-question) slides have none.
+  const htpMocks = {
+    multiple_choice: `<div class="htp-mock"><div class="htp-mock-grid" style="grid-template-columns:repeat(2,1fr)">
+      <div class="htp-mock-tile">A</div><div class="htp-mock-tile correct">B ✓</div>
+      <div class="htp-mock-tile">C</div><div class="htp-mock-tile">D</div>
+    </div></div>`,
+    letters: `<div class="htp-mock"><div class="htp-mock-grid" style="grid-template-columns:repeat(6,1fr)">
+      ${['A','B','C','D','E','F'].map(l => `<div class="htp-mock-tile${l === 'C' ? ' selected' : ''}">${l}</div>`).join('')}
+    </div></div>`,
+    letters_shuffled: `<div class="htp-mock"><div class="htp-mock-grid" style="grid-template-columns:repeat(6,1fr)">
+      ${[['F',-6],['A',4],['D',-3],['B',7],['E',-5],['C',3]].map(([l,r]) => `<div class="htp-mock-tile${l === 'C' ? ' selected' : ''}" style="transform:rotate(${r}deg)">${l}</div>`).join('')}
+    </div></div>`,
+    multitap: `<div class="htp-mock"><div class="htp-mock-grid" style="grid-template-columns:repeat(2,1fr)">
+      <div class="htp-mock-tile selected">A ✓</div><div class="htp-mock-tile">B</div>
+      <div class="htp-mock-tile selected">C ✓</div><div class="htp-mock-tile">D</div>
+    </div></div>`,
+    tapspot: `<div class="htp-mock"><div class="htp-mock-photo">🎯</div></div>`,
+    numbers: `<div class="htp-mock"><div class="htp-mock-grid" style="grid-template-columns:repeat(3,1fr)">
+      ${[1,2,3,4,5,6,7,8,9].map(n => `<div class="htp-mock-tile">${n}</div>`).join('')}
+      <div class="htp-mock-tile">C</div><div class="htp-mock-tile">0</div><div class="htp-mock-tile selected">↵</div>
+    </div></div>`,
+    word: `<div class="htp-mock"><div class="htp-mock-input">ANSWER<span class="htp-mock-cursor"></span></div></div>`,
+    sequence: `<div class="htp-mock">
+      <div class="htp-mock-tile">Tap<span class="htp-mock-badge">1</span></div>
+      <span class="htp-mock-arrow">→</span>
+      <div class="htp-mock-tile">Tap<span class="htp-mock-badge">2</span></div>
+      <span class="htp-mock-arrow">→</span>
+      <div class="htp-mock-tile">Tap<span class="htp-mock-badge">3</span></div>
+    </div>`,
+    assemble: `<div class="htp-mock">
+      <div class="htp-mock-tile selected">THE</div>
+      <div class="htp-mock-tile ghost">CAT</div>
+      <div class="htp-mock-tile ghost">SAT</div>
+    </div>`,
+    match: `<div class="htp-mock">
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <div class="htp-mock-tile selected" style="width:56px">Emma</div>
+        <div class="htp-mock-tile" style="width:56px">Geri</div>
+        <div class="htp-mock-tile" style="width:56px">Mel B</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px">
+        <div class="htp-mock-tile selected" style="width:56px">Spice</div>
+        <div class="htp-mock-tile" style="width:56px">Steps</div>
+        <div class="htp-mock-tile" style="width:56px">S Club</div>
+      </div>
+    </div>`,
+    wordsnake: `<div class="htp-mock"><div class="htp-mock-grid" style="grid-template-columns:repeat(3,1fr)">
+      <div class="htp-mock-tile selected" style="width:26px">C<span class="htp-mock-badge">1</span></div>
+      <div class="htp-mock-tile selected" style="width:26px">A<span class="htp-mock-badge">2</span></div>
+      <div class="htp-mock-tile" style="width:26px">Q</div>
+      <div class="htp-mock-tile" style="width:26px">Z</div>
+      <div class="htp-mock-tile selected" style="width:26px">T<span class="htp-mock-badge">3</span></div>
+      <div class="htp-mock-tile" style="width:26px">P</div>
+    </div></div>`,
+    connections: `<div class="htp-mock"><div class="htp-mock-grid" style="grid-template-columns:repeat(4,1fr);width:150px">
+      <div class="htp-mock-row">SPICE GIRLS</div>
+      ${Array.from({ length: 12 }).map(() => `<div class="htp-mock-tile" style="width:auto;height:20px;font-size:0.5rem"></div>`).join('')}
+    </div></div>`
+  };
+
+  const htpCategories = [...new Set(htpSlides.map(s => s.category))];
   let htpCurrentSlide = 0;
 
   function openHowToPlay() {
     const modal = document.getElementById('htpModal');
     const content = document.getElementById('htpContent');
+    const tabs = document.getElementById('htpTabs');
+    const counter = document.getElementById('htpCounter');
     const dots = document.getElementById('htpDots');
     const nextBtn = document.getElementById('htpNext');
     htpCurrentSlide = 0;
@@ -3352,15 +3553,33 @@ button {
 
     function renderHtpSlide() {
       const s = htpSlides[htpCurrentSlide];
+      const categorySlides = htpSlides.filter(sl => sl.category === s.category);
+      const indexInCategory = categorySlides.indexOf(s);
+
+      tabs.innerHTML = htpCategories.map(cat =>
+        `<button class="how-to-play-tab${cat === s.category ? ' active' : ''}" data-cat="${cat}">${cat}</button>`
+      ).join('');
+      tabs.querySelectorAll('.how-to-play-tab').forEach(btn => {
+        btn.addEventListener('click', () => {
+          htpCurrentSlide = htpSlides.findIndex(sl => sl.category === btn.dataset.cat);
+          renderHtpSlide();
+        });
+      });
+
+      const mock = htpMocks[s.type] || '';
       const listHtml = s.list ? '<ul class="how-to-play-list">' + s.list.map(li => `<li>${li}</li>`).join('') + '</ul>' : '';
-      content.innerHTML = `<h3 class="how-to-play-slide-heading">${s.heading}</h3><p class="how-to-play-slide-text">${s.text}</p>${listHtml}`;
+      content.innerHTML = `<div class="how-to-play-slide-icon">${s.icon}</div>${mock}<h3 class="how-to-play-slide-heading">${s.heading}</h3><p class="how-to-play-slide-text">${s.text}</p>${listHtml}`;
+
+      counter.textContent = `${indexInCategory + 1} of ${categorySlides.length}`;
+
       dots.innerHTML = '';
-      htpSlides.forEach((_, i) => {
+      categorySlides.forEach(sl => {
         const dot = document.createElement('span');
-        dot.className = 'how-to-play-dot' + (i === htpCurrentSlide ? ' active' : '');
-        dot.addEventListener('click', () => { htpCurrentSlide = i; renderHtpSlide(); });
+        dot.className = 'how-to-play-dot' + (sl === s ? ' active' : '');
+        dot.addEventListener('click', () => { htpCurrentSlide = htpSlides.indexOf(sl); renderHtpSlide(); });
         dots.appendChild(dot);
       });
+
       nextBtn.textContent = htpCurrentSlide === htpSlides.length - 1 ? 'Got it!' : 'Next';
     }
 
@@ -3370,6 +3589,23 @@ button {
     nextBtn.onclick = () => {
       if (htpCurrentSlide < htpSlides.length - 1) { htpCurrentSlide++; renderHtpSlide(); }
       else closeHtp();
+    };
+
+    // Swipe left/right on the slide content to move between slides. Swiping
+    // past either end just does nothing rather than closing the modal, so an
+    // accidental swipe can't dismiss the instructions.
+    let htpTouchStartX = 0, htpTouchStartY = 0;
+    content.ontouchstart = e => {
+      const t = e.changedTouches[0];
+      htpTouchStartX = t.clientX; htpTouchStartY = t.clientY;
+    };
+    content.ontouchend = e => {
+      const t = e.changedTouches[0];
+      const dx = t.clientX - htpTouchStartX;
+      const dy = t.clientY - htpTouchStartY;
+      if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy) * 1.5) return; // not a clear horizontal swipe
+      if (dx < 0 && htpCurrentSlide < htpSlides.length - 1) { htpCurrentSlide++; renderHtpSlide(); }
+      else if (dx > 0 && htpCurrentSlide > 0) { htpCurrentSlide--; renderHtpSlide(); }
     };
   }
 
