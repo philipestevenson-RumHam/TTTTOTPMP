@@ -24,10 +24,6 @@
   --sq-secondary: rgba(20, 26, 64, 0.9);
   --sq-cyan: #00c8e8;
   --sq-cyan-dark: #00a8c8;
-  --sq-conn-1: #f5d76e;
-  --sq-conn-2: #4ade80;
-  --sq-conn-3: #00c8e8;
-  --sq-conn-4: #c084fc;
   --gold: #00c8e8;
 }
 html, body {
@@ -557,16 +553,13 @@ button {
   align-items: center;
   justify-content: center;
   text-align: center;
-  color: #07091c;
+  color: var(--sq-btn-text);
+  background: var(--sq-gold);
   padding: 4px 10px;
   gap: 2px;
   min-height: 0;
   overflow: hidden;
 }
-.connections-solved-row.locked-0 { background: var(--sq-conn-1); }
-.connections-solved-row.locked-1 { background: var(--sq-conn-2); }
-.connections-solved-row.locked-2 { background: var(--sq-conn-3); }
-.connections-solved-row.locked-3 { background: var(--sq-conn-4); }
 .connections-solved-row.unsolved-reveal {
   background: #e5484d;
   color: #fff;
@@ -2819,7 +2812,7 @@ button {
     connectionsSolvedGroups.forEach((groupIndex, rowSlot) => {
       const group = q.groups[groupIndex];
       const row = document.createElement('div');
-      row.className = `connections-solved-row locked-${rowSlot}`;
+      row.className = 'connections-solved-row';
       row.style.gridRow = String(rowSlot + 1);
       row.style.gridColumn = '1 / -1';
       row.innerHTML = `<div class="connections-solved-label">${escapeHtml(group.label)}</div><div class="connections-solved-members">${escapeHtml(group.items.join(', '))}</div>`;
@@ -2853,7 +2846,7 @@ button {
     connectionsSolvedGroups.forEach((groupIndex, rowSlot) => {
       const group = q.groups[groupIndex];
       const row = document.createElement('div');
-      row.className = `connections-solved-row locked-${rowSlot}`;
+      row.className = 'connections-solved-row';
       row.style.gridRow = String(rowSlot + 1);
       row.style.gridColumn = '1 / -1';
       row.innerHTML = `<div class="connections-solved-label">${escapeHtml(group.label)}</div><div class="connections-solved-members">${escapeHtml(group.items.join(', '))}</div>`;
@@ -2904,10 +2897,9 @@ button {
     if (isGroupCorrect) {
       const group = q.groups[groupIndex];
       connectionsSolvedGroups.push(groupIndex);
-      const rowSlot = connectionsSolvedGroups.length - 1;
       connectionsSelected = [];
       connectionsChecking = false;
-      showConnectionsBanner(group.label, rowSlot);
+      showConnectionsBanner(group.label);
       layoutConnectionsGrid(q);
 
       if (connectionsSolvedGroups.length === q.groups.length) {
@@ -2933,13 +2925,13 @@ button {
     }
   }
 
-  // Shows the just-solved group's label as a banner above the grid, colour
-  // matched to that group's locked tiles, then fades it back out.
-  function showConnectionsBanner(label, colorSlot) {
+  // Shows the just-solved group's label as a banner above the grid, in the
+  // app's standard blue, then fades it back out.
+  function showConnectionsBanner(label) {
     const banner = aPanel.querySelector('.connections-banner');
     if (!banner) return;
     banner.textContent = label;
-    banner.style.background = `var(--sq-conn-${colorSlot + 1})`;
+    banner.style.background = 'var(--sq-gold)';
     banner.classList.add('show');
     setTimeout(() => { banner.classList.remove('show'); }, 1600);
   }
