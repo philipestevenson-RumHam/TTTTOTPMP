@@ -1416,6 +1416,7 @@ button {
   let connectionsSolvedGroups = [];  // groupIndexes solved so far, in solve order
   let connectionsHadMistake = false; // any wrong submission this question — forfeits points even though retries are free
   let connectionsChecking = false;   // true during the brief pause after the 4th tap while a guess is being auto-checked
+  let connectionsBannerHideTimer = null; // pending hide-timeout for the flash banner, so a new banner can cancel a stale one
 
   // Pyramid scoring state
   let streak = 0;           // consecutive correct answers since last miss (or game start)
@@ -1932,6 +1933,7 @@ button {
     connectionsSolvedGroups = [];
     connectionsHadMistake = false;
     connectionsChecking = false;
+    if (connectionsBannerHideTimer) { clearTimeout(connectionsBannerHideTimer); connectionsBannerHideTimer = null; }
     hud.classList.remove('hidden');
     hud.classList.toggle('joker-glow', jokerActive);
     hudSub.classList.remove('hidden');
@@ -3074,7 +3076,10 @@ button {
     banner.textContent = label;
     banner.style.background = 'var(--sq-gold)';
     banner.classList.add('show');
-    setTimeout(() => { banner.classList.remove('show'); }, 1600);
+    // Cancel any still-pending hide from an earlier banner (e.g. a "one
+    // away" hint) so it can't fire later and cut this one off early.
+    if (connectionsBannerHideTimer) clearTimeout(connectionsBannerHideTimer);
+    connectionsBannerHideTimer = setTimeout(() => { banner.classList.remove('show'); }, 1600);
   }
 
   // Shows a brief amber "One away!" hint when a wrong guess had 3 of its 4
@@ -3086,7 +3091,8 @@ button {
     banner.textContent = 'One away!';
     banner.style.background = '#f5a623';
     banner.classList.add('show');
-    setTimeout(() => { banner.classList.remove('show'); }, 1200);
+    if (connectionsBannerHideTimer) clearTimeout(connectionsBannerHideTimer);
+    connectionsBannerHideTimer = setTimeout(() => { banner.classList.remove('show'); }, 1200);
   }
 
   function onSeqTap(btn, q, grid) {
