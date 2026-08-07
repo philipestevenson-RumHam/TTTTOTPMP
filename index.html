@@ -1498,6 +1498,15 @@ button {
   function playWrongSound() {
     playTone(220, 0.3, 'sawtooth', 0);
   }
+  // Lighter variants used per-group in Connections, so each step along the
+  // way gets its own feedback rather than everything staying silent until
+  // the whole question resolves.
+  function playConnectionsGroupSound() {
+    playTone(1180, 0.09, 'sine', 0);
+  }
+  function playConnectionsWrongSound() {
+    playTone(180, 0.14, 'triangle', 0);
+  }
 
   function awardPoints(isCorrect) {
     const base = pointsForStreak(streak);
@@ -3019,11 +3028,14 @@ button {
       if (connectionsSolvedGroups.length === q.groups.length) {
         answered = true; stopTimer(); revealQuestionTextNow();
         const isCorrect = !connectionsHadMistake;
-        const pts = awardPoints(isCorrect);
+        const pts = awardPoints(isCorrect); // plays its own full correct/wrong sound
         showFeedback(isCorrect, q.groups.map(g => g.label).join(', '), pts);
+      } else {
+        playConnectionsGroupSound(); // lighter tick for a mid-question group — the last one gets awardPoints' full chime instead
       }
     } else {
       connectionsHadMistake = true;
+      playConnectionsWrongSound();
       // "One away" — exactly 3 of the 4 picks share a group, so the guess
       // was one swap away from correct. Worth a distinct hint, same as the
       // real NYT Connections game.
