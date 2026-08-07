@@ -1608,6 +1608,47 @@ button {
     return qs;
   }
 
+  // ── Splash Screen ──
+  // Shown once, before the real start screen, purely so the theme song has
+  // a genuine user gesture to hang off. Browsers only allow audio-with-sound
+  // to autoplay when play() is called synchronously inside a trusted tap/
+  // click handler — calling it from here (rather than from showStart()
+  // itself, which can also render without any tap, e.g. on replay) is what
+  // makes it reliable across browsers, including iOS Safari.
+  function showSplash() {
+    hud.classList.add('hidden');
+    hudSub.classList.add('hidden');
+    streakLadder.classList.add('hidden');
+    qPanel.classList.add('hidden');
+    aPanel.innerHTML = '';
+    const screen = document.createElement('div');
+    screen.className = 'screen screen-start';
+    screen.innerHTML = `
+      <div class="game-title">
+        <div class="game-title-kicker">RumHam presents</div>
+        <div class="game-title-main">Ten To The Top</div>
+        <div class="game-title-sub">of the Pop Master Pyramid</div>
+        <div class="game-title-rule"><span class="eqbar" style="animation-delay:0s"></span><span class="eqbar" style="animation-delay:0.1s"></span><span class="eqbar" style="animation-delay:0.2s"></span><span class="eqbar" style="animation-delay:0.15s"></span><span class="eqbar" style="animation-delay:0.05s"></span></div>
+      </div>
+      <div class="screen-subtitle">10 questions. Question 1 is worth 1 point, question 2 is worth 2, and so on up to 10. One joker to play whenever you like. Get one wrong and you're back to 1.</div>
+      <button class="screen-btn btn-primary" id="btn-enter-quiz">Enter Quiz</button>
+    `;
+    aPanel.appendChild(screen);
+
+    document.getElementById('btn-enter-quiz').addEventListener('click', () => {
+      const themeAudio = document.getElementById('theme-audio');
+      if (themeAudio) {
+        // Fire synchronously inside this tap handler — this is the one
+        // moment guaranteed to count as a user gesture, so it's the most
+        // reliable place in the whole app to start the music from. If it's
+        // still somehow blocked (or the file's missing), it fails silently;
+        // the mute/unmute toggle on the next screen covers that case.
+        themeAudio.play().catch(() => {});
+      }
+      showStart();
+    });
+  }
+
   // ── Start Screen ──
   function showStart() {
     releaseWakeLock();
@@ -3713,7 +3754,7 @@ button {
 
   function init(qs) {
     questions = qs;
-    showStart();
+    showSplash();
   }
 
   initLeaderboardButtons();
