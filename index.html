@@ -3009,6 +3009,14 @@ button {
   }
 
   function checkConnectionsGuess(q) {
+    // If the timer expired in the ~300ms window between the 4th tap and this
+    // check running, onTimeout() has already resolved the question (revealed
+    // unsolved groups, awarded 0, shown feedback). Bail out here rather than
+    // re-processing a guess after the fact — otherwise a correct guess could
+    // undo the timeout reveal, or a final group could trigger a second
+    // awardPoints/showFeedback call and queue a duplicate advance-to-next-
+    // question timer.
+    if (answered) { connectionsChecking = false; return; }
     const grid = aPanel.querySelector('.keypad.connections');
     if (!grid) { connectionsChecking = false; return; }
 
