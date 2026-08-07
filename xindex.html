@@ -858,21 +858,6 @@ button {
   40%, 80% { transform: translateX(6px); }
 }
 .name-input.shake { animation: shake 0.4s ease; }
-.theme-audio-toggle {
-  position: absolute;
-  top: 12px; right: 12px;
-  width: 34px; height: 34px;
-  display: flex; align-items: center; justify-content: center;
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.15);
-  border-radius: 50%;
-  color: rgba(255,255,255,0.8);
-  font-size: 1rem;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-.theme-audio-toggle:active { background: rgba(255,255,255,0.18); }
-.theme-audio-toggle.needs-tap { animation: media-hint-pulse 1.4s ease-in-out infinite; }
 .word-entry-wrap {
   flex: 1;
   min-height: 0;
@@ -1292,12 +1277,6 @@ button {
 <!-- Answer Panel -->
 <div class="answer-panel" id="answer-panel"></div>
 
-<!-- Theme song — persists across start-screen re-renders (e.g. changing the
-     quiz date) since it lives outside aPanel and is never recreated. -->
-<audio id="theme-audio" loop preload="auto">
-  <source src="theme.mp3" type="audio/mpeg">
-</audio>
-
 <!-- How to Play Modal -->
 <div class="how-to-play-panel" id="htpModal" hidden>
   <div class="how-to-play-card">
@@ -1625,7 +1604,6 @@ button {
         <div class="game-title-sub">of the Pop Master Pyramid</div>
         <div class="game-title-rule"><span class="eqbar" style="animation-delay:0s"></span><span class="eqbar" style="animation-delay:0.1s"></span><span class="eqbar" style="animation-delay:0.2s"></span><span class="eqbar" style="animation-delay:0.15s"></span><span class="eqbar" style="animation-delay:0.05s"></span></div>
       </div>
-      <button class="theme-audio-toggle" id="theme-audio-toggle" aria-label="Toggle theme music">🔊</button>
       <div class="screen-subtitle">10 questions. Question 1 is worth 1 point, question 2 is worth 2, and so on up to 10. One joker to play whenever you like. Get one wrong and you're back to 1.</div>
       <div class="date-picker-wrap">
         <label class="date-picker-label" for="date-input">📅 Quiz date</label>
@@ -1657,34 +1635,6 @@ button {
       <div class="preload-status" id="preload-status"></div>
     `;
     aPanel.appendChild(screen);
-
-    // Theme song — attempts autoplay (looped) each time the start screen
-    // renders; browsers that block autoplay will reject the play() promise,
-    // in which case the toggle button pulses to invite a tap. Since the
-    // <audio> element lives outside aPanel, it's never recreated by a
-    // re-render (e.g. changing the quiz date), so it just keeps playing
-    // uninterrupted rather than restarting from 0.
-    const themeAudio = document.getElementById('theme-audio');
-    const themeToggle = document.getElementById('theme-audio-toggle');
-    function updateThemeToggleIcon() {
-      themeToggle.textContent = (themeAudio.paused || themeAudio.muted) ? '🔇' : '🔊';
-    }
-    function tryPlayTheme() {
-      const p = themeAudio.play();
-      if (p && p.catch) {
-        p.then(() => { themeToggle.classList.remove('needs-tap'); updateThemeToggleIcon(); })
-         .catch(() => { themeToggle.classList.add('needs-tap'); updateThemeToggleIcon(); });
-      } else {
-        updateThemeToggleIcon();
-      }
-    }
-    themeToggle.addEventListener('click', () => {
-      if (themeAudio.paused) tryPlayTheme();
-      else themeAudio.pause();
-      updateThemeToggleIcon();
-    });
-    updateThemeToggleIcon();
-    if (themeAudio.paused) tryPlayTheme();
 
     const dateInput = document.getElementById('date-input');
     dateInput.addEventListener('change', () => {
@@ -1780,8 +1730,6 @@ button {
   // ── Game ──
   function startGame(startAtIndex) {
     requestWakeLock();
-    const themeAudio = document.getElementById('theme-audio');
-    if (themeAudio) { themeAudio.pause(); themeAudio.currentTime = 0; }
     gameQuestions = questions.slice(0, QUESTIONS_PER_GAME);
     currentIndex = Math.max(0, Math.min(gameQuestions.length - 1, (startAtIndex || 1) - 1));
     score = 0;
