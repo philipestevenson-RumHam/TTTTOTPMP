@@ -754,26 +754,40 @@ button {
   text-transform: uppercase;
   color: var(--sq-text-muted);
 }
-.game-title-main {
-  font-size: clamp(2.1rem, 9vw, 3.4rem);
+.game-title-pyramid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  position: relative;
+  padding: 6px 0 2px;
+}
+.game-title-pyramid::before {
+  content: '';
+  position: absolute;
+  inset: -6px -10% -2px;
+  background: linear-gradient(180deg, rgba(0,224,255,0.16) 0%, rgba(245,166,35,0.12) 100%);
+  clip-path: polygon(50% 0%, 96% 100%, 4% 100%);
+  filter: blur(2px);
+  z-index: -1;
+}
+.pyramid-row {
   font-weight: 900;
-  letter-spacing: 0.01em;
-  line-height: 1.05;
+  letter-spacing: 0.02em;
+  line-height: 1.08;
   text-align: center;
+  white-space: nowrap;
   background: linear-gradient(135deg, #00e0ff 0%, #00c8e8 35%, #f5d76e 70%, #f5a623 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
   color: transparent;
-  filter: drop-shadow(0 0 18px rgba(0,200,232,0.35));
+  filter: drop-shadow(0 0 14px rgba(0,200,232,0.32));
 }
-.game-title-sub {
-  font-size: clamp(0.85rem, 3.4vw, 1.05rem);
-  font-weight: 800;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--sq-gold);
-}
+.pyramid-row-1 { font-size: clamp(0.9rem, 3.8vw, 1.1rem); }
+.pyramid-row-2 { font-size: clamp(1.3rem, 5.8vw, 1.7rem); }
+.pyramid-row-3 { font-size: clamp(1.6rem, 7vw, 2.1rem); }
+.pyramid-row-4 { font-size: clamp(1.95rem, 8.6vw, 2.65rem); }
 .game-title-rule {
   display: flex;
   align-items: flex-end;
@@ -1626,16 +1640,33 @@ button {
     screen.innerHTML = `
       <div class="game-title">
         <div class="game-title-kicker">RumHam presents</div>
-        <div class="game-title-main">Ten To The Top</div>
-        <div class="game-title-sub">of the Pop Master Pyramid</div>
+        <div class="game-title-pyramid">
+          <div class="pyramid-row pyramid-row-1">TEN</div>
+          <div class="pyramid-row pyramid-row-2">TO THE TOP</div>
+          <div class="pyramid-row pyramid-row-3">OF THE POP</div>
+          <div class="pyramid-row pyramid-row-4">MASTER PYRAMID</div>
+        </div>
         <div class="game-title-rule"><span class="eqbar" style="animation-delay:0s"></span><span class="eqbar" style="animation-delay:0.1s"></span><span class="eqbar" style="animation-delay:0.2s"></span><span class="eqbar" style="animation-delay:0.15s"></span><span class="eqbar" style="animation-delay:0.05s"></span></div>
       </div>
       <div class="screen-subtitle">10 questions. Question 1 is worth 1 point, question 2 is worth 2, and so on up to 10. One joker to play whenever you like. Get one wrong and you're back to 1.</div>
+      <div class="name-input-wrap">
+        <input type="text" class="name-input" id="splash-name-input" placeholder="Enter your name" maxlength="30" value="${playerName || ''}">
+      </div>
       <button class="screen-btn btn-primary" id="btn-enter-quiz">Enter Quiz</button>
     `;
     aPanel.appendChild(screen);
 
-    document.getElementById('btn-enter-quiz').addEventListener('click', () => {
+    const splashNameInput = document.getElementById('splash-name-input');
+
+    function enterQuiz() {
+      const name = splashNameInput.value.trim();
+      if (!name) {
+        splashNameInput.classList.add('shake');
+        splashNameInput.focus();
+        setTimeout(() => splashNameInput.classList.remove('shake'), 400);
+        return;
+      }
+      playerName = name; // carried forward — the real start screen pre-fills from this
       const themeAudio = document.getElementById('theme-audio');
       if (themeAudio) {
         // Fire synchronously inside this tap handler — this is the one
@@ -1646,7 +1677,10 @@ button {
         themeAudio.play().catch(() => {});
       }
       showStart();
-    });
+    }
+
+    document.getElementById('btn-enter-quiz').addEventListener('click', enterQuiz);
+    splashNameInput.addEventListener('keydown', e => { if (e.key === 'Enter') enterQuiz(); });
   }
 
   // ── Start Screen ──
@@ -1662,8 +1696,12 @@ button {
     screen.innerHTML = `
       <div class="game-title">
         <div class="game-title-kicker">RumHam presents</div>
-        <div class="game-title-main">Ten To The Top</div>
-        <div class="game-title-sub">of the Pop Master Pyramid</div>
+        <div class="game-title-pyramid">
+          <div class="pyramid-row pyramid-row-1">TEN</div>
+          <div class="pyramid-row pyramid-row-2">TO THE TOP</div>
+          <div class="pyramid-row pyramid-row-3">OF THE POP</div>
+          <div class="pyramid-row pyramid-row-4">MASTER PYRAMID</div>
+        </div>
         <div class="game-title-rule"><span class="eqbar" style="animation-delay:0s"></span><span class="eqbar" style="animation-delay:0.1s"></span><span class="eqbar" style="animation-delay:0.2s"></span><span class="eqbar" style="animation-delay:0.15s"></span><span class="eqbar" style="animation-delay:0.05s"></span></div>
       </div>
       <button class="theme-audio-toggle" id="theme-audio-toggle" aria-label="Toggle theme music">🔊</button>
@@ -1684,9 +1722,6 @@ button {
             }).join('');
           })()}
         </select>
-      </div>
-      <div class="name-input-wrap">
-        <input type="text" class="name-input" id="name-input" placeholder="Enter your name" maxlength="30" value="${playerName || ''}">
       </div>
       <div class="name-input-wrap hidden" id="jump-input-wrap">
         <label class="date-picker-label" for="jump-input">Jump to question (test mode)</label>
@@ -1734,21 +1769,21 @@ button {
       try { questions = loadQuestions(); showStart(); } catch(e) { showError(e.message); }
     });
 
-    const nameInput = document.getElementById('name-input');
     const jumpInputWrap = document.getElementById('jump-input-wrap');
     const jumpInput = document.getElementById('jump-input');
     function isTesterName(v) { return v.trim().toLowerCase() === 'rumhamtester'; }
-    nameInput.addEventListener('input', () => {
-      jumpInputWrap.classList.toggle('hidden', !isTesterName(nameInput.value));
-    });
-    jumpInputWrap.classList.toggle('hidden', !isTesterName(nameInput.value));
+    // The name field only lives on the splash screen now, so this is a
+    // one-time check against whatever was carried forward as playerName —
+    // no live input to listen to here anymore.
+    jumpInputWrap.classList.toggle('hidden', !isTesterName(playerName));
 
     document.getElementById('btn-start').addEventListener('click', async () => {
-      const name = nameInput.value.trim();
+      const name = playerName.trim();
       if (!name) {
-        nameInput.classList.add('shake');
-        nameInput.focus();
-        setTimeout(() => nameInput.classList.remove('shake'), 400);
+        // Shouldn't happen — the splash screen requires a name before it'll
+        // let you through — but fall back to sending them back there rather
+        // than silently failing if this screen was somehow reached without it.
+        showSplash();
         return;
       }
       if (isTesterName(name)) {
@@ -1785,7 +1820,6 @@ button {
       }
     });
 
-    nameInput.addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('btn-start').click(); });
     document.getElementById('btn-leaderboard').addEventListener('click', openLeaderboard);
     document.getElementById('btn-howto').addEventListener('click', openHowToPlay);
     preloadAllMedia();
