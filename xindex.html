@@ -494,105 +494,6 @@ button {
    the "letters" class too, so it inherits the exact same 4x6 grid and
    .letter-btn font-size as the Letters question type. */
 .kbtn.hangman-btn.tapped { pointer-events: none; }
-.safecrack-wrap {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 8px 4px;
-}
-.safecrack-wrap.shake { animation: shake 0.4s ease; }
-.safecrack-progress {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 6px;
-}
-.safecrack-progress-box {
-  min-width: 34px;
-  height: 34px;
-  padding: 0 6px;
-  border-radius: 6px;
-  border: 1px solid rgba(122,143,200,0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.1rem;
-  font-weight: 800;
-  color: var(--sq-text-muted);
-}
-.safecrack-progress-box.filled {
-  border-color: #f5d76e;
-  color: #f5d76e;
-  background: rgba(245,215,110,0.12);
-}
-.safecrack-progress-box.filled.reveal-missed {
-  border-color: #e5484d;
-  color: #ff8a8a;
-  background: rgba(229,72,77,0.14);
-}
-.safecrack-hint {
-  font-size: 0.95rem;
-  font-weight: 700;
-  letter-spacing: 0.03em;
-  color: var(--sq-text-muted);
-  text-transform: uppercase;
-  min-height: 1.2em;
-}
-.safecrack-hint.dir-left { color: #6fd3ff; }
-.safecrack-hint.dir-right { color: #f5a623; }
-.safecrack-readout {
-  font-size: 3.4rem;
-  font-weight: 900;
-  color: var(--sq-cyan);
-  font-variant-numeric: tabular-nums;
-  min-width: 2.2em;
-  text-align: center;
-}
-.safecrack-knob-outer {
-  position: relative;
-  flex: 1;
-  width: min(80vw, 62vh, 420px);
-  height: min(80vw, 62vh, 420px);
-  max-width: 100%;
-  border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, rgba(255,255,255,0.08), rgba(0,0,0,0.35) 70%);
-  border: 3px solid rgba(122,143,200,0.35);
-  touch-action: none;
-}
-.safecrack-knob {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  cursor: grab;
-  background: radial-gradient(circle at 40% 35%, #1a2050, #0c1030 75%);
-  box-shadow: inset 0 0 20px rgba(0,0,0,0.5), 0 4px 12px rgba(0,0,0,0.4);
-}
-.safecrack-knob-tick {
-  position: absolute;
-  top: 5%;
-  left: 50%;
-  width: 7px;
-  height: 24%;
-  background: var(--sq-cyan);
-  border-radius: 4px;
-  transform: translateX(-50%);
-  box-shadow: 0 0 10px rgba(0,200,232,0.7);
-}
-.safecrack-pointer {
-  position: absolute;
-  top: -6px;
-  left: 50%;
-  width: 0;
-  height: 0;
-  transform: translateX(-50%);
-  border-left: 13px solid transparent;
-  border-right: 13px solid transparent;
-  border-top: 20px solid #f5d76e;
-}
 .tapspot-wrap {
   flex: 1;
   min-height: 0;
@@ -1583,8 +1484,7 @@ button {
     wordsnake: 'Word Snake',
     tapspot: 'Tap the Spot',
     connections: 'Connections',
-    hangman: 'Hangman',
-    safecrack: 'Safe Crack'
+    hangman: 'Hangman'
   };
   const TYPE_ICONS = {
     multiple_choice: '🔘',
@@ -1599,8 +1499,7 @@ button {
     wordsnake: '🐍',
     tapspot: '📍',
     connections: '🧠',
-    hangman: '🪢',
-    safecrack: '🔐'
+    hangman: '🪢'
   };
   let currentIndex = 0;
   let score = 0;
@@ -1628,23 +1527,6 @@ button {
   let hangmanGuessedLetters = []; // every letter tapped so far (right or wrong), in tap order
   let hangmanLivesLeft = 0;
   let hangmanMaxLives = 3;
-  // Safe Crack — a rotating dial-and-digital-readout combination lock.
-  // totalRotation is one persistent, unbounded degree value for the whole
-  // question (never resets except on a full miss) so the knob graphic can
-  // just keep spinning naturally across many drags. legStartRotation is a
-  // checkpoint: totalRotation minus legStartRotation is how far they've
-  // turned since the last confirmed number, which is all that matters for
-  // reading the current digit and direction of the leg in progress.
-  const SAFECRACK_RANGE = 41;       // valid numbers are 0-40 inclusive
-  const SAFECRACK_STEP_DEG = 360 / SAFECRACK_RANGE;
-  let safecrackCombo = [];          // target numbers, e.g. [1, 8, 10, 7]
-  let safecrackDirections = [];     // required alternating direction per stop, e.g. ['left','right','left','right']
-  let safecrackStep = 0;            // index of the next stop to confirm
-  let safecrackConfirmed = [];      // numbers locked in so far, for the progress readout
-  let safecrackStartNumber = 0;     // dial's random starting reading
-  let safecrackTotalRotation = 0;
-  let safecrackLegStartRotation = 0;
-  let safecrackLastAngle = null;    // last raw pointer angle, for incremental delta tracking mid-drag
 
   // Pyramid scoring state
   let streak = 0;           // consecutive correct answers since last miss (or game start)
@@ -2255,14 +2137,6 @@ button {
     hangmanGuessedLetters = [];
     hangmanLivesLeft = 0;
     hangmanMaxLives = 3;
-    safecrackCombo = [];
-    safecrackDirections = [];
-    safecrackStep = 0;
-    safecrackConfirmed = [];
-    safecrackStartNumber = Math.floor(Math.random() * SAFECRACK_RANGE);
-    safecrackTotalRotation = 0;
-    safecrackLegStartRotation = 0;
-    safecrackLastAngle = null;
     hud.classList.remove('hidden');
     hud.classList.toggle('joker-glow', jokerActive);
     hudSub.classList.remove('hidden');
@@ -2294,7 +2168,6 @@ button {
       case 'connections': renderConnections(q); break;
       case 'wordsnake': renderWordSnake(q); break;
       case 'hangman': renderHangman(q); break;
-      case 'safecrack': renderSafeCrack(q); break;
       case 'tapspot': renderTapSpot(q); break;
       case 'word': renderWord(q); break;
     }
@@ -2962,193 +2835,7 @@ button {
     }
   }
 
-  // Safe Crack — a spinning knob + digital readout combination lock.
-  // Numbers run 0-40. The knob free-spins with the drag (no printed number
-  // ring to align — the current digit is read off a live counter instead,
-  // which sidesteps needing the visual dial to stay in exact numeric sync).
-  // Direction always alternates starting left: 1st stop via a net
-  // counter-clockwise turn, 2nd via clockwise, 3rd left, and so on. Landing
-  // on the wrong number OR turning the wrong way on any stop is a full
-  // reset back to the first number — same as a real combination lock.
-  function mod41(n) { return ((n % SAFECRACK_RANGE) + SAFECRACK_RANGE) % SAFECRACK_RANGE; }
-
-  function safecrackDirectionsFor(combo) {
-    return combo.map((_, i) => i % 2 === 0 ? 'left' : 'right');
-  }
-
-  function renderSafeCrack(q) {
-    safecrackCombo = q.combo.slice();
-    safecrackDirections = safecrackDirectionsFor(safecrackCombo);
-    safecrackStep = 0;
-    safecrackConfirmed = [];
-
-    const wrap = document.createElement('div');
-    wrap.className = 'safecrack-wrap';
-
-    const progress = document.createElement('div');
-    progress.className = 'safecrack-progress';
-    wrap.appendChild(progress);
-
-    const hint = document.createElement('div');
-    hint.className = 'safecrack-hint';
-    wrap.appendChild(hint);
-
-    const readout = document.createElement('div');
-    readout.className = 'safecrack-readout';
-    wrap.appendChild(readout);
-
-    const knobOuter = document.createElement('div');
-    knobOuter.className = 'safecrack-knob-outer';
-    const knob = document.createElement('div');
-    knob.className = 'safecrack-knob';
-    knob.innerHTML = '<div class="safecrack-knob-tick"></div>';
-    knobOuter.appendChild(knob);
-    const pointer = document.createElement('div');
-    pointer.className = 'safecrack-pointer';
-    knobOuter.appendChild(pointer);
-    wrap.appendChild(knobOuter);
-
-    aPanel.appendChild(wrap);
-
-    updateSafecrackProgress(progress);
-    updateSafecrackHint(hint);
-    updateSafecrackReadout(readout);
-
-    setupSafecrackDrag(q, wrap, knob, readout, hint, progress);
-  }
-
-  function updateSafecrackProgress(progress) {
-    progress.innerHTML = '';
-    safecrackCombo.forEach((_, i) => {
-      const box = document.createElement('div');
-      box.className = 'safecrack-progress-box';
-      if (i < safecrackConfirmed.length) {
-        box.textContent = safecrackConfirmed[i];
-        box.classList.add('filled');
-      } else {
-        box.textContent = '?';
-      }
-      progress.appendChild(box);
-    });
-  }
-
-  function updateSafecrackHint(hint) {
-    if (safecrackStep >= safecrackDirections.length) { hint.textContent = ''; return; }
-    const dir = safecrackDirections[safecrackStep];
-    hint.textContent = `Turn ${dir === 'left' ? 'LEFT' : 'RIGHT'} to the next number`;
-    hint.classList.toggle('dir-left', dir === 'left');
-    hint.classList.toggle('dir-right', dir === 'right');
-  }
-
-  function updateSafecrackReadout(readout) {
-    const legRotation = safecrackTotalRotation - safecrackLegStartRotation;
-    const offset = Math.round(legRotation / SAFECRACK_STEP_DEG);
-    const currentNumber = mod41(safecrackStartNumber + offset);
-    readout.textContent = String(currentNumber);
-  }
-
-  function setupSafecrackDrag(q, wrap, knob, readout, hint, progress) {
-    function angleFromEvent(e) {
-      const rect = knob.getBoundingClientRect();
-      const cx = rect.left + rect.width / 2;
-      const cy = rect.top + rect.height / 2;
-      return Math.atan2(e.clientY - cy, e.clientX - cx) * 180 / Math.PI;
-    }
-    function normalizeDelta(delta) {
-      while (delta > 180) delta -= 360;
-      while (delta <= -180) delta += 360;
-      return delta;
-    }
-    function applyKnobVisual() {
-      knob.style.transform = `rotate(${safecrackTotalRotation}deg)`;
-    }
-
-    function onDown(e) {
-      if (answered) return;
-      e.preventDefault();
-      safecrackLastAngle = angleFromEvent(e);
-      window.addEventListener('pointermove', onMove);
-      window.addEventListener('pointerup', onUp);
-      window.addEventListener('pointercancel', onUp);
-    }
-    function onMove(e) {
-      if (answered || safecrackLastAngle === null) return;
-      e.preventDefault();
-      const angle = angleFromEvent(e);
-      const delta = normalizeDelta(angle - safecrackLastAngle);
-      safecrackTotalRotation += delta;
-      safecrackLastAngle = angle;
-      applyKnobVisual();
-      updateSafecrackReadout(readout);
-    }
-    function onUp() {
-      window.removeEventListener('pointermove', onMove);
-      window.removeEventListener('pointerup', onUp);
-      window.removeEventListener('pointercancel', onUp);
-      safecrackLastAngle = null;
-      if (answered) return;
-      resolveSafecrackRelease(q, wrap, knob, readout, hint, progress);
-    }
-
-    knob.addEventListener('pointerdown', onDown);
-  }
-
-  // Called every time the player lets go of the knob. Only actually
-  // evaluates anything if they turned it at least one full tick (offset
-  // !== 0) — a release with no real movement is just them repositioning
-  // their grip, not an attempt.
-  function resolveSafecrackRelease(q, wrap, knob, readout, hint, progress) {
-    const legRotation = safecrackTotalRotation - safecrackLegStartRotation;
-    const offset = Math.round(legRotation / SAFECRACK_STEP_DEG);
-    if (offset === 0) return;
-
-    const currentNumber = mod41(safecrackStartNumber + offset);
-    const direction = offset > 0 ? 'right' : 'left';
-    const expectedNumber = safecrackCombo[safecrackStep];
-    const expectedDirection = safecrackDirections[safecrackStep];
-
-    if (currentNumber === expectedNumber && direction === expectedDirection) {
-      safecrackConfirmed.push(currentNumber);
-      safecrackStep++;
-      safecrackStartNumber = currentNumber;
-      safecrackLegStartRotation = safecrackTotalRotation;
-      updateSafecrackProgress(progress);
-
-      if (safecrackStep >= safecrackCombo.length) {
-        answered = true; stopTimer(); revealQuestionTextNow();
-        const pts = awardPoints(true);
-        knob.style.pointerEvents = 'none';
-        showFeedback(true, q.display_answer || safecrackCombo.join(' - '), pts);
-        return;
-      }
-      updateSafecrackHint(hint);
-      playHangmanCorrectLetterSound();
-    } else {
-      playHangmanWrongLetterSound();
-      wrap.classList.remove('shake'); wrap.offsetWidth; wrap.classList.add('shake');
-      safecrackConfirmed = [];
-      safecrackStep = 0;
-      safecrackStartNumber = mod41(safecrackStartNumber + offset);
-      safecrackLegStartRotation = safecrackTotalRotation;
-      updateSafecrackProgress(progress);
-      updateSafecrackHint(hint);
-    }
-  }
-
-  // Fills in every unconfirmed box with the real combo — used on timeout,
-  // same pattern as Hangman revealing unguessed letters.
-  function revealSafecrackAnswer(progress) {
-    if (!progress) return;
-    const boxes = progress.querySelectorAll('.safecrack-progress-box');
-    boxes.forEach((box, i) => {
-      if (!box.classList.contains('filled')) {
-        box.textContent = safecrackCombo[i];
-        box.classList.add('filled', 'reveal-missed');
-      }
-    });
-  }
-
-
+  // Tap Spot — the image itself is the answer surface. A polygon of {x,y}
   // percentage points (from the Shape Picker tool) defines the target area;
   // tapping inside it (via point-in-polygon) counts as correct. Works for
   // both photos and video, since the polygon is stored as percentages
@@ -3902,17 +3589,6 @@ button {
         }
         break;
       }
-      case 'safecrack': {
-        correctDisplay = q.display_answer || safecrackCombo.join(' - ');
-        const scWrap = aPanel.querySelector('.safecrack-wrap');
-        if (scWrap) {
-          const progress = scWrap.querySelector('.safecrack-progress');
-          revealSafecrackAnswer(progress);
-          const knob = scWrap.querySelector('.safecrack-knob');
-          if (knob) knob.style.pointerEvents = 'none';
-        }
-        break;
-      }
       case 'tapspot': {
         correctDisplay = q.display_answer || '';
         const spotSvg = aPanel.querySelector('.tapspot-wrap svg');
@@ -4226,8 +3902,7 @@ button {
     { type: 'match', category: 'Puzzle', icon: '🔗', heading: 'Match Pairs', text: 'Link each item on the left to its match on the right.', list: ['Tap one on the left, then one on the right to lock in that pair','Once locked, that\u2019s final \u2014 right or wrong, there\u2019s no retry','Nothing is revealed until every pair is locked in or time runs out'] },
     { type: 'wordsnake', category: 'Puzzle', icon: '🐍', heading: 'Word Snake', text: 'The answer is hidden in the letter grid \u2014 you just have to find it.', list: ['Tap letters one at a time to spell it out','Each letter must be touching the last one (up, down, left or right)','Tap a selected letter again to undo it'] },
     { type: 'connections', category: 'Puzzle', icon: '🧠', heading: 'Connections', text: 'Find the four hidden groups of four in the 4\u00d74 grid.', list: ['Tap 4 tiles and your guess checks itself automatically','3 of your 4 in the same group? You\u2019ll see a \u201cOne away!\u201d hint','Get it wrong and the tiles shake, then unselect \u2014 try again, no penalty for retrying','You need all four groups solved with no wrong guesses to score points'] },
-    { type: 'hangman', category: 'Puzzle', icon: '🪢', heading: 'Hangman', text: 'Guess the answer one letter at a time before you run out of lives.', list: ['Tap letters on the keypad \u2014 correct ones fill in every matching blank','Wrong letters cost a heart \u2014 run out and the question\u2019s over','The clock is still ticking too, so don\u2019t take too long between guesses'] },
-    { type: 'safecrack', category: 'Puzzle', icon: '🔐', heading: 'Safe Crack', text: 'Spin the dial to crack the combination before time runs out.', list: ['Drag the knob to dial in each number, one at a time','Directions always alternate \u2014 left, right, left, right...','Land on the wrong number, or turn the wrong way, and it resets to the start'] }
+    { type: 'hangman', category: 'Puzzle', icon: '🪢', heading: 'Hangman', text: 'Guess the answer one letter at a time before you run out of lives.', list: ['Tap letters on the keypad \u2014 correct ones fill in every matching blank','Wrong letters cost a heart \u2014 run out and the question\u2019s over','The clock is still ticking too, so don\u2019t take too long between guesses'] }
   ];
 
   // Small illustrative mockups, one per question type, shown between the
@@ -4296,15 +3971,6 @@ button {
       </div>
       <div class="htp-mock-grid" style="grid-template-columns:repeat(6,1fr)">
         ${['A','B','C','D','X','QV'].map(l => `<div class="htp-mock-tile${l === 'C' || l === 'A' ? ' selected' : ''}${l === 'X' ? ' wrong' : ''}">${l}</div>`).join('')}
-      </div>
-    </div>`,
-    safecrack: `<div class="htp-mock" style="align-items:center">
-      <div style="display:flex;gap:4px;margin-bottom:6px">
-        ${['1','8','?','?'].map(v => `<div class="htp-mock-tile" style="width:26px;height:26px;font-size:0.75rem${v!=='?'?';background:#f5d76e':''}">${v}</div>`).join('')}
-      </div>
-      <div style="font-size:0.7rem;letter-spacing:0.05em;color:#f5a623;font-weight:700;margin-bottom:4px">TURN RIGHT</div>
-      <div style="width:64px;height:64px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#1a2050,#0c1030 75%);position:relative;box-shadow:inset 0 0 10px rgba(0,0,0,.5)">
-        <div style="position:absolute;top:6%;left:50%;width:3px;height:22%;background:#00c8e8;transform:translateX(-50%);border-radius:2px"></div>
       </div>
     </div>`
   };
