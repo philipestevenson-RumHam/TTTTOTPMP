@@ -828,40 +828,12 @@ button {
   text-transform: uppercase;
   color: var(--sq-text-muted);
 }
-.game-title-pyramid {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-  position: relative;
-  padding: 6px 0 2px;
+.game-title-img {
+  display: block;
+  width: min(92vw, 480px);
+  height: auto;
+  filter: drop-shadow(0 0 18px rgba(0,200,232,0.28)) drop-shadow(0 6px 16px rgba(0,0,0,0.4));
 }
-.game-title-pyramid::before {
-  content: '';
-  position: absolute;
-  inset: -6px -10% -2px;
-  background: linear-gradient(180deg, rgba(0,224,255,0.16) 0%, rgba(245,166,35,0.12) 100%);
-  clip-path: polygon(50% 0%, 96% 100%, 4% 100%);
-  filter: blur(2px);
-  z-index: -1;
-}
-.pyramid-row {
-  font-weight: 900;
-  letter-spacing: 0.02em;
-  line-height: 1.08;
-  text-align: center;
-  white-space: nowrap;
-  background: linear-gradient(135deg, #00e0ff 0%, #00c8e8 35%, #f5d76e 70%, #f5a623 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
-  filter: drop-shadow(0 0 14px rgba(0,200,232,0.32));
-}
-.pyramid-row-1 { font-size: clamp(0.9rem, 3.8vw, 1.1rem); }
-.pyramid-row-2 { font-size: clamp(1.3rem, 5.8vw, 1.7rem); }
-.pyramid-row-3 { font-size: clamp(1.6rem, 7vw, 2.1rem); }
-.pyramid-row-4 { font-size: clamp(1.95rem, 8.6vw, 2.65rem); }
 .game-title-rule {
   display: flex;
   align-items: flex-end;
@@ -1751,12 +1723,7 @@ button {
     screen.innerHTML = `
       <div class="game-title">
         <div class="game-title-kicker">RumHam presents</div>
-        <div class="game-title-pyramid">
-          <div class="pyramid-row pyramid-row-1">TEN</div>
-          <div class="pyramid-row pyramid-row-2">TO THE TOP</div>
-          <div class="pyramid-row pyramid-row-3">OF THE POP</div>
-          <div class="pyramid-row pyramid-row-4">MASTER PYRAMID</div>
-        </div>
+        <img class="game-title-img" src="master-pyramid-egyptian-pop-transparent.png" alt="Ten To The Top of The Pop Master Pyramid">
         <div class="game-title-rule"><span class="eqbar" style="animation-delay:0s"></span><span class="eqbar" style="animation-delay:0.1s"></span><span class="eqbar" style="animation-delay:0.2s"></span><span class="eqbar" style="animation-delay:0.15s"></span><span class="eqbar" style="animation-delay:0.05s"></span></div>
       </div>
       <div class="screen-subtitle">10 questions. Question 1 is worth 1 point, question 2 is worth 2, and so on up to 10. One joker to play whenever you like. Get one wrong and you're back to 1.</div>
@@ -1807,12 +1774,7 @@ button {
     screen.innerHTML = `
       <div class="game-title">
         <div class="game-title-kicker">RumHam presents</div>
-        <div class="game-title-pyramid">
-          <div class="pyramid-row pyramid-row-1">TEN</div>
-          <div class="pyramid-row pyramid-row-2">TO THE TOP</div>
-          <div class="pyramid-row pyramid-row-3">OF THE POP</div>
-          <div class="pyramid-row pyramid-row-4">MASTER PYRAMID</div>
-        </div>
+        <img class="game-title-img" src="master-pyramid-egyptian-pop-transparent.png" alt="Ten To The Top of The Pop Master Pyramid">
         <div class="game-title-rule"><span class="eqbar" style="animation-delay:0s"></span><span class="eqbar" style="animation-delay:0.1s"></span><span class="eqbar" style="animation-delay:0.2s"></span><span class="eqbar" style="animation-delay:0.15s"></span><span class="eqbar" style="animation-delay:0.05s"></span></div>
       </div>
       <button class="theme-audio-toggle" id="theme-audio-toggle" aria-label="Toggle theme music">🔊</button>
