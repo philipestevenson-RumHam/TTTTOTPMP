@@ -15,6 +15,8 @@
 //                     paired with its connection label (J-M at the same position)
 //   multitap        : options (up to 6), answers (array — every correct one)
 //   wordsnake       : answer (word or phrase, max 20 letters — spaces don't count)
+//   hangman         : answer (word or phrase), optional lives (wrong guesses
+//                     allowed — defaults to 3 if left blank)
 //   tapspot         : target (JSON array of {x,y} points from the Shape Picker
 //                     tool, min 3), requires an image or video in the media column
 //   optional media  : column P is the file/URL; column Q can specify image, video, or audio.
@@ -23,7 +25,7 @@
 //                     the app's default of 15s. Leave blank to use the default.
 
 window.QUIZ_QUESTIONS = {
-  "2026-08-08": [
+  "2026-08-10": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
@@ -134,7 +136,7 @@ window.QUIZ_QUESTIONS = {
       "answer": 2021
     }
   ],
-  "2026-08-07": [
+  "2026-08-09": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
@@ -245,7 +247,7 @@ window.QUIZ_QUESTIONS = {
       "answer": 1995
     }
   ],
-  "2026-08-06": [
+  "2026-08-08": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
@@ -356,7 +358,7 @@ window.QUIZ_QUESTIONS = {
       "answer": 1970
     }
   ],
-  "2026-08-05": [
+  "2026-08-07": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
@@ -516,7 +518,7 @@ window.QUIZ_QUESTIONS = {
       "answer": 1998
     }
   ],
-  "2026-08-04": [
+  "2026-08-06": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
@@ -677,7 +679,7 @@ window.QUIZ_QUESTIONS = {
       "answer": 8
     }
   ],
-  "2026-08-03": [
+  "2026-08-05": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
@@ -829,7 +831,7 @@ window.QUIZ_QUESTIONS = {
       "answer": 50
     }
   ],
-  "2026-08-02": [
+  "2026-08-04": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
@@ -974,7 +976,7 @@ window.QUIZ_QUESTIONS = {
       "answer": 2000
     }
   ],
-  "2026-08-01": [
+  "2026-08-03": [
     {
       "type": "match",
       "question": "Match the Artist to the Group",
@@ -1176,7 +1178,7 @@ window.QUIZ_QUESTIONS = {
       ]
     }
   ],
-  "2026-07-31": [
+  "2026-08-02": [
     {
       "type": "connections",
       "question": "Sort these 16 into four groups of four",
@@ -1307,7 +1309,7 @@ window.QUIZ_QUESTIONS = {
       "timeLimit": 30
     }
   ],
-  "2026-07-30": [
+  "2026-08-01": [
     {
       "type": "tapspot",
       "question": "Where is Alvin Nathaniel Joiner, better known by his stage name Xzibit?",
@@ -1361,6 +1363,61 @@ window.QUIZ_QUESTIONS = {
         "type": "video",
         "url": "media\\sh.mp4"
       }
+    }
+  ],
+  "2026-07-31": [
+    {
+      "type": "hangman",
+      "question": "Which singer released the 2013 hit single 'Royals'?",
+      "answer": "Lorde",
+      "lives": 4
+    },
+    {
+      "type": "hangman",
+      "question": "Who performed the 1983 classic 'Girls Just Want to Have Fun'?",
+      "answer": "Cyndi Lauper",
+      "lives": 5
+    },
+    {
+      "type": "hangman",
+      "question": "Which pop star's fans are known as the Little Monsters?",
+      "answer": "Lady Gaga",
+      "lives": 6
+    },
+    {
+      "type": "hangman",
+      "question": "Who sang the 2017 hit 'Shape of You'?",
+      "answer": "Ed Sheeran"
+    },
+    {
+      "type": "hangman",
+      "question": "Which artist released the album '1989' in 2014?",
+      "answer": "Taylor Swift"
+    },
+    {
+      "type": "hangman",
+      "question": "Who had a global hit with 'Can't Get You Out of My Head' in 2001?",
+      "answer": "Kylie Minogue"
+    },
+    {
+      "type": "hangman",
+      "question": "Which boy band released 'I Want It That Way' in 1999?",
+      "answer": "Backstreet Boys"
+    },
+    {
+      "type": "hangman",
+      "question": "Who performed the 2008 single 'Just Dance'?",
+      "answer": "Lady Gaga"
+    },
+    {
+      "type": "hangman",
+      "question": "Which singer released the song 'Bad Romance' in 2009?",
+      "answer": "Lady Gaga"
+    },
+    {
+      "type": "hangman",
+      "question": "Who had a hit with 'Blinding Lights' in 2020?",
+      "answer": "The Weeknd"
     }
   ]
 };
