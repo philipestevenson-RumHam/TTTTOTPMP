@@ -544,6 +544,12 @@ button {
 }
 .safecrack-hint.dir-left { color: #6fd3ff; }
 .safecrack-hint.dir-right { color: #f5a623; }
+.safecrack-readout-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
 .safecrack-readout {
   font-size: 3.4rem;
   font-weight: 900;
@@ -552,6 +558,16 @@ button {
   min-width: 2.2em;
   text-align: center;
 }
+.safecrack-arrow {
+  font-size: 1.8rem;
+  color: rgba(122,143,200,0.3);
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+.safecrack-arrow.active {
+  transform: scale(1.15);
+}
+.safecrack-arrow-left.active { color: #6fd3ff; text-shadow: 0 0 10px rgba(111,211,255,0.7); }
+.safecrack-arrow-right.active { color: #f5a623; text-shadow: 0 0 10px rgba(245,166,35,0.7); }
 .safecrack-knob-outer {
   position: relative;
   flex: 1;
@@ -2259,7 +2275,7 @@ button {
     safecrackDirections = [];
     safecrackStep = 0;
     safecrackConfirmed = [];
-    safecrackStartNumber = Math.floor(Math.random() * SAFECRACK_RANGE);
+    safecrackStartNumber = 0;
     safecrackTotalRotation = 0;
     safecrackLegStartRotation = 0;
     safecrackLastAngle = null;
@@ -2993,9 +3009,20 @@ button {
     hint.className = 'safecrack-hint';
     wrap.appendChild(hint);
 
+    const readoutRow = document.createElement('div');
+    readoutRow.className = 'safecrack-readout-row';
+    const arrowLeft = document.createElement('div');
+    arrowLeft.className = 'safecrack-arrow safecrack-arrow-left';
+    arrowLeft.textContent = '◀';
+    readoutRow.appendChild(arrowLeft);
     const readout = document.createElement('div');
     readout.className = 'safecrack-readout';
-    wrap.appendChild(readout);
+    readoutRow.appendChild(readout);
+    const arrowRight = document.createElement('div');
+    arrowRight.className = 'safecrack-arrow safecrack-arrow-right';
+    arrowRight.textContent = '▶';
+    readoutRow.appendChild(arrowRight);
+    wrap.appendChild(readoutRow);
 
     const knobOuter = document.createElement('div');
     knobOuter.className = 'safecrack-knob-outer';
@@ -3011,7 +3038,7 @@ button {
     aPanel.appendChild(wrap);
 
     updateSafecrackProgress(progress);
-    updateSafecrackHint(hint);
+    updateSafecrackHint(wrap);
     updateSafecrackReadout(readout);
 
     setupSafecrackDrag(q, wrap, knob, readout, hint, progress);
@@ -3032,12 +3059,26 @@ button {
     });
   }
 
-  function updateSafecrackHint(hint) {
-    if (safecrackStep >= safecrackDirections.length) { hint.textContent = ''; return; }
+  // Updates both the text hint above the dial AND the arrow indicators
+  // flanking the number readout, so the required direction is shown two
+  // ways at once.
+  function updateSafecrackHint(wrap) {
+    const hint = wrap.querySelector('.safecrack-hint');
+    const arrowLeft = wrap.querySelector('.safecrack-arrow-left');
+    const arrowRight = wrap.querySelector('.safecrack-arrow-right');
+    if (safecrackStep >= safecrackDirections.length) {
+      hint.textContent = '';
+      hint.classList.remove('dir-left', 'dir-right');
+      if (arrowLeft) arrowLeft.classList.remove('active');
+      if (arrowRight) arrowRight.classList.remove('active');
+      return;
+    }
     const dir = safecrackDirections[safecrackStep];
     hint.textContent = `Turn ${dir === 'left' ? 'LEFT' : 'RIGHT'} to the next number`;
     hint.classList.toggle('dir-left', dir === 'left');
     hint.classList.toggle('dir-right', dir === 'right');
+    if (arrowLeft) arrowLeft.classList.toggle('active', dir === 'left');
+    if (arrowRight) arrowRight.classList.toggle('active', dir === 'right');
   }
 
   function updateSafecrackReadout(readout) {
@@ -3121,17 +3162,20 @@ button {
         showFeedback(true, q.display_answer || safecrackCombo.join(' - '), pts);
         return;
       }
-      updateSafecrackHint(hint);
+      updateSafecrackHint(wrap);
       playHangmanCorrectLetterSound();
     } else {
       playHangmanWrongLetterSound();
       wrap.classList.remove('shake'); wrap.offsetWidth; wrap.classList.add('shake');
       safecrackConfirmed = [];
       safecrackStep = 0;
-      safecrackStartNumber = mod41(safecrackStartNumber + offset);
-      safecrackLegStartRotation = safecrackTotalRotation;
+      safecrackStartNumber = 0;
+      safecrackTotalRotation = 0;
+      safecrackLegStartRotation = 0;
+      knob.style.transform = 'rotate(0deg)';
       updateSafecrackProgress(progress);
-      updateSafecrackHint(hint);
+      updateSafecrackHint(wrap);
+      updateSafecrackReadout(readout);
     }
   }
 
