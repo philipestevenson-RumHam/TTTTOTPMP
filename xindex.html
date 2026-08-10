@@ -425,75 +425,6 @@ button {
   background: rgba(245,215,110,0.12);
 }
 .snake-progress-space { width: 10px; flex-shrink: 0; }
-.hangman-wrap {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.hangman-lives {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 4px;
-}
-.hangman-lives.shake { animation: shake 0.4s ease; }
-.hangman-heart {
-  font-size: 1.5rem;
-  color: #ff6b6b;
-  transition: opacity 0.2s ease, transform 0.2s ease;
-}
-.hangman-heart.lost {
-  opacity: 0.22;
-  color: var(--sq-text-muted);
-  transform: scale(0.82);
-}
-.hangman-progress-bar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  padding: 6px 4px;
-  flex-shrink: 0;
-}
-.hangman-progress-box {
-  width: 24px;
-  height: 30px;
-  border-radius: 5px;
-  border: 1px solid rgba(122,143,200,0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.95rem;
-  font-weight: 800;
-  color: var(--sq-text-muted);
-  flex-shrink: 0;
-}
-.hangman-progress-box.filled {
-  border-color: #f5d76e;
-  color: #f5d76e;
-  background: rgba(245,215,110,0.12);
-}
-.hangman-progress-box.filled.reveal-missed {
-  border-color: #e5484d;
-  color: #ff8a8a;
-  background: rgba(229,72,77,0.14);
-}
-.hangman-progress-box.punct {
-  border: none;
-  background: none;
-  color: var(--sq-text-muted);
-  width: 14px;
-}
-.hangman-progress-space { width: 10px; flex-shrink: 0; }
-/* .hangman-grid intentionally has no layout rules of its own — it carries
-   the "letters" class too, so it inherits the exact same 4x6 grid and
-   .letter-btn font-size as the Letters question type. */
-.kbtn.hangman-btn.tapped { pointer-events: none; }
 .tapspot-wrap {
   flex: 1;
   min-height: 0;
@@ -1511,8 +1442,7 @@ button {
     multitap: 'Multitap',
     wordsnake: 'Word Snake',
     tapspot: 'Tap the Spot',
-    connections: 'Connections',
-    hangman: 'Hangman'
+    connections: 'Connections'
   };
   const TYPE_ICONS = {
     multiple_choice: '🔘',
@@ -1526,8 +1456,7 @@ button {
     multitap: '✅',
     wordsnake: '🐍',
     tapspot: '📍',
-    connections: '🧠',
-    hangman: '🪢'
+    connections: '🧠'
   };
   let currentIndex = 0;
   let score = 0;
@@ -1552,9 +1481,6 @@ button {
   let connectionsHadMistake = false; // any wrong submission this question — forfeits points even though retries are free
   let connectionsChecking = false;   // true during the brief pause after the 4th tap while a guess is being auto-checked
   let connectionsBannerHideTimer = null; // pending hide-timeout for the flash banner, so a new banner can cancel a stale one
-  let hangmanGuessedLetters = []; // every letter tapped so far (right or wrong), in tap order
-  let hangmanLivesLeft = 0;
-  let hangmanMaxLives = 3;
 
   // Pyramid scoring state
   let streak = 0;           // consecutive correct answers since last miss (or game start)
@@ -1645,14 +1571,6 @@ button {
   }
   function playConnectionsWrongSound() {
     playTone(180, 0.14, 'triangle', 0);
-  }
-  // Lighter per-letter variants for Hangman, distinct from the full-question
-  // correct/wrong chimes which only play once the question resolves.
-  function playHangmanCorrectLetterSound() {
-    playTone(1000, 0.09, 'sine', 0);
-  }
-  function playHangmanWrongLetterSound() {
-    playTone(200, 0.16, 'triangle', 0);
   }
 
   function awardPoints(isCorrect) {
@@ -2172,9 +2090,6 @@ button {
     connectionsHadMistake = false;
     connectionsChecking = false;
     if (connectionsBannerHideTimer) { clearTimeout(connectionsBannerHideTimer); connectionsBannerHideTimer = null; }
-    hangmanGuessedLetters = [];
-    hangmanLivesLeft = 0;
-    hangmanMaxLives = 3;
     hud.classList.remove('hidden');
     hud.classList.toggle('joker-glow', jokerActive);
     hudSub.classList.remove('hidden');
@@ -2205,7 +2120,6 @@ button {
       case 'match': renderMatch(q); break;
       case 'connections': renderConnections(q); break;
       case 'wordsnake': renderWordSnake(q); break;
-      case 'hangman': renderHangman(q); break;
       case 'tapspot': renderTapSpot(q); break;
       case 'word': renderWord(q); break;
     }
@@ -2723,154 +2637,6 @@ button {
       if (pathIndexes.includes(i)) b.classList.add('correct-state', 'pulse');
       else b.classList.add('dimmed-state');
     });
-  }
-
-  // Hangman — the answer's letters populate a blank-per-letter progress bar
-  // (positional, like Word Snake's, but filled by every occurrence of a
-  // guessed letter rather than by tap order) as the player works through a
-  // keypad. Uses the exact same 4x6 LETTER_LAYOUT as the Letters question
-  // type (Q/V and X/Z sharing a button) so the grid looks and feels
-  // consistent across question types. Spaces and punctuation are
-  // auto-revealed and don't cost a guess. A wrong letter costs one of a
-  // limited number of lives (default 3, overridable per-question); running
-  // out of lives ends the question early as a miss, same as it would on
-  // Connections. The countdown timer keeps running independently throughout
-  // — either running out can end it.
-  function renderHangman(q) {
-    hangmanMaxLives = (typeof q.lives === 'number' && q.lives > 0) ? q.lives : 3;
-    hangmanLivesLeft = hangmanMaxLives;
-    hangmanGuessedLetters = [];
-
-    const wrap = document.createElement('div');
-    wrap.className = 'hangman-wrap';
-
-    const livesBar = document.createElement('div');
-    livesBar.className = 'hangman-lives';
-    wrap.appendChild(livesBar);
-
-    const progressBar = document.createElement('div');
-    progressBar.className = 'hangman-progress-bar';
-    wrap.appendChild(progressBar);
-
-    const grid = document.createElement('div');
-    grid.className = 'keypad letters hangman-grid';
-    wrap.appendChild(grid);
-
-    aPanel.appendChild(wrap);
-
-    updateHangmanLives(livesBar);
-    updateHangmanProgress(progressBar, q);
-
-    LETTER_LAYOUT.forEach(lbl => {
-      const btn = document.createElement('button');
-      btn.className = 'kbtn letter-btn hangman-btn';
-      btn.textContent = lbl;
-      btn.dataset.value = lbl;
-      btn.addEventListener('click', () => onHangmanTap(btn, q));
-      grid.appendChild(btn);
-    });
-  }
-
-  function updateHangmanLives(livesBar) {
-    livesBar.innerHTML = '';
-    for (let i = 0; i < hangmanMaxLives; i++) {
-      const heart = document.createElement('span');
-      heart.className = 'hangman-heart' + (i < hangmanLivesLeft ? '' : ' lost');
-      heart.textContent = '❤';
-      livesBar.appendChild(heart);
-    }
-  }
-
-  // Rebuilds every box in the letter-reveal bar from scratch based on which
-  // letters have been correctly guessed so far — every occurrence of a
-  // guessed letter fills in at once, spaces render as gaps, and any other
-  // punctuation (apostrophes, hyphens...) is auto-revealed from the start.
-  function updateHangmanProgress(progressBar, q) {
-    progressBar.innerHTML = '';
-    const rawAnswer = q.answer.toUpperCase();
-    for (const ch of rawAnswer) {
-      if (ch === ' ') {
-        const space = document.createElement('div');
-        space.className = 'hangman-progress-space';
-        progressBar.appendChild(space);
-      } else if (/[A-Z]/.test(ch)) {
-        const box = document.createElement('div');
-        box.className = 'hangman-progress-box';
-        if (hangmanGuessedLetters.includes(ch)) {
-          box.textContent = ch;
-          box.classList.add('filled');
-        }
-        progressBar.appendChild(box);
-      } else {
-        const box = document.createElement('div');
-        box.className = 'hangman-progress-box filled punct';
-        box.textContent = ch;
-        progressBar.appendChild(box);
-      }
-    }
-  }
-
-  // Fills in every still-blank letter box with the real answer — used both
-  // on a lives-out loss and on a timeout, so nothing is left dangling.
-  function revealHangmanAnswer(q, progressBar) {
-    if (!progressBar) return;
-    const letters = q.answer.toUpperCase().replace(/[^A-Z]/g, '').split('');
-    const boxes = progressBar.querySelectorAll('.hangman-progress-box:not(.punct)');
-    boxes.forEach((box, i) => {
-      if (!box.classList.contains('filled')) {
-        box.textContent = letters[i];
-        box.classList.add('filled', 'reveal-missed');
-      }
-    });
-  }
-
-  // A tapped button's value can be a single letter or a shared pair (QV,
-  // XZ, matching LETTER_LAYOUT) — every letter in that value is marked as
-  // guessed, and the guess counts as correct if ANY of them appear in the
-  // answer (so tapping "QV" on a word containing V still reveals the V).
-  function onHangmanTap(btn, q) {
-    if (answered || btn.classList.contains('tapped')) return;
-    const wrap = btn.closest('.hangman-wrap');
-    const grid = wrap.querySelector('.hangman-grid');
-    const progressBar = wrap.querySelector('.hangman-progress-bar');
-    const livesBar = wrap.querySelector('.hangman-lives');
-
-    const letters = btn.dataset.value.split('');
-    letters.forEach(l => { if (!hangmanGuessedLetters.includes(l)) hangmanGuessedLetters.push(l); });
-    btn.classList.add('tapped');
-    btn.disabled = true;
-
-    const answerLetters = q.answer.toUpperCase().replace(/[^A-Z]/g, '');
-    const anyMatched = letters.some(l => answerLetters.includes(l));
-
-    if (anyMatched) {
-      btn.classList.add('correct-state');
-      updateHangmanProgress(progressBar, q);
-      const uniqueLetters = new Set(answerLetters.split(''));
-      const solved = [...uniqueLetters].every(ch => hangmanGuessedLetters.includes(ch));
-      if (solved) {
-        answered = true; stopTimer(); revealQuestionTextNow();
-        const pts = awardPoints(true);
-        grid.querySelectorAll('.hangman-btn').forEach(b => { if (!b.classList.contains('tapped')) { b.classList.add('dimmed-state'); b.disabled = true; } });
-        showFeedback(true, q.display_answer || q.answer, pts);
-      } else {
-        playHangmanCorrectLetterSound();
-      }
-    } else {
-      btn.classList.add('wrong-state');
-      hangmanLivesLeft--;
-      updateHangmanLives(livesBar);
-      livesBar.classList.remove('shake'); livesBar.offsetWidth; livesBar.classList.add('shake');
-      if (hangmanLivesLeft <= 0) {
-        answered = true; stopTimer(); revealQuestionTextNow();
-        const pts = awardPoints(false);
-        revealHangmanAnswer(q, progressBar);
-        grid.querySelectorAll('.hangman-btn').forEach(b => { if (!b.classList.contains('tapped')) { b.classList.add('dimmed-state'); b.disabled = true; } });
-        showFeedback(false, q.display_answer || q.answer, pts);
-      } else {
-        playHangmanWrongLetterSound();
-      }
-    }
   }
 
   // Tap Spot — the image itself is the answer surface. A polygon of {x,y}
@@ -3617,16 +3383,6 @@ button {
         if (snakeGrid) highlightCorrectSnake(snakeGrid);
         break;
       }
-      case 'hangman': {
-        correctDisplay = q.display_answer || q.answer;
-        const hangmanWrap = aPanel.querySelector('.hangman-wrap');
-        if (hangmanWrap) {
-          const progressBar = hangmanWrap.querySelector('.hangman-progress-bar');
-          revealHangmanAnswer(q, progressBar);
-          hangmanWrap.querySelectorAll('.hangman-btn').forEach(b => { if (!b.classList.contains('tapped')) { b.classList.add('dimmed-state'); b.disabled = true; } });
-        }
-        break;
-      }
       case 'tapspot': {
         correctDisplay = q.display_answer || '';
         const spotSvg = aPanel.querySelector('.tapspot-wrap svg');
@@ -3939,8 +3695,7 @@ button {
     { type: 'assemble', category: 'Type & Build', icon: '🧩', heading: 'Assemble', text: 'The answer has been chopped into pieces \u2014 tap them back together in order.', list: ['Watch the answer build up above the tiles as you tap','Tap a piece again to undo it','Get the order exactly right to score'] },
     { type: 'match', category: 'Puzzle', icon: '🔗', heading: 'Match Pairs', text: 'Link each item on the left to its match on the right.', list: ['Tap one on the left, then one on the right to lock in that pair','Once locked, that\u2019s final \u2014 right or wrong, there\u2019s no retry','Nothing is revealed until every pair is locked in or time runs out'] },
     { type: 'wordsnake', category: 'Puzzle', icon: '🐍', heading: 'Word Snake', text: 'The answer is hidden in the letter grid \u2014 you just have to find it.', list: ['Tap letters one at a time to spell it out','Each letter must be touching the last one (up, down, left or right)','Tap a selected letter again to undo it'] },
-    { type: 'connections', category: 'Puzzle', icon: '🧠', heading: 'Connections', text: 'Find the four hidden groups of four in the 4\u00d74 grid.', list: ['Tap 4 tiles and your guess checks itself automatically','3 of your 4 in the same group? You\u2019ll see a \u201cOne away!\u201d hint','Get it wrong and the tiles shake, then unselect \u2014 try again, no penalty for retrying','You need all four groups solved with no wrong guesses to score points'] },
-    { type: 'hangman', category: 'Puzzle', icon: '🪢', heading: 'Hangman', text: 'Guess the answer one letter at a time before you run out of lives.', list: ['Tap letters on the keypad \u2014 correct ones fill in every matching blank','Wrong letters cost a heart \u2014 run out and the question\u2019s over','The clock is still ticking too, so don\u2019t take too long between guesses'] }
+    { type: 'connections', category: 'Puzzle', icon: '🧠', heading: 'Connections', text: 'Find the four hidden groups of four in the 4\u00d74 grid.', list: ['Tap 4 tiles and your guess checks itself automatically','3 of your 4 in the same group? You\u2019ll see a \u201cOne away!\u201d hint','Get it wrong and the tiles shake, then unselect \u2014 try again, no penalty for retrying','You need all four groups solved with no wrong guesses to score points'] }
   ];
 
   // Small illustrative mockups, one per question type, shown between the
@@ -4001,16 +3756,7 @@ button {
     connections: `<div class="htp-mock"><div class="htp-mock-grid" style="grid-template-columns:repeat(4,1fr);width:150px">
       <div class="htp-mock-row">SPICE GIRLS</div>
       ${Array.from({ length: 12 }).map(() => `<div class="htp-mock-tile" style="width:auto;height:20px;font-size:0.5rem"></div>`).join('')}
-    </div></div>`,
-    hangman: `<div class="htp-mock">
-      <div style="display:flex;gap:3px;margin-bottom:6px">${['❤','❤','🖤'].map(h => `<span style="font-size:1rem;${h==='🖤'?'opacity:.4':''}">${h}</span>`).join('')}</div>
-      <div style="display:flex;gap:3px;margin-bottom:8px">
-        ${['C','A','T',''].map((l,i) => i===3 ? `<div class="htp-mock-tile" style="width:20px;height:24px"></div>` : `<div class="htp-mock-tile selected" style="width:20px;height:24px">${l}</div>`).join('')}
-      </div>
-      <div class="htp-mock-grid" style="grid-template-columns:repeat(6,1fr)">
-        ${['A','B','C','D','X','QV'].map(l => `<div class="htp-mock-tile${l === 'C' || l === 'A' ? ' selected' : ''}${l === 'X' ? ' wrong' : ''}">${l}</div>`).join('')}
-      </div>
-    </div>`
+    </div></div>`
   };
 
   const htpCategories = [...new Set(htpSlides.map(s => s.category))];

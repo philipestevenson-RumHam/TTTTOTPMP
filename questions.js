@@ -16,14 +16,14 @@
 //   multitap        : options (up to 6), answers (array — every correct one)
 //   wordsnake       : answer (word or phrase, max 20 letters — spaces don't count)
 //   tapspot         : target (JSON array of {x,y} points from the Shape Picker
-//                     tool, min 3), requires an image in the media column
+//                     tool, min 3), requires an image or video in the media column
 //   optional media  : column P is the file/URL; column Q can specify image, video, or audio.
 //                     If Q is blank, the type is inferred from its extension.
 //   optional time   : column R is a time limit in seconds for that question, overriding
 //                     the app's default of 15s. Leave blank to use the default.
 
 window.QUIZ_QUESTIONS = {
-  "2026-08-05": [
+  "2026-08-08": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
@@ -134,7 +134,7 @@ window.QUIZ_QUESTIONS = {
       "answer": 2021
     }
   ],
-  "2026-08-04": [
+  "2026-08-07": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
@@ -245,7 +245,7 @@ window.QUIZ_QUESTIONS = {
       "answer": 1995
     }
   ],
-  "2026-08-03": [
+  "2026-08-06": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
@@ -356,7 +356,7 @@ window.QUIZ_QUESTIONS = {
       "answer": 1970
     }
   ],
-  "2026-08-02": [
+  "2026-08-05": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
@@ -516,7 +516,7 @@ window.QUIZ_QUESTIONS = {
       "answer": 1998
     }
   ],
-  "2026-08-01": [
+  "2026-08-04": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
@@ -677,7 +677,7 @@ window.QUIZ_QUESTIONS = {
       "answer": 8
     }
   ],
-  "2026-07-31": [
+  "2026-08-03": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
@@ -829,7 +829,7 @@ window.QUIZ_QUESTIONS = {
       "answer": 50
     }
   ],
-  "2026-07-30": [
+  "2026-08-02": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
@@ -974,7 +974,7 @@ window.QUIZ_QUESTIONS = {
       "answer": 2000
     }
   ],
-  "2026-07-29": [
+  "2026-08-01": [
     {
       "type": "match",
       "question": "Match the Artist to the Group",
@@ -1176,7 +1176,7 @@ window.QUIZ_QUESTIONS = {
       ]
     }
   ],
-  "2026-07-28": [
+  "2026-07-31": [
     {
       "type": "connections",
       "question": "Sort these 16 into four groups of four",
@@ -1305,6 +1305,62 @@ window.QUIZ_QUESTIONS = {
         }
       ],
       "timeLimit": 30
+    }
+  ],
+  "2026-07-30": [
+    {
+      "type": "tapspot",
+      "question": "Where is Alvin Nathaniel Joiner, better known by his stage name Xzibit?",
+      "target": [
+        {
+          "x": 18.2,
+          "y": 76.6
+        },
+        {
+          "x": 16.4,
+          "y": 79.4
+        },
+        {
+          "x": 16.5,
+          "y": 83.3
+        },
+        {
+          "x": 17.6,
+          "y": 85.1
+        },
+        {
+          "x": 20.2,
+          "y": 85.8
+        },
+        {
+          "x": 20.4,
+          "y": 87.3
+        },
+        {
+          "x": 22.3,
+          "y": 87
+        },
+        {
+          "x": 23.2,
+          "y": 84
+        },
+        {
+          "x": 24,
+          "y": 79.9
+        },
+        {
+          "x": 22.3,
+          "y": 76.6
+        },
+        {
+          "x": 19.8,
+          "y": 75.6
+        }
+      ],
+      "media": {
+        "type": "video",
+        "url": "media\\sh.mp4"
+      }
     }
   ]
 };

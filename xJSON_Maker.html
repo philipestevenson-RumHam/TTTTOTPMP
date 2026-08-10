@@ -67,7 +67,6 @@
   <span class="chip" style="background:#D0BFFF">connections</span>
   <span class="chip" style="background:#C9DAF8">multitap</span>
   <span class="chip" style="background:#D9E8D3">wordsnake</span>
-  <span class="chip" style="background:#F4CCCC">hangman</span>
   <span class="chip" style="background:#F8CBAD">tapspot</span>
   <span class="chip" style="background:#DDEBF7">optional media: image / video / audio</span>
   <span class="chip" style="background:#FFF9C4">optional time: seconds (col R)</span>
@@ -270,25 +269,6 @@ function processFile(file) {
           if (letterCount > 20) { console.warn(`Row ${i+1}: wordsnake answer "${answer}" has ${letterCount} letters — max is 20`); errorCount++; continue; }
           q = { type: 'wordsnake', question, answer };
 
-        } else if (qtype === 'hangman') {
-          // D = the answer word or phrase. E = optional number of lives
-          // (wrong guesses allowed before the question is lost) — defaults
-          // to 3 if left blank.
-          const answer = String(row[3] || '').trim();
-          if (!answer) { console.warn(`Row ${i+1}: hangman missing answer`); errorCount++; continue; }
-          const letterCount = answer.toUpperCase().replace(/[^A-Z]/g, '').length;
-          if (letterCount === 0) { console.warn(`Row ${i+1}: hangman answer has no letters`); errorCount++; continue; }
-          q = { type: 'hangman', question, answer };
-          const livesRaw = String(row[4] || '').trim();
-          if (livesRaw) {
-            const lives = parseInt(livesRaw, 10);
-            if (isNaN(lives) || lives <= 0) {
-              console.warn(`Row ${i+1}: hangman lives value "${livesRaw}" isn't a valid positive whole number`);
-              errorCount++; continue;
-            }
-            q.lives = lives;
-          }
-
         } else if (qtype === 'tapspot') {
           // D = target shape — paste the "coordinates only" JSON array from the
           //     Shape Picker tool, e.g. [{"x":58,"y":22},{"x":67,"y":20},...]
@@ -407,8 +387,6 @@ convertBtn.addEventListener('click', () => {
 //                     paired with its connection label (J-M at the same position)
 //   multitap        : options (up to 6), answers (array \u2014 every correct one)
 //   wordsnake       : answer (word or phrase, max 20 letters — spaces don't count)
-//   hangman         : answer (word or phrase), optional lives (wrong guesses
-//                     allowed — defaults to 3 if left blank)
 //   tapspot         : target (JSON array of {x,y} points from the Shape Picker
 //                     tool, min 3), requires an image or video in the media column
 //   optional media  : column P is the file/URL; column Q can specify image, video, or audio.
