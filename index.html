@@ -557,6 +557,11 @@ button {
   font-variant-numeric: tabular-nums;
   min-width: 2.2em;
   text-align: center;
+  transition: color 0.15s ease;
+}
+.safecrack-readout.wrong-flash {
+  color: #ff5a5a;
+  text-shadow: 0 0 14px rgba(255,90,90,0.6);
 }
 .safecrack-arrow {
   font-size: 1.8rem;
@@ -587,6 +592,12 @@ button {
   background: radial-gradient(circle at 40% 35%, #1a2050, #0c1030 75%);
   box-shadow: inset 0 0 20px rgba(0,0,0,0.5), 0 4px 12px rgba(0,0,0,0.4);
 }
+.safecrack-knob.resetting {
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.safecrack-knob.needs-drag {
+  animation: safecrack-onboard-pulse 1.4s ease-in-out infinite;
+}
 .safecrack-knob-tick {
   position: absolute;
   top: 5%;
@@ -597,6 +608,9 @@ button {
   border-radius: 4px;
   transform: translateX(-50%);
   box-shadow: 0 0 10px rgba(0,200,232,0.7);
+}
+.safecrack-knob-tick.tick-pulse {
+  animation: safecrack-tick-pulse 0.15s ease-out;
 }
 .safecrack-pointer {
   position: absolute;
@@ -1057,6 +1071,21 @@ button {
   40%, 80% { transform: translateX(6px); }
 }
 .name-input.shake { animation: shake 0.4s ease; }
+@keyframes safecrack-tick-pulse {
+  0% { box-shadow: 0 0 10px rgba(0,200,232,0.7); transform: translateX(-50%) scaleY(1); }
+  40% { box-shadow: 0 0 18px rgba(0,200,232,1); transform: translateX(-50%) scaleY(1.15); }
+  100% { box-shadow: 0 0 10px rgba(0,200,232,0.7); transform: translateX(-50%) scaleY(1); }
+}
+@keyframes safecrack-onboard-pulse {
+  0%, 100% { box-shadow: inset 0 0 20px rgba(0,0,0,0.5), 0 4px 12px rgba(0,0,0,0.4), 0 0 0 0 rgba(0,200,232,0.5); }
+  50% { box-shadow: inset 0 0 20px rgba(0,0,0,0.5), 0 4px 12px rgba(0,0,0,0.4), 0 0 0 14px rgba(0,200,232,0); }
+}
+@keyframes safecrack-box-bounce {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.25); }
+  100% { transform: scale(1); }
+}
+.safecrack-progress-box.bounce { animation: safecrack-box-bounce 0.35s cubic-bezier(0.34, 1.56, 0.64, 1); }
 .theme-audio-toggle {
   position: absolute;
   top: 12px; right: 12px;
@@ -1652,7 +1681,11 @@ button {
   // turned since the last confirmed number, which is all that matters for
   // reading the current digit and direction of the leg in progress.
   const SAFECRACK_RANGE = 41;       // valid numbers are 0-40 inclusive
-  const SAFECRACK_STEP_DEG = 360 / SAFECRACK_RANGE;
+  // Full range spans 1.5 physical rotations rather than 1, so each number
+  // takes more finger travel to reach — feels less twitchy to land on
+  // precisely than mapping the whole 0-40 range to a single 360° turn.
+  const SAFECRACK_ROTATIONS = 1.5;
+  const SAFECRACK_STEP_DEG = (360 * SAFECRACK_ROTATIONS) / SAFECRACK_RANGE;
   let safecrackCombo = [];          // target numbers, e.g. [1, 8, 10, 7]
   let safecrackDirections = [];     // required alternating direction per stop, e.g. ['left','right','left','right']
   let safecrackStep = 0;            // index of the next stop to confirm
@@ -1661,6 +1694,8 @@ button {
   let safecrackTotalRotation = 0;
   let safecrackLegStartRotation = 0;
   let safecrackLastAngle = null;    // last raw pointer angle, for incremental delta tracking mid-drag
+  let safecrackLastTickNumber = 0;  // last number read during a drag, to detect tick-over for click feedback
+  let safecrackHasDragged = false;  // clears the first-time onboarding pulse after the first touch
 
   // Pyramid scoring state
   let streak = 0;           // consecutive correct answers since last miss (or game start)
@@ -1759,6 +1794,12 @@ button {
   }
   function playHangmanWrongLetterSound() {
     playTone(200, 0.16, 'triangle', 0);
+  }
+  // A very short, quiet click for each number the Safe Crack dial passes
+  // through mid-drag — deliberately much lighter than the correct/wrong
+  // chimes above, since this fires many times per second while dragging.
+  function playSafecrackTickSound() {
+    playTone(700, 0.02, 'square', 0);
   }
 
   function awardPoints(isCorrect) {
@@ -2279,6 +2320,9 @@ button {
     safecrackTotalRotation = 0;
     safecrackLegStartRotation = 0;
     safecrackLastAngle = null;
+    safecrackLastTickNumber = 0;
+    safecrackHasDragged = false;
+    safecrackLocked = false;
     hud.classList.remove('hidden');
     hud.classList.toggle('joker-glow', jokerActive);
     hudSub.classList.remove('hidden');
@@ -2997,6 +3041,8 @@ button {
     safecrackDirections = safecrackDirectionsFor(safecrackCombo);
     safecrackStep = 0;
     safecrackConfirmed = [];
+    safecrackLastTickNumber = safecrackStartNumber;
+    safecrackHasDragged = false;
 
     const wrap = document.createElement('div');
     wrap.className = 'safecrack-wrap';
@@ -3027,7 +3073,7 @@ button {
     const knobOuter = document.createElement('div');
     knobOuter.className = 'safecrack-knob-outer';
     const knob = document.createElement('div');
-    knob.className = 'safecrack-knob';
+    knob.className = 'safecrack-knob needs-drag';
     knob.innerHTML = '<div class="safecrack-knob-tick"></div>';
     knobOuter.appendChild(knob);
     const pointer = document.createElement('div');
@@ -3044,7 +3090,10 @@ button {
     setupSafecrackDrag(q, wrap, knob, readout, hint, progress);
   }
 
-  function updateSafecrackProgress(progress) {
+  // bounceLatest: since every box is rebuilt fresh each call, adding the
+  // bounce class to just-confirmed the box lets its CSS animation play
+  // naturally (a freshly-created element always starts its animation).
+  function updateSafecrackProgress(progress, bounceLatest) {
     progress.innerHTML = '';
     safecrackCombo.forEach((_, i) => {
       const box = document.createElement('div');
@@ -3052,6 +3101,7 @@ button {
       if (i < safecrackConfirmed.length) {
         box.textContent = safecrackConfirmed[i];
         box.classList.add('filled');
+        if (bounceLatest && i === safecrackConfirmed.length - 1) box.classList.add('bounce');
       } else {
         box.textContent = '?';
       }
@@ -3086,9 +3136,13 @@ button {
     const offset = Math.round(legRotation / SAFECRACK_STEP_DEG);
     const currentNumber = mod41(safecrackStartNumber + offset);
     readout.textContent = String(currentNumber);
+    return currentNumber;
   }
 
+  let safecrackLocked = false; // true only during the brief miss-flash-then-reset window
+
   function setupSafecrackDrag(q, wrap, knob, readout, hint, progress) {
+    const tick = knob.querySelector('.safecrack-knob-tick');
     function angleFromEvent(e) {
       const rect = knob.getBoundingClientRect();
       const cx = rect.left + rect.width / 2;
@@ -3105,29 +3159,40 @@ button {
     }
 
     function onDown(e) {
-      if (answered) return;
+      if (answered || safecrackLocked) return;
       e.preventDefault();
+      if (!safecrackHasDragged) {
+        safecrackHasDragged = true;
+        knob.classList.remove('needs-drag');
+      }
       safecrackLastAngle = angleFromEvent(e);
       window.addEventListener('pointermove', onMove);
       window.addEventListener('pointerup', onUp);
       window.addEventListener('pointercancel', onUp);
     }
     function onMove(e) {
-      if (answered || safecrackLastAngle === null) return;
+      if (answered || safecrackLocked || safecrackLastAngle === null) return;
       e.preventDefault();
       const angle = angleFromEvent(e);
       const delta = normalizeDelta(angle - safecrackLastAngle);
       safecrackTotalRotation += delta;
       safecrackLastAngle = angle;
       applyKnobVisual();
-      updateSafecrackReadout(readout);
+      const currentNumber = updateSafecrackReadout(readout);
+      if (currentNumber !== safecrackLastTickNumber) {
+        safecrackLastTickNumber = currentNumber;
+        playSafecrackTickSound();
+        if (tick) {
+          tick.classList.remove('tick-pulse'); tick.offsetWidth; tick.classList.add('tick-pulse');
+        }
+      }
     }
     function onUp() {
       window.removeEventListener('pointermove', onMove);
       window.removeEventListener('pointerup', onUp);
       window.removeEventListener('pointercancel', onUp);
       safecrackLastAngle = null;
-      if (answered) return;
+      if (answered || safecrackLocked) return;
       resolveSafecrackRelease(q, wrap, knob, readout, hint, progress);
     }
 
@@ -3137,7 +3202,9 @@ button {
   // Called every time the player lets go of the knob. Only actually
   // evaluates anything if they turned it at least one full tick (offset
   // !== 0) — a release with no real movement is just them repositioning
-  // their grip, not an attempt.
+  // their grip, not an attempt. On a miss, briefly flashes the wrong
+  // number in red before animating the knob back to 0, so the player can
+  // actually see what they landed on rather than it vanishing instantly.
   function resolveSafecrackRelease(q, wrap, knob, readout, hint, progress) {
     const legRotation = safecrackTotalRotation - safecrackLegStartRotation;
     const offset = Math.round(legRotation / SAFECRACK_STEP_DEG);
@@ -3153,7 +3220,8 @@ button {
       safecrackStep++;
       safecrackStartNumber = currentNumber;
       safecrackLegStartRotation = safecrackTotalRotation;
-      updateSafecrackProgress(progress);
+      safecrackLastTickNumber = currentNumber;
+      updateSafecrackProgress(progress, true);
 
       if (safecrackStep >= safecrackCombo.length) {
         answered = true; stopTimer(); revealQuestionTextNow();
@@ -3167,15 +3235,24 @@ button {
     } else {
       playHangmanWrongLetterSound();
       wrap.classList.remove('shake'); wrap.offsetWidth; wrap.classList.add('shake');
-      safecrackConfirmed = [];
-      safecrackStep = 0;
-      safecrackStartNumber = 0;
-      safecrackTotalRotation = 0;
-      safecrackLegStartRotation = 0;
-      knob.style.transform = 'rotate(0deg)';
-      updateSafecrackProgress(progress);
-      updateSafecrackHint(wrap);
-      updateSafecrackReadout(readout);
+      readout.classList.add('wrong-flash');
+      safecrackLocked = true;
+      setTimeout(() => {
+        safecrackConfirmed = [];
+        safecrackStep = 0;
+        safecrackStartNumber = 0;
+        safecrackTotalRotation = 0;
+        safecrackLegStartRotation = 0;
+        safecrackLastTickNumber = 0;
+        knob.classList.add('resetting');
+        knob.style.transform = 'rotate(0deg)';
+        setTimeout(() => knob.classList.remove('resetting'), 450);
+        readout.classList.remove('wrong-flash');
+        updateSafecrackProgress(progress);
+        updateSafecrackHint(wrap);
+        updateSafecrackReadout(readout);
+        safecrackLocked = false;
+      }, 550);
     }
   }
 
