@@ -637,6 +637,12 @@ button {
   font-variant-numeric: tabular-nums;
   pointer-events: none;
   user-select: none;
+  transition: color 0.1s ease, font-size 0.1s ease, text-shadow 0.1s ease;
+}
+.safecrack-number-label.active {
+  color: #f5d76e;
+  font-size: 1.15rem;
+  text-shadow: 0 0 10px rgba(245,215,110,0.8);
 }
 .safecrack-pointer {
   position: absolute;
@@ -3067,6 +3073,16 @@ button {
     }
   }
 
+  // Highlights whichever printed number is currently sitting under the
+  // fixed top pointer (i.e. matches the live readout), so it's obvious at
+  // a glance which digit actually counts as the reading right now.
+  function updateSafecrackActiveLabel(knob, currentNumber) {
+    const prevActive = knob.querySelector('.safecrack-number-label.active');
+    if (prevActive) prevActive.classList.remove('active');
+    const next = knob.querySelector(`.safecrack-number-label[data-number="${currentNumber}"]`);
+    if (next) next.classList.add('active');
+  }
+
   function safecrackDirectionsFor(combo) {
     return combo.map((_, i) => i % 2 === 0 ? 'left' : 'right');
   }
@@ -3128,6 +3144,7 @@ button {
       const label = document.createElement('div');
       label.className = 'safecrack-number-label';
       label.textContent = String(n);
+      label.dataset.number = String(n);
       const angleRad = (n * SAFECRACK_STEP_DEG) * Math.PI / 180;
       const xPct = 50 + 38 * Math.sin(angleRad);
       const yPct = 50 - 38 * Math.cos(angleRad);
@@ -3136,6 +3153,7 @@ button {
       label.style.transform = 'translate(-50%, -50%) rotate(0deg)';
       knob.appendChild(label);
     }
+    knob.querySelector('[data-number="0"]').classList.add('active');
     const tick = document.createElement('div');
     tick.className = 'safecrack-knob-tick';
     knob.appendChild(tick);
@@ -3256,6 +3274,7 @@ button {
       safecrackLastAngle = angle;
       applyKnobVisual();
       const currentNumber = updateSafecrackReadout(readout);
+      updateSafecrackActiveLabel(knob, currentNumber);
       if (currentNumber !== safecrackLastTickNumber) {
         safecrackLastTickNumber = currentNumber;
         playSafecrackTickSound();
@@ -3327,6 +3346,7 @@ button {
         updateSafecrackProgress(progress);
         updateSafecrackHint(wrap);
         updateSafecrackReadout(readout);
+        updateSafecrackActiveLabel(knob, 0);
         safecrackLocked = false;
       }, 550);
     }
