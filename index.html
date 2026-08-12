@@ -571,11 +571,24 @@ button {
 .safecrack-arrow.active {
   transform: scale(1.15);
 }
-.safecrack-arrow-left.active { color: #6fd3ff; text-shadow: 0 0 10px rgba(111,211,255,0.7); }
-.safecrack-arrow-right.active { color: #f5a623; text-shadow: 0 0 10px rgba(245,166,35,0.7); }
+.safecrack-side-left.active { color: #6fd3ff; text-shadow: 0 0 10px rgba(111,211,255,0.7); }
+.safecrack-side-right.active { color: #f5a623; text-shadow: 0 0 10px rgba(245,166,35,0.7); }
+.safecrack-knob-row {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+.safecrack-dial-arrow {
+  font-size: 2.4rem;
+  flex-shrink: 0;
+}
 .safecrack-knob-outer {
   position: relative;
-  flex: 1;
+  flex: 0 0 auto;
   width: min(80vw, 62vh, 420px);
   height: min(80vw, 62vh, 420px);
   max-width: 100%;
@@ -595,6 +608,9 @@ button {
 .safecrack-knob.resetting {
   transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
+.safecrack-knob.resetting .safecrack-number-label {
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
 .safecrack-knob.needs-drag {
   animation: safecrack-onboard-pulse 1.4s ease-in-out infinite;
 }
@@ -611,6 +627,16 @@ button {
 }
 .safecrack-knob-tick.tick-pulse {
   animation: safecrack-tick-pulse 0.15s ease-out;
+}
+.safecrack-number-label {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: rgba(232, 240, 255, 0.65);
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+  user-select: none;
 }
 .safecrack-pointer {
   position: absolute;
@@ -1673,24 +1699,22 @@ button {
   let hangmanGuessedLetters = []; // every letter tapped so far (right or wrong), in tap order
   let hangmanLivesLeft = 0;
   let hangmanMaxLives = 3;
-  // Safe Crack — a rotating dial-and-digital-readout combination lock.
-  // totalRotation is one persistent, unbounded degree value for the whole
-  // question (never resets except on a full miss) so the knob graphic can
-  // just keep spinning naturally across many drags. legStartRotation is a
-  // checkpoint: totalRotation minus legStartRotation is how far they've
-  // turned since the last confirmed number, which is all that matters for
-  // reading the current digit and direction of the leg in progress.
+  // Safe Crack — numbers are printed at fixed positions around the dial's
+  // rim, and the whole dial physically rotates as you drag (like a real
+  // combination lock), so the number under the fixed top pointer is always
+  // an ABSOLUTE function of total rotation — a full 360° turn reliably
+  // lands back on the same number, with no drift. totalRotation is one
+  // persistent, unbounded degree value for the whole question (only resets
+  // on a miss). legStartRotation is a checkpoint: totalRotation minus
+  // legStartRotation is how far they've turned since the last confirmed
+  // number, used only to tell which direction the current leg went and
+  // whether they've moved enough to count as a real attempt.
   const SAFECRACK_RANGE = 41;       // valid numbers are 0-40 inclusive
-  // Full range spans 1.5 physical rotations rather than 1, so each number
-  // takes more finger travel to reach — feels less twitchy to land on
-  // precisely than mapping the whole 0-40 range to a single 360° turn.
-  const SAFECRACK_ROTATIONS = 1.5;
-  const SAFECRACK_STEP_DEG = (360 * SAFECRACK_ROTATIONS) / SAFECRACK_RANGE;
+  const SAFECRACK_STEP_DEG = 360 / SAFECRACK_RANGE;
   let safecrackCombo = [];          // target numbers, e.g. [1, 8, 10, 7]
   let safecrackDirections = [];     // required alternating direction per stop, e.g. ['left','right','left','right']
   let safecrackStep = 0;            // index of the next stop to confirm
   let safecrackConfirmed = [];      // numbers locked in so far, for the progress readout
-  let safecrackStartNumber = 0;     // dial's random starting reading
   let safecrackTotalRotation = 0;
   let safecrackLegStartRotation = 0;
   let safecrackLastAngle = null;    // last raw pointer angle, for incremental delta tracking mid-drag
@@ -2316,7 +2340,6 @@ button {
     safecrackDirections = [];
     safecrackStep = 0;
     safecrackConfirmed = [];
-    safecrackStartNumber = 0;
     safecrackTotalRotation = 0;
     safecrackLegStartRotation = 0;
     safecrackLastAngle = null;
@@ -3032,6 +3055,18 @@ button {
   // reset back to the first number — same as a real combination lock.
   function mod41(n) { return ((n % SAFECRACK_RANGE) + SAFECRACK_RANGE) % SAFECRACK_RANGE; }
 
+  // Keeps every printed number upright regardless of the knob's current
+  // rotation, by applying an equal-and-opposite counter-rotation to each
+  // label. Their left/top position still moves with the knob (orbiting
+  // around its center), only the text's own orientation is held fixed.
+  function updateSafecrackLabelOrientation(knob) {
+    const counterDeg = -safecrackTotalRotation;
+    const labels = knob.querySelectorAll('.safecrack-number-label');
+    for (let i = 0; i < labels.length; i++) {
+      labels[i].style.transform = `translate(-50%, -50%) rotate(${counterDeg}deg)`;
+    }
+  }
+
   function safecrackDirectionsFor(combo) {
     return combo.map((_, i) => i % 2 === 0 ? 'left' : 'right');
   }
@@ -3041,7 +3076,9 @@ button {
     safecrackDirections = safecrackDirectionsFor(safecrackCombo);
     safecrackStep = 0;
     safecrackConfirmed = [];
-    safecrackLastTickNumber = safecrackStartNumber;
+    safecrackTotalRotation = 0;
+    safecrackLegStartRotation = 0;
+    safecrackLastTickNumber = 0;
     safecrackHasDragged = false;
 
     const wrap = document.createElement('div');
@@ -3058,28 +3095,61 @@ button {
     const readoutRow = document.createElement('div');
     readoutRow.className = 'safecrack-readout-row';
     const arrowLeft = document.createElement('div');
-    arrowLeft.className = 'safecrack-arrow safecrack-arrow-left';
+    arrowLeft.className = 'safecrack-arrow safecrack-arrow-left safecrack-side-left';
     arrowLeft.textContent = '◀';
     readoutRow.appendChild(arrowLeft);
     const readout = document.createElement('div');
     readout.className = 'safecrack-readout';
     readoutRow.appendChild(readout);
     const arrowRight = document.createElement('div');
-    arrowRight.className = 'safecrack-arrow safecrack-arrow-right';
+    arrowRight.className = 'safecrack-arrow safecrack-arrow-right safecrack-side-right';
     arrowRight.textContent = '▶';
     readoutRow.appendChild(arrowRight);
     wrap.appendChild(readoutRow);
+
+    const knobRow = document.createElement('div');
+    knobRow.className = 'safecrack-knob-row';
+    const dialArrowLeft = document.createElement('div');
+    dialArrowLeft.className = 'safecrack-arrow safecrack-dial-arrow safecrack-dial-arrow-left safecrack-side-left';
+    dialArrowLeft.textContent = '◀';
+    knobRow.appendChild(dialArrowLeft);
 
     const knobOuter = document.createElement('div');
     knobOuter.className = 'safecrack-knob-outer';
     const knob = document.createElement('div');
     knob.className = 'safecrack-knob needs-drag';
-    knob.innerHTML = '<div class="safecrack-knob-tick"></div>';
+    // Numbers are printed at fixed positions around the rim and physically
+    // orbit with the dial as it rotates — same as a real combination lock,
+    // and what makes a full 360° turn always land back on the same number.
+    // Each label also carries a live counter-rotation (kept in sync with
+    // the knob's own rotation) so the digits stay upright and readable
+    // instead of spinning sideways as the dial turns.
+    for (let n = 0; n < SAFECRACK_RANGE; n++) {
+      const label = document.createElement('div');
+      label.className = 'safecrack-number-label';
+      label.textContent = String(n);
+      const angleRad = (n * SAFECRACK_STEP_DEG) * Math.PI / 180;
+      const xPct = 50 + 38 * Math.sin(angleRad);
+      const yPct = 50 - 38 * Math.cos(angleRad);
+      label.style.left = xPct + '%';
+      label.style.top = yPct + '%';
+      label.style.transform = 'translate(-50%, -50%) rotate(0deg)';
+      knob.appendChild(label);
+    }
+    const tick = document.createElement('div');
+    tick.className = 'safecrack-knob-tick';
+    knob.appendChild(tick);
     knobOuter.appendChild(knob);
     const pointer = document.createElement('div');
     pointer.className = 'safecrack-pointer';
     knobOuter.appendChild(pointer);
-    wrap.appendChild(knobOuter);
+    knobRow.appendChild(knobOuter);
+
+    const dialArrowRight = document.createElement('div');
+    dialArrowRight.className = 'safecrack-arrow safecrack-dial-arrow safecrack-dial-arrow-right safecrack-side-right';
+    dialArrowRight.textContent = '▶';
+    knobRow.appendChild(dialArrowRight);
+    wrap.appendChild(knobRow);
 
     aPanel.appendChild(wrap);
 
@@ -3114,27 +3184,33 @@ button {
   // ways at once.
   function updateSafecrackHint(wrap) {
     const hint = wrap.querySelector('.safecrack-hint');
-    const arrowLeft = wrap.querySelector('.safecrack-arrow-left');
-    const arrowRight = wrap.querySelector('.safecrack-arrow-right');
+    const leftArrows = wrap.querySelectorAll('.safecrack-side-left');
+    const rightArrows = wrap.querySelectorAll('.safecrack-side-right');
     if (safecrackStep >= safecrackDirections.length) {
       hint.textContent = '';
       hint.classList.remove('dir-left', 'dir-right');
-      if (arrowLeft) arrowLeft.classList.remove('active');
-      if (arrowRight) arrowRight.classList.remove('active');
+      leftArrows.forEach(el => el.classList.remove('active'));
+      rightArrows.forEach(el => el.classList.remove('active'));
       return;
     }
     const dir = safecrackDirections[safecrackStep];
     hint.textContent = `Turn ${dir === 'left' ? 'LEFT' : 'RIGHT'} to the next number`;
     hint.classList.toggle('dir-left', dir === 'left');
     hint.classList.toggle('dir-right', dir === 'right');
-    if (arrowLeft) arrowLeft.classList.toggle('active', dir === 'left');
-    if (arrowRight) arrowRight.classList.toggle('active', dir === 'right');
+    leftArrows.forEach(el => el.classList.toggle('active', dir === 'left'));
+    rightArrows.forEach(el => el.classList.toggle('active', dir === 'right'));
+  }
+
+  // Numbers are printed at fixed positions on the rim (n at angle
+  // n*STEP_DEG clockwise from top), so the reading under the fixed pointer
+  // is a pure function of total rotation — this is what makes a full
+  // physical turn always land back on the same number, with no drift.
+  function currentDialNumber() {
+    return mod41(Math.round(-safecrackTotalRotation / SAFECRACK_STEP_DEG));
   }
 
   function updateSafecrackReadout(readout) {
-    const legRotation = safecrackTotalRotation - safecrackLegStartRotation;
-    const offset = Math.round(legRotation / SAFECRACK_STEP_DEG);
-    const currentNumber = mod41(safecrackStartNumber + offset);
+    const currentNumber = currentDialNumber();
     readout.textContent = String(currentNumber);
     return currentNumber;
   }
@@ -3156,6 +3232,7 @@ button {
     }
     function applyKnobVisual() {
       knob.style.transform = `rotate(${safecrackTotalRotation}deg)`;
+      updateSafecrackLabelOrientation(knob);
     }
 
     function onDown(e) {
@@ -3210,15 +3287,14 @@ button {
     const offset = Math.round(legRotation / SAFECRACK_STEP_DEG);
     if (offset === 0) return;
 
-    const currentNumber = mod41(safecrackStartNumber + offset);
-    const direction = offset > 0 ? 'right' : 'left';
+    const currentNumber = currentDialNumber();
+    const direction = legRotation > 0 ? 'right' : 'left';
     const expectedNumber = safecrackCombo[safecrackStep];
     const expectedDirection = safecrackDirections[safecrackStep];
 
     if (currentNumber === expectedNumber && direction === expectedDirection) {
       safecrackConfirmed.push(currentNumber);
       safecrackStep++;
-      safecrackStartNumber = currentNumber;
       safecrackLegStartRotation = safecrackTotalRotation;
       safecrackLastTickNumber = currentNumber;
       updateSafecrackProgress(progress, true);
@@ -3240,12 +3316,12 @@ button {
       setTimeout(() => {
         safecrackConfirmed = [];
         safecrackStep = 0;
-        safecrackStartNumber = 0;
         safecrackTotalRotation = 0;
         safecrackLegStartRotation = 0;
         safecrackLastTickNumber = 0;
         knob.classList.add('resetting');
         knob.style.transform = 'rotate(0deg)';
+        updateSafecrackLabelOrientation(knob);
         setTimeout(() => knob.classList.remove('resetting'), 450);
         readout.classList.remove('wrong-flash');
         updateSafecrackProgress(progress);
