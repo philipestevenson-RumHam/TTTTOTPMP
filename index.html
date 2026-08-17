@@ -494,6 +494,44 @@ button {
    the "letters" class too, so it inherits the exact same 4x6 grid and
    .letter-btn font-size as the Letters question type. */
 .kbtn.hangman-btn.tapped { pointer-events: none; }
+.correction-wrap {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.correction-word-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  padding: 4px 0;
+}
+@keyframes correction-word-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.kbtn.correction-word-btn {
+  padding: 6px 12px;
+  font-size: 1em;
+  border-radius: 8px;
+  flex-shrink: 0;
+  animation: correction-word-in 0.3s ease both;
+}
+.kbtn.correction-word-btn.selected {
+  background: #f5d76e !important;
+  color: var(--sq-btn-text) !important;
+  box-shadow: 0 0 0 3px rgba(245,215,110,0.35);
+}
+.correction-letter-grid {
+  flex: 1;
+}
+.kbtn.correction-letter-btn.selected {
+  background: #f5d76e !important;
+  color: var(--sq-btn-text) !important;
+  box-shadow: 0 0 0 3px rgba(245,215,110,0.35);
+}
 .safecrack-wrap {
   flex: 1;
   min-height: 0;
@@ -1661,7 +1699,8 @@ button {
     tapspot: 'Tap the Spot',
     connections: 'Connections',
     hangman: 'Hangman',
-    safecrack: 'Safe Crack'
+    safecrack: 'Safe Crack',
+    correction: 'Correction'
   };
   const TYPE_ICONS = {
     multiple_choice: '🔘',
@@ -1677,7 +1716,8 @@ button {
     tapspot: '📍',
     connections: '🧠',
     hangman: '🪢',
-    safecrack: '🔐'
+    safecrack: '🔐',
+    correction: '✏️'
   };
   let currentIndex = 0;
   let score = 0;
@@ -1726,6 +1766,12 @@ button {
   let safecrackLastAngle = null;    // last raw pointer angle, for incremental delta tracking mid-drag
   let safecrackLastTickNumber = 0;  // last number read during a drag, to detect tick-over for click feedback
   let safecrackHasDragged = false;  // clears the first-time onboarding pulse after the first touch
+  // Correction — a sentence rendered as tappable word boxes, alongside the
+  // usual Letters-style A-Z keypad. Pick the wrong word and the first
+  // letter of the fix, in either order; checked once both are picked.
+  let correctionSelectedWordIndex = null;
+  let correctionSelectedLetterBtn = null;
+  let correctionChecking = false;   // true during the brief pause while a completed pair is being auto-checked
 
   // Pyramid scoring state
   let streak = 0;           // consecutive correct answers since last miss (or game start)
@@ -2352,6 +2398,9 @@ button {
     safecrackLastTickNumber = 0;
     safecrackHasDragged = false;
     safecrackLocked = false;
+    correctionSelectedWordIndex = null;
+    correctionSelectedLetterBtn = null;
+    correctionChecking = false;
     hud.classList.remove('hidden');
     hud.classList.toggle('joker-glow', jokerActive);
     hudSub.classList.remove('hidden');
@@ -2384,11 +2433,16 @@ button {
       case 'wordsnake': renderWordSnake(q); break;
       case 'hangman': renderHangman(q); break;
       case 'safecrack': renderSafeCrack(q); break;
+      case 'correction': renderCorrection(q); break;
       case 'tapspot': renderTapSpot(q); break;
       case 'word': renderWord(q); break;
     }
     if (q.type !== 'tapspot') showQuestionMedia(q);
-    typewriterReveal(q.question, () => { if (!answered) startTimer(); });
+    if (q.type === 'correction') {
+      renderCorrectionQuestion(q, () => { if (!answered) startTimer(); });
+    } else {
+      typewriterReveal(q.question, () => { if (!answered) startTimer(); });
+    }
   }
 
   // Media: image/video appear as a tap-to-dismiss overlay on top of the keypad.
@@ -3365,6 +3419,146 @@ button {
     });
   }
 
+  // Correction — the question sentence itself doubles as the answer
+  // surface: instead of typing prose into the question area, each word
+  // becomes a tappable box there (a staggered fade-in stands in for the
+  // usual typewriter effect). A separate A-Z keypad — the same 4x6
+  // LETTER_LAYOUT the Letters/Hangman types use, Q/V and X/Z sharing a
+  // button — appears below in the answer panel as usual. Pick the wrong
+  // word and the first letter of its fix, in either order — each pick is a
+  // simple single-selection (tapping a different word/letter just moves
+  // the selection, tapping the current one again clears it) — and the pair
+  // is auto-checked the moment both are set. One shot: right or wrong,
+  // that's the answer, no retries.
+  function renderCorrectionQuestion(q, onComplete) {
+    qText.innerHTML = '';
+    qText.style.fontSize = '';
+    const grid = document.createElement('div');
+    grid.className = 'correction-word-grid';
+    q.words.forEach((word, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'kbtn correction-word-btn';
+      btn.textContent = word;
+      btn.dataset.index = i;
+      btn.style.animationDelay = (i * 60) + 'ms';
+      btn.addEventListener('click', () => onCorrectionWordTap(btn, q));
+      grid.appendChild(btn);
+    });
+    qText.appendChild(grid);
+    qText.style.fontSize = ''; // reset any shrink from a previous question first
+    fitTextToBox(qText, qPanel, { min: 12 });
+    const totalDelay = PRE_REVEAL_DELAY_MS + q.words.length * 60;
+    const doneId = setTimeout(onComplete, totalDelay);
+    revealTimeoutIds.push(doneId);
+  }
+
+  function renderCorrection(q) {
+    correctionSelectedWordIndex = null;
+    correctionSelectedLetterBtn = null;
+    correctionChecking = false;
+
+    const wrap = document.createElement('div');
+    wrap.className = 'correction-wrap';
+
+    const letterGrid = document.createElement('div');
+    letterGrid.className = 'keypad letters correction-letter-grid';
+    LETTER_LAYOUT.forEach(lbl => {
+      const btn = document.createElement('button');
+      btn.className = 'kbtn letter-btn correction-letter-btn';
+      btn.textContent = lbl;
+      btn.dataset.value = lbl;
+      btn.addEventListener('click', () => onCorrectionLetterTap(btn, q));
+      letterGrid.appendChild(btn);
+    });
+    wrap.appendChild(letterGrid);
+
+    aPanel.appendChild(wrap);
+  }
+
+  function onCorrectionWordTap(btn, q) {
+    if (answered || correctionChecking) return;
+    const idx = Number(btn.dataset.index);
+    if (correctionSelectedWordIndex === idx) {
+      // Tapping the current pick again clears it.
+      btn.classList.remove('selected');
+      correctionSelectedWordIndex = null;
+      return;
+    }
+    qText.querySelectorAll('.correction-word-btn.selected').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    correctionSelectedWordIndex = idx;
+    maybeCheckCorrection(q);
+  }
+
+  function onCorrectionLetterTap(btn, q) {
+    if (answered || correctionChecking) return;
+    const letterGrid = btn.closest('.correction-letter-grid');
+    if (correctionSelectedLetterBtn === btn) {
+      btn.classList.remove('selected');
+      correctionSelectedLetterBtn = null;
+      return;
+    }
+    letterGrid.querySelectorAll('.correction-letter-btn.selected').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    correctionSelectedLetterBtn = btn;
+    maybeCheckCorrection(q);
+  }
+
+  function maybeCheckCorrection(q) {
+    if (correctionSelectedWordIndex === null || !correctionSelectedLetterBtn) return;
+    // Brief pause so both selections are visible before resolving, same
+    // pattern as Connections' auto-submit on the 4th tile.
+    correctionChecking = true;
+    setTimeout(() => resolveCorrection(q), 300);
+  }
+
+  function resolveCorrection(q) {
+    if (answered) return; // timer could have expired in the 300ms pause
+    const wordBtn = qText.querySelector(`.correction-word-btn[data-index="${correctionSelectedWordIndex}"]`);
+    const letterBtn = correctionSelectedLetterBtn;
+    if (!wordBtn || !letterBtn) return;
+
+    const wordCorrect = correctionSelectedWordIndex === q.wrongWordIndex;
+    const letterCorrect = letterBtn.dataset.value.includes(q.correctLetter);
+    const isCorrect = wordCorrect && letterCorrect;
+
+    answered = true; stopTimer();
+    const pts = awardPoints(isCorrect);
+
+    wordBtn.classList.remove('selected');
+    letterBtn.classList.remove('selected');
+    wordBtn.classList.add(wordCorrect ? 'correct-state' : 'wrong-state');
+    letterBtn.classList.add(letterCorrect ? 'correct-state' : 'wrong-state');
+    if (!isCorrect) {
+      // Reveal the actual right answer too, so a wrong pick isn't left
+      // unexplained — same spirit as every other type's reveal-on-miss.
+      if (!wordCorrect) {
+        const rightWordBtn = qText.querySelector(`.correction-word-btn[data-index="${q.wrongWordIndex}"]`);
+        if (rightWordBtn) rightWordBtn.classList.add('correct-state', 'reveal-missed');
+      }
+      if (!letterCorrect) {
+        const rightLetterBtn = [...document.querySelectorAll('.correction-letter-btn')].find(b => b.dataset.value.includes(q.correctLetter));
+        if (rightLetterBtn) rightLetterBtn.classList.add('correct-state', 'reveal-missed');
+      }
+    }
+    qText.querySelectorAll('.correction-word-btn').forEach(b => { b.disabled = true; });
+    document.querySelectorAll('.correction-letter-btn').forEach(b => { b.disabled = true; });
+
+    const correctDisplay = q.display_answer || `${q.correctWord} (starts with ${q.correctLetter})`;
+    showFeedback(isCorrect, correctDisplay, pts);
+  }
+
+  // Called on timeout if the pair hasn't been (or hasn't finished being)
+  // checked yet — reveals the right word and letter, same reveal styling
+  // as a normal miss.
+  function revealCorrectionAnswer(q) {
+    const rightWordBtn = qText.querySelector(`.correction-word-btn[data-index="${q.wrongWordIndex}"]`);
+    if (rightWordBtn && !rightWordBtn.classList.contains('correct-state')) rightWordBtn.classList.add('correct-state', 'reveal-missed');
+    const rightLetterBtn = [...document.querySelectorAll('.correction-letter-btn')].find(b => b.dataset.value.includes(q.correctLetter));
+    if (rightLetterBtn && !rightLetterBtn.classList.contains('correct-state')) rightLetterBtn.classList.add('correct-state', 'reveal-missed');
+    qText.querySelectorAll('.correction-word-btn').forEach(b => { b.disabled = true; });
+    document.querySelectorAll('.correction-letter-btn').forEach(b => { b.disabled = true; });
+  }
 
   // percentage points (from the Shape Picker tool) defines the target area;
   // tapping inside it (via point-in-polygon) counts as correct. Works for
@@ -4130,6 +4324,11 @@ button {
         }
         break;
       }
+      case 'correction': {
+        correctDisplay = q.display_answer || `${q.correctWord} (starts with ${q.correctLetter})`;
+        revealCorrectionAnswer(q);
+        break;
+      }
       case 'tapspot': {
         correctDisplay = q.display_answer || '';
         const spotSvg = aPanel.querySelector('.tapspot-wrap svg');
@@ -4444,7 +4643,8 @@ button {
     { type: 'wordsnake', category: 'Puzzle', icon: '🐍', heading: 'Word Snake', text: 'The answer is hidden in the letter grid \u2014 you just have to find it.', list: ['Tap letters one at a time to spell it out','Each letter must be touching the last one (up, down, left or right)','Tap a selected letter again to undo it'] },
     { type: 'connections', category: 'Puzzle', icon: '🧠', heading: 'Connections', text: 'Find the four hidden groups of four in the 4\u00d74 grid.', list: ['Tap 4 tiles and your guess checks itself automatically','3 of your 4 in the same group? You\u2019ll see a \u201cOne away!\u201d hint','Get it wrong and the tiles shake, then unselect \u2014 try again, no penalty for retrying','You need all four groups solved with no wrong guesses to score points'] },
     { type: 'hangman', category: 'Puzzle', icon: '🪢', heading: 'Hangman', text: 'Guess the answer one letter at a time before you run out of lives.', list: ['Tap letters on the keypad \u2014 correct ones fill in every matching blank','Wrong letters cost a heart \u2014 run out and the question\u2019s over','The clock is still ticking too, so don\u2019t take too long between guesses'] },
-    { type: 'safecrack', category: 'Puzzle', icon: '🔐', heading: 'Safe Crack', text: 'Spin the dial to crack the combination before time runs out.', list: ['Drag the knob to dial in each number, one at a time','Directions always alternate \u2014 left, right, left, right...','Land on the wrong number, or turn the wrong way, and it resets to the start'] }
+    { type: 'safecrack', category: 'Puzzle', icon: '🔐', heading: 'Safe Crack', text: 'Spin the dial to crack the combination before time runs out.', list: ['Drag the knob to dial in each number, one at a time','Directions always alternate \u2014 left, right, left, right...','Land on the wrong number, or turn the wrong way, and it resets to the start'] },
+    { type: 'correction', category: 'Puzzle', icon: '✏️', heading: 'Correction', text: 'One word in the sentence is wrong \u2014 find it and fix it.', list: ['Tap the wrong word, and tap the first letter of the correct one \u2014 any order','Both light up as you pick them','Once you\u2019ve picked both, it checks automatically \u2014 no going back, so be sure'] }
   ];
 
   // Small illustrative mockups, one per question type, shown between the
@@ -4522,6 +4722,14 @@ button {
       <div style="font-size:0.7rem;letter-spacing:0.05em;color:#f5a623;font-weight:700;margin-bottom:4px">TURN RIGHT</div>
       <div style="width:64px;height:64px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#1a2050,#0c1030 75%);position:relative;box-shadow:inset 0 0 10px rgba(0,0,0,.5)">
         <div style="position:absolute;top:6%;left:50%;width:3px;height:22%;background:#00c8e8;transform:translateX(-50%);border-radius:2px"></div>
+      </div>
+    </div>`,
+    correction: `<div class="htp-mock">
+      <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;justify-content:center">
+        ${['The','Beatles','sang','"Let','It','Be"','in','1970'].map(w => `<div class="htp-mock-tile" style="width:auto;height:22px;padding:0 6px;font-size:0.6rem${w==='1970'?';background:#f5d76e':''}">${w}</div>`).join('')}
+      </div>
+      <div class="htp-mock-grid" style="grid-template-columns:repeat(6,1fr)">
+        ${['A','B','C','D','X','QV'].map(l => `<div class="htp-mock-tile${l === 'D' ? ' selected' : ''}">${l}</div>`).join('')}
       </div>
     </div>`
   };

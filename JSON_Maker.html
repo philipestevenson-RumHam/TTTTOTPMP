@@ -69,6 +69,7 @@
   <span class="chip" style="background:#D9E8D3">wordsnake</span>
   <span class="chip" style="background:#F4CCCC">hangman</span>
   <span class="chip" style="background:#D9D2E9">safecrack</span>
+  <span class="chip" style="background:#C9DAF8">correction</span>
   <span class="chip" style="background:#F8CBAD">tapspot</span>
   <span class="chip" style="background:#DDEBF7">optional media: image / video / audio</span>
   <span class="chip" style="background:#FFF9C4">optional time: seconds (col R)</span>
@@ -309,6 +310,34 @@ function processFile(file) {
           if (comboError) { console.warn(`Row ${i+1}: safecrack ${comboError}`); errorCount++; continue; }
           q = { type: 'safecrack', question, combo };
 
+        } else if (qtype === 'correction') {
+          // D = the wrong word, exactly as it appears in the question
+          //     sentence (must appear exactly once, so the app knows which
+          //     tappable word box is the target).
+          // E = the correct first letter of the fix.
+          // F = the correct word in full (shown in the "Correct answer"
+          //     reveal, and cross-checked against E to catch typos).
+          const wrongWord = String(row[3] || '').trim();
+          const correctLetterRaw = String(row[4] || '').trim();
+          const correctWord = String(row[5] || '').trim();
+          if (!wrongWord) { console.warn(`Row ${i+1}: correction missing the wrong word (column D)`); errorCount++; continue; }
+          if (!correctLetterRaw) { console.warn(`Row ${i+1}: correction missing the correct letter (column E)`); errorCount++; continue; }
+          if (!/^[A-Za-z]$/.test(correctLetterRaw)) { console.warn(`Row ${i+1}: correction letter "${correctLetterRaw}" must be a single A-Z letter`); errorCount++; continue; }
+          if (!correctWord) { console.warn(`Row ${i+1}: correction missing the correct word (column F)`); errorCount++; continue; }
+          const correctLetter = correctLetterRaw.toUpperCase();
+          if (correctWord[0].toUpperCase() !== correctLetter) {
+            console.warn(`Row ${i+1}: correction letter "${correctLetter}" doesn't match the first letter of "${correctWord}"`);
+            errorCount++; continue;
+          }
+          const words = question.split(/\s+/).filter(w => w !== '');
+          const strip = w => w.replace(/^[^A-Za-z0-9']+|[^A-Za-z0-9']+$/g, '');
+          const matches = words
+            .map((w, idx) => ({ idx, clean: strip(w).toLowerCase() }))
+            .filter(w => w.clean === wrongWord.toLowerCase());
+          if (matches.length === 0) { console.warn(`Row ${i+1}: correction wrong word "${wrongWord}" not found in the question text`); errorCount++; continue; }
+          if (matches.length > 1) { console.warn(`Row ${i+1}: correction wrong word "${wrongWord}" appears more than once in the question — make it unique`); errorCount++; continue; }
+          q = { type: 'correction', question, words, wrongWordIndex: matches[0].idx, correctLetter, correctWord };
+
         } else if (qtype === 'tapspot') {
           // D = target shape — paste the "coordinates only" JSON array from the
           //     Shape Picker tool, e.g. [{"x":58,"y":22},{"x":67,"y":20},...]
@@ -431,6 +460,9 @@ convertBtn.addEventListener('click', () => {
 //                     allowed — defaults to 3 if left blank)
 //   safecrack       : combo (2-6 whole numbers, 0-40) — dialed in order with
 //                     alternating direction starting left (left, right, left...)
+//   correction      : wrong word (must appear exactly once in the question),
+//                     correct letter, correct word — pick the wrong word and
+//                     the first letter of its fix
 //   tapspot         : target (JSON array of {x,y} points from the Shape Picker
 //                     tool, min 3), requires an image or video in the media column
 //   optional media  : column P is the file/URL; column Q can specify image, video, or audio.
