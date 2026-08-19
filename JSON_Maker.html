@@ -70,6 +70,7 @@
   <span class="chip" style="background:#F4CCCC">hangman</span>
   <span class="chip" style="background:#D9D2E9">safecrack</span>
   <span class="chip" style="background:#C9DAF8">correction</span>
+  <span class="chip" style="background:#B6D7A8">padlock</span>
   <span class="chip" style="background:#F8CBAD">tapspot</span>
   <span class="chip" style="background:#DDEBF7">optional media: image / video / audio</span>
   <span class="chip" style="background:#FFF9C4">optional time: seconds (col R)</span>
@@ -338,6 +339,34 @@ function processFile(file) {
           if (matches.length > 1) { console.warn(`Row ${i+1}: correction wrong word "${wrongWord}" appears more than once in the question — make it unique`); errorCount++; continue; }
           q = { type: 'correction', question, words, wrongWordIndex: matches[0].idx, correctLetter, correctWord };
 
+        } else if (qtype === 'padlock') {
+          // D-I = up to 6 clues, one per dial (e.g. "S Club _").
+          // J-O = the matching digit for that same dial, at the SAME
+          //       position (D+J = dial 1, E+K = dial 2, ...). However many
+          //       positions have BOTH a clue and a digit filled in is how
+          //       many dials the padlock has (min 2) — the first position
+          //       with neither filled ends the scan.
+          const clueCols = [row[3],row[4],row[5],row[6],row[7],row[8]];
+          const digitCols = [row[9],row[10],row[11],row[12],row[13],row[14]];
+          const clues = [];
+          const combo = [];
+          let padlockError = null;
+          for (let d = 0; d < 6; d++) {
+            const clueRaw = String(clueCols[d] || '').trim();
+            const digitRaw = String(digitCols[d] || '').trim();
+            const colLetter = (n) => String.fromCharCode(68 + n); // 68 = 'D'
+            if (!clueRaw && !digitRaw) break; // no more dials
+            if (!clueRaw) { padlockError = `dial ${d+1} has a digit (column ${colLetter(d+6)}) but no clue (column ${colLetter(d)})`; break; }
+            if (!digitRaw) { padlockError = `dial ${d+1} has a clue (column ${colLetter(d)}) but no digit (column ${colLetter(d+6)})`; break; }
+            const n = parseInt(digitRaw, 10);
+            if (isNaN(n) || String(n) !== digitRaw || n < 0 || n > 9) { padlockError = `dial ${d+1}'s digit "${digitRaw}" isn't a single digit between 0 and 9`; break; }
+            clues.push(clueRaw);
+            combo.push(n);
+          }
+          if (padlockError) { console.warn(`Row ${i+1}: padlock ${padlockError}`); errorCount++; continue; }
+          if (combo.length < 2) { console.warn(`Row ${i+1}: padlock needs at least 2 dials (a clue in D-I plus a digit in J-O for each, starting from D/J with no gaps)`); errorCount++; continue; }
+          q = { type: 'padlock', question, combo, clues };
+
         } else if (qtype === 'tapspot') {
           // D = target shape — paste the "coordinates only" JSON array from the
           //     Shape Picker tool, e.g. [{"x":58,"y":22},{"x":67,"y":20},...]
@@ -463,6 +492,9 @@ convertBtn.addEventListener('click', () => {
 //   correction      : wrong word (must appear exactly once in the question),
 //                     correct letter, correct word — pick the wrong word and
 //                     the first letter of its fix
+//   padlock         : D-I = a clue per dial (e.g. "S Club _"), J-O = that
+//                     dial's digit at the SAME position (D+J, E+K, ...) —
+//                     2-6 dials, spin to match, submit to check, unlimited tries
 //   tapspot         : target (JSON array of {x,y} points from the Shape Picker
 //                     tool, min 3), requires an image or video in the media column
 //   optional media  : column P is the file/URL; column Q can specify image, video, or audio.

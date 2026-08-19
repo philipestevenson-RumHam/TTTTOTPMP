@@ -532,6 +532,122 @@ button {
   color: var(--sq-btn-text) !important;
   box-shadow: 0 0 0 3px rgba(245,215,110,0.35);
 }
+.padlock-wrap {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 8px 4px;
+}
+.padlock-clues-row {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: stretch;
+  gap: 6px;
+  padding: 0 4px;
+}
+.padlock-clue {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(20,26,64,0.5);
+  border: 1px solid rgba(122,143,200,0.3);
+  border-radius: 8px;
+  padding: 4px 14px;
+}
+.padlock-clue-num {
+  flex-shrink: 0;
+  width: clamp(22px, 6vw, 30px);
+  height: clamp(22px, 6vw, 30px);
+  border-radius: 50%;
+  background: var(--sq-cyan);
+  color: var(--sq-btn-text);
+  font-size: clamp(0.8rem, 3vw, 1rem);
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.padlock-clue-text {
+  flex: 1;
+  text-align: left;
+  font-size: clamp(0.9rem, 4vw, 1.3rem);
+  font-weight: 700;
+  color: var(--sq-text);
+  line-height: 1.25;
+}
+.padlock-dials-section {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+.padlock-dials {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: nowrap;
+  width: 100%;
+}
+.padlock-dial {
+  flex: 1;
+  min-width: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: rgba(20,26,64,0.6);
+  border: 2px solid rgba(122,143,200,0.35);
+  border-radius: 10px;
+  padding: 6px 2px;
+  touch-action: none;
+  cursor: grab;
+  user-select: none;
+}
+.padlock-dial-arrow {
+  font-size: clamp(0.85rem, 3vw, 1.3rem);
+  color: var(--sq-text-muted);
+  padding: 4px;
+  line-height: 1;
+}
+.padlock-dial-arrow:active { color: var(--sq-cyan); }
+.padlock-dial-readout {
+  font-size: clamp(1.4rem, 9vw, 3.4rem);
+  font-weight: 900;
+  color: var(--sq-cyan);
+  font-variant-numeric: tabular-nums;
+  transition: color 0.2s ease;
+}
+.padlock-dial-readout.reveal-missed {
+  color: #ff8a8a;
+}
+.padlock-feedback {
+  min-height: 1.4em;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--sq-text-muted);
+  text-align: center;
+}
+.padlock-feedback.shake { animation: shake 0.4s ease; }
+.padlock-submit {
+  width: 100%;
+  padding: 12px 0;
+  border-radius: 10px;
+  font-weight: 800;
+  font-size: 1.05rem;
+  background: var(--sq-gold);
+  color: var(--sq-btn-text);
+  border: none;
+}
+.padlock-submit:active { transform: scale(0.97); }
 .safecrack-wrap {
   flex: 1;
   min-height: 0;
@@ -1700,7 +1816,8 @@ button {
     connections: 'Connections',
     hangman: 'Hangman',
     safecrack: 'Safe Crack',
-    correction: 'Correction'
+    correction: 'Correction',
+    padlock: 'Padlock'
   };
   const TYPE_ICONS = {
     multiple_choice: '🔘',
@@ -1717,7 +1834,8 @@ button {
     connections: '🧠',
     hangman: '🪢',
     safecrack: '🔐',
-    correction: '✏️'
+    correction: '✏️',
+    padlock: '🧳'
   };
   let currentIndex = 0;
   let score = 0;
@@ -1772,6 +1890,15 @@ button {
   let correctionSelectedWordIndex = null;
   let correctionSelectedLetterBtn = null;
   let correctionChecking = false;   // true during the brief pause while a completed pair is being auto-checked
+  // Padlock — a row of independent 0-9 spinner dials (2-6, matching however
+  // many columns J-O are filled in), each spun by vertical drag, checked
+  // via an explicit Submit button rather than auto-checking. Unlimited
+  // tries; a wrong submit reports how many dials are currently correct
+  // (a count only, not which ones) and lets the player keep adjusting.
+  const PADLOCK_DIGIT_RANGE = 10;
+  const PADLOCK_TICK_PX = 40; // vertical px of drag per digit tick
+  let padlockCombo = [];         // target digits, e.g. [4, 8, 2, 9, 1, 3]
+  let padlockCurrentDigits = []; // each dial's current live value
 
   // Pyramid scoring state
   let streak = 0;           // consecutive correct answers since last miss (or game start)
@@ -2401,6 +2528,8 @@ button {
     correctionSelectedWordIndex = null;
     correctionSelectedLetterBtn = null;
     correctionChecking = false;
+    padlockCombo = [];
+    padlockCurrentDigits = [];
     hud.classList.remove('hidden');
     hud.classList.toggle('joker-glow', jokerActive);
     hudSub.classList.remove('hidden');
@@ -2434,6 +2563,7 @@ button {
       case 'hangman': renderHangman(q); break;
       case 'safecrack': renderSafeCrack(q); break;
       case 'correction': renderCorrection(q); break;
+      case 'padlock': renderPadlock(q); break;
       case 'tapspot': renderTapSpot(q); break;
       case 'word': renderWord(q); break;
     }
@@ -3560,6 +3690,171 @@ button {
     document.querySelectorAll('.correction-letter-btn').forEach(b => { b.disabled = true; });
   }
 
+  // Padlock — a row of independent 0-9 spinner dials, each spun by
+  // vertical drag (drag up increases the digit, drag down decreases,
+  // wrapping 9<->0). Unlike Safe Crack there's no direction to get right —
+  // just land each dial on its digit, in any order, then tap Submit
+  // explicitly. Unlimited tries: a wrong submit reports how many dials are
+  // currently correct as a plain count (not which ones), and every dial
+  // stays exactly where it was for further adjustment.
+  function mod10(n) { return ((n % PADLOCK_DIGIT_RANGE) + PADLOCK_DIGIT_RANGE) % PADLOCK_DIGIT_RANGE; }
+
+  function renderPadlock(q) {
+    padlockCombo = q.combo.slice();
+    padlockCurrentDigits = padlockCombo.map(() => 0);
+    const clues = q.clues || [];
+
+    const wrap = document.createElement('div');
+    wrap.className = 'padlock-wrap';
+
+    // Top half: clues stacked full-width, one per line (same "list of
+    // rows" feel as Multiple Choice's options, just shorter) — numbered
+    // so it's still clear which clue maps to which dial below.
+    const cluesRow = document.createElement('div');
+    cluesRow.className = 'padlock-clues-row';
+    padlockCombo.forEach((_, i) => {
+      const clueEl = document.createElement('div');
+      clueEl.className = 'padlock-clue';
+      const num = document.createElement('span');
+      num.className = 'padlock-clue-num';
+      num.textContent = String(i + 1);
+      const text = document.createElement('span');
+      text.className = 'padlock-clue-text';
+      text.textContent = clues[i] || '';
+      clueEl.appendChild(num);
+      clueEl.appendChild(text);
+      cluesRow.appendChild(clueEl);
+    });
+    wrap.appendChild(cluesRow);
+
+    // Bottom half: the dials themselves, plus feedback and Submit.
+    const dialsSection = document.createElement('div');
+    dialsSection.className = 'padlock-dials-section';
+
+    const dialsRow = document.createElement('div');
+    dialsRow.className = 'padlock-dials';
+    padlockCombo.forEach((_, i) => {
+      dialsRow.appendChild(buildPadlockDial(i));
+    });
+    dialsSection.appendChild(dialsRow);
+
+    const feedback = document.createElement('div');
+    feedback.className = 'padlock-feedback';
+    dialsSection.appendChild(feedback);
+
+    const submitBtn = document.createElement('button');
+    submitBtn.className = 'padlock-submit';
+    submitBtn.textContent = 'Submit';
+    submitBtn.addEventListener('click', () => onPadlockSubmit(q, wrap));
+    dialsSection.appendChild(submitBtn);
+
+    wrap.appendChild(dialsSection);
+    aPanel.appendChild(wrap);
+  }
+
+  function buildPadlockDial(index) {
+    const dial = document.createElement('div');
+    dial.className = 'padlock-dial';
+    dial.dataset.index = index;
+
+    const up = document.createElement('div');
+    up.className = 'padlock-dial-arrow padlock-dial-arrow-up';
+    up.textContent = '▲';
+    dial.appendChild(up);
+
+    const readout = document.createElement('div');
+    readout.className = 'padlock-dial-readout';
+    readout.textContent = '0';
+    dial.appendChild(readout);
+
+    const down = document.createElement('div');
+    down.className = 'padlock-dial-arrow padlock-dial-arrow-down';
+    down.textContent = '▼';
+    dial.appendChild(down);
+
+    setupPadlockDialDrag(dial, index, readout);
+    return dial;
+  }
+
+  // Each dial tracks its own cumulative drag offset independently via a
+  // closure — no shared/global drag state needed, since dials never
+  // interact with each other.
+  function setupPadlockDialDrag(dial, index, readout) {
+    let dragging = false;
+    let lastY = null;
+    let offsetPx = 0; // cumulative since this dial was last touched; persists across separate drags
+
+    function applyDigit() {
+      const digit = mod10(Math.round(-offsetPx / PADLOCK_TICK_PX));
+      padlockCurrentDigits[index] = digit;
+      readout.textContent = String(digit);
+    }
+
+    function onDown(e) {
+      if (answered) return;
+      e.preventDefault();
+      dragging = true;
+      lastY = e.clientY;
+      window.addEventListener('pointermove', onMove);
+      window.addEventListener('pointerup', onUp);
+      window.addEventListener('pointercancel', onUp);
+    }
+    function onMove(e) {
+      if (!dragging || answered) return;
+      e.preventDefault();
+      const dy = e.clientY - lastY;
+      offsetPx += dy;
+      lastY = e.clientY;
+      applyDigit();
+    }
+    function onUp() {
+      dragging = false;
+      lastY = null;
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+      window.removeEventListener('pointercancel', onUp);
+    }
+
+    dial.addEventListener('pointerdown', onDown);
+
+    // Tap arrows as a precise alternative to dragging.
+    const upArrow = dial.querySelector('.padlock-dial-arrow-up');
+    const downArrow = dial.querySelector('.padlock-dial-arrow-down');
+    upArrow.addEventListener('click', () => { if (answered) return; offsetPx -= PADLOCK_TICK_PX; applyDigit(); });
+    downArrow.addEventListener('click', () => { if (answered) return; offsetPx += PADLOCK_TICK_PX; applyDigit(); });
+  }
+
+  function onPadlockSubmit(q, wrap) {
+    if (answered) return;
+    const isCorrect = padlockCombo.every((d, i) => padlockCurrentDigits[i] === d);
+    const feedback = wrap.querySelector('.padlock-feedback');
+
+    if (isCorrect) {
+      answered = true; stopTimer(); revealQuestionTextNow();
+      const pts = awardPoints(true);
+      wrap.querySelectorAll('.padlock-dial, .padlock-submit').forEach(el => { el.style.pointerEvents = 'none'; });
+      showFeedback(true, q.display_answer || padlockCombo.join(''), pts);
+    } else {
+      const correctCount = padlockCombo.filter((d, i) => padlockCurrentDigits[i] === d).length;
+      feedback.textContent = `${correctCount} of ${padlockCombo.length} correct — try again`;
+      feedback.classList.remove('shake'); feedback.offsetWidth; feedback.classList.add('shake');
+      playHangmanWrongLetterSound();
+    }
+  }
+
+  // Called on timeout — reveals the correct combo in the dial readouts and
+  // locks everything, same reveal spirit as every other type.
+  function revealPadlockAnswer(q, wrap) {
+    if (!wrap) return;
+    const dials = wrap.querySelectorAll('.padlock-dial');
+    dials.forEach((dial, i) => {
+      const readout = dial.querySelector('.padlock-dial-readout');
+      readout.textContent = String(padlockCombo[i]);
+      readout.classList.add('reveal-missed');
+    });
+    wrap.querySelectorAll('.padlock-dial, .padlock-submit').forEach(el => { el.style.pointerEvents = 'none'; });
+  }
+
   // percentage points (from the Shape Picker tool) defines the target area;
   // tapping inside it (via point-in-polygon) counts as correct. Works for
   // both photos and video, since the polygon is stored as percentages
@@ -4329,6 +4624,12 @@ button {
         revealCorrectionAnswer(q);
         break;
       }
+      case 'padlock': {
+        correctDisplay = q.display_answer || padlockCombo.join('');
+        const plWrap = aPanel.querySelector('.padlock-wrap');
+        if (plWrap) revealPadlockAnswer(q, plWrap);
+        break;
+      }
       case 'tapspot': {
         correctDisplay = q.display_answer || '';
         const spotSvg = aPanel.querySelector('.tapspot-wrap svg');
@@ -4644,7 +4945,8 @@ button {
     { type: 'connections', category: 'Puzzle', icon: '🧠', heading: 'Connections', text: 'Find the four hidden groups of four in the 4\u00d74 grid.', list: ['Tap 4 tiles and your guess checks itself automatically','3 of your 4 in the same group? You\u2019ll see a \u201cOne away!\u201d hint','Get it wrong and the tiles shake, then unselect \u2014 try again, no penalty for retrying','You need all four groups solved with no wrong guesses to score points'] },
     { type: 'hangman', category: 'Puzzle', icon: '🪢', heading: 'Hangman', text: 'Guess the answer one letter at a time before you run out of lives.', list: ['Tap letters on the keypad \u2014 correct ones fill in every matching blank','Wrong letters cost a heart \u2014 run out and the question\u2019s over','The clock is still ticking too, so don\u2019t take too long between guesses'] },
     { type: 'safecrack', category: 'Puzzle', icon: '🔐', heading: 'Safe Crack', text: 'Spin the dial to crack the combination before time runs out.', list: ['Drag the knob to dial in each number, one at a time','Directions always alternate \u2014 left, right, left, right...','Land on the wrong number, or turn the wrong way, and it resets to the start'] },
-    { type: 'correction', category: 'Puzzle', icon: '✏️', heading: 'Correction', text: 'One word in the sentence is wrong \u2014 find it and fix it.', list: ['Tap the wrong word, and tap the first letter of the correct one \u2014 any order','Both light up as you pick them','Once you\u2019ve picked both, it checks automatically \u2014 no going back, so be sure'] }
+    { type: 'correction', category: 'Puzzle', icon: '✏️', heading: 'Correction', text: 'One word in the sentence is wrong \u2014 find it and fix it.', list: ['Tap the wrong word, and tap the first letter of the correct one \u2014 any order','Both light up as you pick them','Once you\u2019ve picked both, it checks automatically \u2014 no going back, so be sure'] },
+    { type: 'padlock', category: 'Puzzle', icon: '🧳', heading: 'Padlock', text: 'Each dial has a clue above it \u2014 work out the digit and dial it in, then hit Submit.', list: ['Drag a dial up or down to change its number, or use the arrows','Get every dial right and hit Submit to crack it','Wrong guess? It tells you how many are right \u2014 unlimited tries, so keep adjusting'] }
   ];
 
   // Small illustrative mockups, one per question type, shown between the
@@ -4731,6 +5033,15 @@ button {
       <div class="htp-mock-grid" style="grid-template-columns:repeat(6,1fr)">
         ${['A','B','C','D','X','QV'].map(l => `<div class="htp-mock-tile${l === 'D' ? ' selected' : ''}">${l}</div>`).join('')}
       </div>
+    </div>`,
+    padlock: `<div class="htp-mock" style="align-items:center">
+      <div style="display:flex;gap:5px;margin-bottom:6px">
+        ${['S Club _','Blink-_','Bad_','_ Nine'].map(c => `<div style="width:26px;font-size:0.45rem;font-weight:700;color:#7a8fc8;text-align:center">${c}</div>`).join('')}
+      </div>
+      <div style="display:flex;gap:5px;margin-bottom:8px">
+        ${['7','2','4','9'].map(d => `<div style="width:26px;height:32px;border-radius:6px;border:2px solid rgba(122,143,200,.4);display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:900;color:#00c8e8">${d}</div>`).join('')}
+      </div>
+      <div style="padding:5px 16px;border-radius:6px;background:#00c8e8;color:#07091c;font-weight:800;font-size:0.7rem">SUBMIT</div>
     </div>`
   };
 

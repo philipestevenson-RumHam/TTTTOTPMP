@@ -22,6 +22,9 @@
 //   correction      : wrong word (must appear exactly once in the question),
 //                     correct letter, correct word — pick the wrong word and
 //                     the first letter of its fix
+//   padlock         : D-I = a clue per dial (e.g. "S Club _"), J-O = that
+//                     dial's digit at the SAME position (D+J, E+K, ...) —
+//                     2-6 dials, spin to match, submit to check, unlimited tries
 //   tapspot         : target (JSON array of {x,y} points from the Shape Picker
 //                     tool, min 3), requires an image or video in the media column
 //   optional media  : column P is the file/URL; column Q can specify image, video, or audio.
@@ -30,7 +33,7 @@
 //                     the app's default of 15s. Leave blank to use the default.
 
 window.QUIZ_QUESTIONS = {
-  "2026-08-16": [
+  "2026-08-19": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
@@ -141,7 +144,7 @@ window.QUIZ_QUESTIONS = {
       "answer": 2021
     }
   ],
-  "2026-08-15": [
+  "2026-08-18": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
@@ -252,7 +255,7 @@ window.QUIZ_QUESTIONS = {
       "answer": 1995
     }
   ],
-  "2026-08-14": [
+  "2026-08-17": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
@@ -363,7 +366,7 @@ window.QUIZ_QUESTIONS = {
       "answer": 1970
     }
   ],
-  "2026-08-13": [
+  "2026-08-16": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
@@ -523,7 +526,7 @@ window.QUIZ_QUESTIONS = {
       "answer": 1998
     }
   ],
-  "2026-08-12": [
+  "2026-08-15": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
@@ -684,7 +687,7 @@ window.QUIZ_QUESTIONS = {
       "answer": 8
     }
   ],
-  "2026-08-11": [
+  "2026-08-14": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
@@ -836,7 +839,7 @@ window.QUIZ_QUESTIONS = {
       "answer": 50
     }
   ],
-  "2026-08-10": [
+  "2026-08-13": [
     {
       "type": "wordsnake",
       "question": "Word Snake: Name the Artist…",
@@ -981,7 +984,7 @@ window.QUIZ_QUESTIONS = {
       "answer": 2000
     }
   ],
-  "2026-08-09": [
+  "2026-08-12": [
     {
       "type": "match",
       "question": "Match the Artist to the Group",
@@ -1183,7 +1186,7 @@ window.QUIZ_QUESTIONS = {
       ]
     }
   ],
-  "2026-08-08": [
+  "2026-08-11": [
     {
       "type": "connections",
       "question": "Sort these 16 into four groups of four",
@@ -1314,7 +1317,7 @@ window.QUIZ_QUESTIONS = {
       "timeLimit": 30
     }
   ],
-  "2026-08-07": [
+  "2026-08-10": [
     {
       "type": "tapspot",
       "question": "Where is Alvin Nathaniel Joiner, better known by his stage name Xzibit?",
@@ -1370,7 +1373,151 @@ window.QUIZ_QUESTIONS = {
       }
     }
   ],
-  "2026-08-06": [
+  "2026-08-09": [
+    {
+      "type": "padlock",
+      "question": "Crack the padlock using the clues above each dial",
+      "combo": [
+        7,
+        5
+      ],
+      "clues": [
+        "S Club _",
+        "Maroon _"
+      ],
+      "timeLimit": 30
+    },
+    {
+      "type": "padlock",
+      "question": "Crack the padlock using the clues above each dial",
+      "combo": [
+        7,
+        5,
+        4
+      ],
+      "clues": [
+        "S Club _",
+        "Maroon _",
+        "Sum _1"
+      ],
+      "timeLimit": 30
+    },
+    {
+      "type": "padlock",
+      "question": "Crack the padlock using the clues above each dial",
+      "combo": [
+        7,
+        5,
+        4,
+        3
+      ],
+      "clues": [
+        "S Club _",
+        "Maroon _",
+        "Sum _1",
+        "_ Doors Down"
+      ],
+      "timeLimit": 30
+    },
+    {
+      "type": "padlock",
+      "question": "Crack the padlock using the clues above each dial",
+      "combo": [
+        7,
+        5,
+        4,
+        3,
+        2
+      ],
+      "clues": [
+        "S Club _",
+        "Maroon _",
+        "Sum _1",
+        "_ Doors Down",
+        "Blink-18_"
+      ],
+      "timeLimit": 30
+    },
+    {
+      "type": "padlock",
+      "question": "Crack the six-digit padlock using the clues above each dial",
+      "combo": [
+        7,
+        5,
+        4,
+        3,
+        2,
+        4
+      ],
+      "clues": [
+        "S Club _",
+        "Maroon _",
+        "Sum _1",
+        "_ Doors Down",
+        "Blink-18_",
+        "Level _2"
+      ],
+      "timeLimit": 30
+    }
+  ],
+  "2026-08-08": [
+    {
+      "type": "safecrack",
+      "question": "Crack the safe: 12, 7",
+      "combo": [
+        12,
+        7
+      ],
+      "timeLimit": 30
+    },
+    {
+      "type": "safecrack",
+      "question": "Crack the safe: 12, 7, 25",
+      "combo": [
+        12,
+        7,
+        25
+      ],
+      "timeLimit": 30
+    },
+    {
+      "type": "safecrack",
+      "question": "Crack the safe: 12, 7, 25, 3",
+      "combo": [
+        12,
+        7,
+        25,
+        3
+      ],
+      "timeLimit": 30
+    },
+    {
+      "type": "safecrack",
+      "question": "Crack the safe: 12, 7, 25, 3, 40",
+      "combo": [
+        12,
+        7,
+        25,
+        3,
+        40
+      ],
+      "timeLimit": 30
+    },
+    {
+      "type": "safecrack",
+      "question": "Crack the six-number safe: 12, 7, 25, 3, 40, 18",
+      "combo": [
+        12,
+        7,
+        25,
+        3,
+        40,
+        18
+      ],
+      "timeLimit": 30
+    }
+  ],
+  "2026-08-04": [
     {
       "type": "correction",
       "question": "I am a really happy person",
@@ -1385,6 +1532,117 @@ window.QUIZ_QUESTIONS = {
       "wrongWordIndex": 4,
       "correctLetter": "S",
       "correctWord": "sad"
+    },
+    {
+      "type": "correction",
+      "question": "I am a really happy person",
+      "words": [
+        "I",
+        "am",
+        "a",
+        "really",
+        "happy",
+        "person"
+      ],
+      "wrongWordIndex": 4,
+      "correctLetter": "S",
+      "correctWord": "sad"
+    },
+    {
+      "type": "correction",
+      "question": "I am a really happy person",
+      "words": [
+        "I",
+        "am",
+        "a",
+        "really",
+        "happy",
+        "person"
+      ],
+      "wrongWordIndex": 4,
+      "correctLetter": "S",
+      "correctWord": "sad"
+    }
+  ],
+  "2026-08-03": [
+    {
+      "type": "letters_shuffled",
+      "question": "Which letter starts the surname of the singer behind \"Rolling in the Deep\"?",
+      "answer": "A",
+      "display_answer": "Adele"
+    },
+    {
+      "type": "letters_shuffled",
+      "question": "Which letter starts this Fleetwood Mac album released in 1977?",
+      "answer": "R",
+      "display_answer": "Rumours"
+    }
+  ],
+  "2026-08-02": [
+    {
+      "type": "word",
+      "question": "Type the one-word stage name of the artist born Stefani Germanotta.",
+      "answer": "GaGa",
+      "accepted": [
+        "Lady Gaga",
+        "LadyGaGa"
+      ]
+    },
+    {
+      "type": "word",
+      "question": "Type the surname of the singer behind \"Bad Guy\" and \"Ocean Eyes\".",
+      "answer": "Eilish",
+      "accepted": [
+        "Eillish"
+      ]
+    }
+  ],
+  "2026-08-01": [
+    {
+      "type": "multitap",
+      "question": "Tap every one of these that was a member of the Spice Girls.",
+      "options": [
+        "Mel B",
+        "Mel C",
+        "Cheryl Cole",
+        "Geri Halliwell",
+        "Rita Ora",
+        "Emma Bunton"
+      ],
+      "answers": [
+        "Mel B",
+        "Mel C",
+        "Geri Halliwell",
+        "Emma Bunton"
+      ]
+    },
+    {
+      "type": "multitap",
+      "question": "Tap every song below that was a UK Christmas Number One.",
+      "options": [
+        "Mariah Carey - All I Want for Christmas Is You",
+        "Wham! - Last Christmas",
+        "Queen - Bohemian Rhapsody",
+        "LadBaby - Sausage Rolls for Everyone"
+      ],
+      "answers": [
+        "Wham! - Last Christmas",
+        "Queen - Bohemian Rhapsody",
+        "LadBaby - Sausage Rolls for Everyone"
+      ]
+    }
+  ],
+  "2026-07-31": [
+    {
+      "type": "hangman",
+      "question": "Which rock band released the 1987 album Appetite for Destruction?",
+      "answer": "Guns N' Roses"
+    },
+    {
+      "type": "hangman",
+      "question": "Which girl group sang \"Wannabe\"?",
+      "answer": "Spice Girls",
+      "lives": 2
     }
   ]
 };
