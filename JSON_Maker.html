@@ -86,6 +86,7 @@ const convertBtn = document.getElementById('convert-btn');
 const preview    = document.getElementById('preview');
 
 let parsedData = null;
+let parsedExamples = null;
 
 // ── Drag & drop ─────────────────────────────────────────────────
 dropzone.addEventListener('dragover',  e => { e.preventDefault(); dropzone.classList.add('over'); });
@@ -105,6 +106,7 @@ function processFile(file) {
   convertBtn.style.display = 'none';
   preview.innerHTML = '';
   parsedData = null;
+  parsedExamples = null;
 
   const reader = new FileReader();
   reader.onload = e => {
@@ -125,8 +127,10 @@ function processFile(file) {
       }
 
       const questions = {};
+      const examplesByType = {};
       let errorCount = 0;
       let okCount    = 0;
+      let exampleCount = 0;
 
       for (let i = startRow; i < rows.length; i++) {
         const row = rows[i];
@@ -138,8 +142,13 @@ function processFile(file) {
         // Skip blank rows
         if (!dateStr || !qtype || !question) continue;
 
-        // Validate date
-        if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+        // A Date column of "EXAMPLES" (any case) routes this row into the
+        // How to Play "Try an example" set instead of a real quiz date —
+        // one row per type, keyed by type rather than date.
+        const isExampleRow = dateStr.toUpperCase() === 'EXAMPLES';
+
+        // Validate date (skipped for EXAMPLES rows, which aren't real dates)
+        if (!isExampleRow && !/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
           console.warn(`Row ${i+1}: invalid date "${dateStr}" — skipped`);
           errorCount++;
           continue;
@@ -436,8 +445,18 @@ function processFile(file) {
           continue;
         }
 
-        if (!questions[dateStr]) questions[dateStr] = [];
-        questions[dateStr].push(q);
+        if (isExampleRow) {
+          if (examplesByType[q.type]) {
+            console.warn(`Row ${i+1}: another EXAMPLES row for type "${q.type}" already exists — keeping the first one, ignoring this one`);
+            errorCount++;
+            continue;
+          }
+          examplesByType[q.type] = q;
+          exampleCount++;
+        } else {
+          if (!questions[dateStr]) questions[dateStr] = [];
+          questions[dateStr].push(q);
+        }
         okCount++;
       }
 
@@ -447,8 +466,10 @@ function processFile(file) {
       }
 
       parsedData = questions;
+      parsedExamples = Object.keys(examplesByType).length > 0 ? examplesByType : null;
       const dates = Object.keys(questions).sort();
       status.textContent = `✅ Found ${okCount} question${okCount!==1?'s':''} across ${dates.length} date${dates.length!==1?'s':''}` +
+        (exampleCount ? ` · 🧪 ${exampleCount} How-to-Play example${exampleCount!==1?'s':''}` : '') +
         (errorCount ? ` · ⚠️ ${errorCount} row${errorCount!==1?'s':''} skipped (see console)` : '') + '.';
       convertBtn.style.display = 'inline-block';
 
@@ -501,9 +522,14 @@ convertBtn.addEventListener('click', () => {
 //                     If Q is blank, the type is inferred from its extension.
 //   optional time   : column R is a time limit in seconds for that question, overriding
 //                     the app's default of 15s. Leave blank to use the default.
+//
+//   EXAMPLES: put the word EXAMPLES in the Date column (instead of a real
+//   date) for a row to become that type's "Try an example" in the How to
+//   Play screen, instead of a real quiz question. One EXAMPLES row per
+//   type — a second row for a type already covered is skipped.
 
 window.QUIZ_QUESTIONS = ${JSON.stringify(parsedData, null, 2)};
-`;
+${parsedExamples ? `window.HTP_EXAMPLES = ${JSON.stringify(parsedExamples, null, 2)};\n` : ''}`;
 
   const blob = new Blob([js], { type: 'text/javascript' });
   const url  = URL.createObjectURL(blob);

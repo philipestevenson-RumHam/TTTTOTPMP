@@ -1423,6 +1423,19 @@ button {
   font-size: 1rem; line-height: 1.45;
   text-align: left; color: rgba(255,255,255,0.85);
 }
+.how-to-play-tryit-btn {
+  display: block;
+  width: 100%;
+  margin-top: 18px;
+  padding: 12px 0;
+  border-radius: 10px;
+  border: none;
+  font-weight: 800;
+  font-size: 1rem;
+  background: var(--sq-cyan, #00c8e8);
+  color: #07091c;
+}
+.how-to-play-tryit-btn:active { transform: scale(0.98); }
 .how-to-play-footer {
   display: flex; flex-direction: column;
   align-items: center; gap: 10px;
@@ -1839,6 +1852,14 @@ button {
   };
   let currentIndex = 0;
   let score = 0;
+  // Practice mode — a single "Try an example" question launched from How to
+  // Play. Reuses the exact same rendering/timer/scoring machinery as a real
+  // game (safe to do since How to Play is only reachable pre-game, before
+  // startGame() would reset all this state again for a real quiz anyway),
+  // but is intercepted before showFinal()/leaderboard submission so nothing
+  // real gets touched.
+  let practiceMode = false;
+  let practiceReturnType = null;
   let playerName = '';
   try { playerName = localStorage.getItem('pyramidQuizPlayerName') || ''; } catch(e) { /* localStorage unavailable */ }
   let currentPlayerId = null;
@@ -2326,7 +2347,45 @@ button {
     showQuestion();
   }
 
+  // Launches a single "Try an example" question from How to Play. Reuses
+  // startGame()'s exact reset pattern so nothing's left half-configured,
+  // but with only one question and jokerUsed forced true (so the
+  // mandatory-final-question joker prompt never fires — irrelevant for a
+  // single practice question).
+  function startPracticeExample(type) {
+    const exampleQ = window.HTP_EXAMPLES && window.HTP_EXAMPLES[type];
+    if (!exampleQ) return;
+    const modal = document.getElementById('htpModal');
+    modal.classList.remove('is-open');
+    modal.hidden = true;
+    practiceMode = true;
+    practiceReturnType = type;
+    gameQuestions = [exampleQ];
+    currentIndex = 0;
+    score = 0;
+    streak = 0;
+    jokerUsed = true;
+    jokerActive = false;
+    runLog = [];
+    hudScore.textContent = '0';
+    hudScore.classList.remove('on-fire');
+    hud.classList.remove('hidden');
+    hudSub.classList.remove('hidden');
+    streakLadder.classList.remove('hidden');
+    qPanel.classList.remove('hidden');
+    updateHudSub();
+    showQuestion();
+  }
+
   function updateHudSub() {
+    if (practiceMode) {
+      const label = TYPE_LABELS[gameQuestions[0] && gameQuestions[0].type] || 'Example';
+      levelPill.innerHTML = `🧪 Practice: <b>${label}</b>`;
+      jokerPill.className = 'joker-pill';
+      jokerPill.textContent = '';
+      streakLadder.classList.add('hidden');
+      return;
+    }
     levelPill.innerHTML = 'Question <b>' + (currentIndex + 1) + '</b> / ' + gameQuestions.length;
     if (jokerActive) {
       jokerPill.className = 'joker-pill active';
@@ -2466,6 +2525,19 @@ button {
     const mediaBadge = (nextQ.type !== 'tapspot' && nextQ.media && MEDIA_ICONS[nextQ.media.type])
       ? ` ${MEDIA_ICONS[nextQ.media.type]}`
       : '';
+
+    if (practiceMode) {
+      screen.innerHTML = `
+        <div class="screen-title">🧪 Example: ${typeIcon} <b>${typeLabel}</b></div>
+        <div class="screen-subtitle">This plays exactly like it would in a real quiz \u2014 timer, scoring, and all.</div>
+        <button class="screen-btn btn-primary" id="btn-continue">Continue</button>
+      `;
+      aPanel.innerHTML = '';
+      aPanel.appendChild(screen);
+      document.getElementById('btn-continue').addEventListener('click', () => { beginQuestion(); });
+      return;
+    }
+
     const streakStatHTML = streak > 0
       ? `<div class="continue-stat">Score: <b>${score}</b> &nbsp;&middot;&nbsp; Streak: <b>${streak}</b>${streak >= 3 ? ' 🔥' : ''}</div>`
       : `<div class="continue-stat">Score: <b>${score}</b></div>`;
@@ -4747,7 +4819,10 @@ button {
     // members sitting in the grid), so give it longer before advancing.
     const currentQ = gameQuestions[currentIndex];
     const advanceDelay = (currentQ && currentQ.type === 'connections') ? 5000 : 2000;
-    setTimeout(() => { currentIndex++; showQuestion(); }, advanceDelay);
+    setTimeout(() => {
+      if (practiceMode) { showPracticeReturnScreen(); return; }
+      currentIndex++; showQuestion();
+    }, advanceDelay);
   }
 
   // Already played
@@ -4809,6 +4884,27 @@ button {
       <div class="recap-row">${tiles}</div>
       <div class="recap-summary">${summaryParts.join(' &middot; ')}</div>
     `;
+  }
+
+  // Practice mode's landing screen — same spirit as showAlreadyPlayed(), a
+  // simple screen with one way out, but deliberately never touches
+  // showFinal()/saveQuizScore() since this was never a real game.
+  function showPracticeReturnScreen() {
+    stopTimer();
+    hud.classList.add('hidden'); hudSub.classList.add('hidden'); streakLadder.classList.add('hidden'); qPanel.classList.add('hidden'); aPanel.innerHTML = '';
+    const typeLabel = TYPE_LABELS[practiceReturnType] || 'this type';
+    const screen = document.createElement('div');
+    screen.className = 'screen';
+    screen.innerHTML = `
+      <div class="final-label">Nice try!</div>
+      <div class="final-detail">That's how ${typeLabel} works.</div>
+      <button class="screen-btn btn-primary" id="btn-practice-back">← Back to How to Play</button>
+    `;
+    aPanel.appendChild(screen);
+    document.getElementById('btn-practice-back').addEventListener('click', () => {
+      practiceMode = false;
+      openHowToPlay(practiceReturnType);
+    });
   }
 
   async function showFinal() {
@@ -5048,14 +5144,14 @@ button {
   const htpCategories = [...new Set(htpSlides.map(s => s.category))];
   let htpCurrentSlide = 0;
 
-  function openHowToPlay() {
+  function openHowToPlay(startType) {
     const modal = document.getElementById('htpModal');
     const content = document.getElementById('htpContent');
     const tabs = document.getElementById('htpTabs');
     const counter = document.getElementById('htpCounter');
     const dots = document.getElementById('htpDots');
     const nextBtn = document.getElementById('htpNext');
-    htpCurrentSlide = 0;
+    htpCurrentSlide = startType ? Math.max(0, htpSlides.findIndex(sl => sl.type === startType)) : 0;
     renderHtpSlide();
     modal.hidden = false;
     requestAnimationFrame(() => modal.classList.add('is-open'));
@@ -5077,7 +5173,12 @@ button {
 
       const mock = htpMocks[s.type] || '';
       const listHtml = s.list ? '<ul class="how-to-play-list">' + s.list.map(li => `<li>${li}</li>`).join('') + '</ul>' : '';
-      content.innerHTML = `<div class="how-to-play-slide-icon">${s.icon}</div>${mock}<h3 class="how-to-play-slide-heading">${s.heading}</h3><p class="how-to-play-slide-text">${s.text}</p>${listHtml}`;
+      const hasExample = window.HTP_EXAMPLES && window.HTP_EXAMPLES[s.type];
+      const tryItHtml = hasExample ? `<button class="how-to-play-tryit-btn" id="htpTryIt">▶ Try an example</button>` : '';
+      content.innerHTML = `<div class="how-to-play-slide-icon">${s.icon}</div>${mock}<h3 class="how-to-play-slide-heading">${s.heading}</h3><p class="how-to-play-slide-text">${s.text}</p>${listHtml}${tryItHtml}`;
+      if (hasExample) {
+        document.getElementById('htpTryIt').addEventListener('click', () => startPracticeExample(s.type));
+      }
 
       counter.textContent = `${indexInCategory + 1} of ${categorySlides.length}`;
 
