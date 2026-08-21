@@ -1819,6 +1819,7 @@ button {
     letters: 'Letters',
     letters_shuffled: 'Letters (Shuffled)',
     numbers: 'Numbers',
+    numbers_shuffled: 'Numbers (Shuffled)',
     word: 'Type the Answer',
     sequence: 'Sequence',
     assemble: 'Assemble',
@@ -1837,6 +1838,7 @@ button {
     letters: '🔤',
     letters_shuffled: '🔀',
     numbers: '🔢',
+    numbers_shuffled: '🔀',
     word: '⌨️',
     sequence: '📶',
     assemble: '🧩',
@@ -2627,6 +2629,7 @@ button {
       case 'letters_shuffled': renderLetters(q, true); break;
       case 'multitap': renderMultitap(q); break;
       case 'numbers': renderNumbers(q); break;
+      case 'numbers_shuffled': renderNumbers(q, true); break;
       case 'sequence': renderSequence(q); break;
       case 'assemble': renderAssemble(q); break;
       case 'match': renderMatch(q); break;
@@ -2945,13 +2948,18 @@ button {
     showFeedback(isCorrect, q.display_answer || q.answer, pts);
   }
 
-  function renderNumbers(q) {
+  function renderNumbers(q, shuffled) {
     const display = document.createElement('div');
     display.className = 'number-display'; display.id = 'num-display';
     aPanel.appendChild(display);
     const grid = document.createElement('div');
     grid.className = 'keypad numbers';
-    ['1','2','3','4','5','6','7','8','9','C','0','ENTER'].forEach(k => {
+    // Only the ten digit keys get shuffled — Clear and Enter stay put in
+    // their usual spots, since they're functional keys, not part of the
+    // "find the right digit" challenge.
+    const digitKeys = shuffled ? shuffle(['1','2','3','4','5','6','7','8','9','0']) : ['1','2','3','4','5','6','7','8','9','0'];
+    const layout = [...digitKeys.slice(0, 9), 'C', digitKeys[9], 'ENTER'];
+    layout.forEach(k => {
       const btn = document.createElement('button');
       if (k === 'C' || k === 'ENTER') {
         btn.className = 'kbtn num-fn' + (k === 'ENTER' ? ' dimmed-fn' : '');
@@ -4625,6 +4633,7 @@ button {
       case 'letters': correctDisplay = q.display_answer || q.answer; highlightCorrectLetters(q); break;
       case 'letters_shuffled': correctDisplay = q.display_answer || q.answer; highlightCorrectLetters(q); break;
       case 'numbers': correctDisplay = String(q.answer); break;
+      case 'numbers_shuffled': correctDisplay = String(q.answer); break;
       case 'word': {
         correctDisplay = q.display_answer || q.answer;
         const wordInput = aPanel.querySelector('.word-input');
@@ -5033,6 +5042,7 @@ button {
     { type: 'multitap', category: 'Tap & Select', icon: '✅', heading: 'Multitap', text: 'More than one answer can be correct \u2014 select all of them.', list: ['Tap every option you think is correct','Once tapped, a choice is locked in \u2014 you can\u2019t undo it','Nothing is marked until the timer runs out, so take your time'] },
     { type: 'tapspot', category: 'Tap & Select', icon: '📍', heading: 'Tap the Spot', text: 'Tap the correct place on the photo or image.', list: ['Look carefully \u2014 there\u2019s no keypad, the image itself is the answer','You get one tap, so make it count','Get it wrong and the correct area lights up so you can see where it was'] },
     { type: 'numbers', category: 'Type & Build', icon: '🔢', heading: 'Numbers', text: 'Type the correct number using the keypad.', list: ['Use the number pad to enter your answer','Press Enter to submit','C clears your input'] },
+    { type: 'numbers_shuffled', category: 'Type & Build', icon: '🔀', heading: 'Numbers (Shuffled)', text: 'Just like Numbers, but the digit keys are shuffled fresh each time.', list: ['Type the correct number using the keypad, same as usual','The digit positions change every question, so read each key carefully before tapping','Clear and Enter always stay in the same place'] },
     { type: 'word', category: 'Type & Build', icon: '⌨️', heading: 'Type the Answer', text: 'Type out the full answer using your keyboard.', list: ['Tap the box to bring up your keyboard','Spelling doesn\u2019t need to be perfect \u2014 capitals and punctuation don\u2019t matter','Press Enter or Submit when you\u2019re ready'] },
     { type: 'sequence', category: 'Type & Build', icon: '📶', heading: 'Sequence', text: 'Tap the items in the correct order.', list: ['Items appear in a random order','Tap them in the correct sequence (1st, 2nd, 3rd…)','Get them all right to score points'] },
     { type: 'assemble', category: 'Type & Build', icon: '🧩', heading: 'Assemble', text: 'The answer has been chopped into pieces \u2014 tap them back together in order.', list: ['Watch the answer build up above the tiles as you tap','Tap a piece again to undo it','Get the order exactly right to score'] },
@@ -5066,6 +5076,10 @@ button {
     numbers: `<div class="htp-mock"><div class="htp-mock-grid" style="grid-template-columns:repeat(3,1fr)">
       ${[1,2,3,4,5,6,7,8,9].map(n => `<div class="htp-mock-tile">${n}</div>`).join('')}
       <div class="htp-mock-tile">C</div><div class="htp-mock-tile">0</div><div class="htp-mock-tile selected">↵</div>
+    </div></div>`,
+    numbers_shuffled: `<div class="htp-mock"><div class="htp-mock-grid" style="grid-template-columns:repeat(3,1fr)">
+      ${[[7,-6],[2,4],[9,-3],[4,7],[1,-5],[8,3],[5,5],[3,-4],[6,2]].map(([n,r]) => `<div class="htp-mock-tile" style="transform:rotate(${r}deg)">${n}</div>`).join('')}
+      <div class="htp-mock-tile">C</div><div class="htp-mock-tile" style="transform:rotate(-4deg)">0</div><div class="htp-mock-tile selected">↵</div>
     </div></div>`,
     word: `<div class="htp-mock"><div class="htp-mock-input">ANSWER<span class="htp-mock-cursor"></span></div></div>`,
     sequence: `<div class="htp-mock">

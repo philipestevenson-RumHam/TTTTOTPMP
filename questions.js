@@ -7,6 +7,8 @@
 //   letters         : answer (letter), display_answer (full word)
 //   letters_shuffled: same as letters, but the grid is randomly reordered
 //   numbers         : answer (integer)
+//   numbers_shuffled: same as numbers, but the 0-9 keypad digits are
+//                     randomly reordered (Clear/Enter stay put)
 //   word            : answer (typed in full), optional accepted variants
 //   sequence        : items (up to 6, shown shuffled), answer (correct order array)
 //   assemble        : answer (auto-split into up to 6 shuffled pieces by the app)
@@ -1677,6 +1679,11 @@ window.HTP_EXAMPLES = {
   },
   "numbers": {
     "type": "numbers",
+    "question": "How many Grammy Awards has Beyoncé won as of 2023?",
+    "answer": 32
+  },
+  "numbers_shuffled": {
+    "type": "numbers_shuffled",
     "question": "How many Grammy Awards has Beyoncé won as of 2023?",
     "answer": 32
   },

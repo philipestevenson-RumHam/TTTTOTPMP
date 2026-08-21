@@ -60,6 +60,7 @@
   <span class="chip" style="background:#FFF2CC">letters</span>
   <span class="chip" style="background:#FFE699">letters_shuffled</span>
   <span class="chip" style="background:#FCE4D6">numbers</span>
+  <span class="chip" style="background:#FCE4D6">numbers_shuffled</span>
   <span class="chip" style="background:#D6E4F0">word</span>
   <span class="chip" style="background:#EAD1DC">sequence</span>
   <span class="chip" style="background:#D5D9F2">assemble</span>
@@ -180,13 +181,13 @@ function processFile(file) {
           if (!letter) { console.warn(`Row ${i+1}: letters_shuffled missing letter`); errorCount++; continue; }
           q = { type: 'letters_shuffled', question, answer: letter, display_answer: word || letter };
 
-        } else if (qtype === 'numbers') {
+        } else if (qtype === 'numbers' || qtype === 'numbers_shuffled') {
           // D = the number
           const num = String(row[3] || '').trim();
-          if (!num) { console.warn(`Row ${i+1}: numbers missing value`); errorCount++; continue; }
+          if (!num) { console.warn(`Row ${i+1}: ${qtype} missing value`); errorCount++; continue; }
           const parsed = parseInt(num, 10);
-          if (isNaN(parsed)) { console.warn(`Row ${i+1}: numbers value is not an integer`); errorCount++; continue; }
-          q = { type: 'numbers', question, answer: parsed };
+          if (isNaN(parsed)) { console.warn(`Row ${i+1}: ${qtype} value is not an integer`); errorCount++; continue; }
+          q = { type: qtype, question, answer: parsed };
 
         } else if (qtype === 'word') {
           // D = the answer (typed out in full by the player)
@@ -498,6 +499,8 @@ convertBtn.addEventListener('click', () => {
 //   letters         : answer (letter), display_answer (full word)
 //   letters_shuffled: same as letters, but the grid is randomly reordered
 //   numbers         : answer (integer)
+//   numbers_shuffled: same as numbers, but the 0-9 keypad digits are
+//                     randomly reordered (Clear/Enter stay put)
 //   word            : answer (typed in full), optional accepted variants
 //   sequence        : items (up to 6, shown shuffled), answer (correct order array)
 //   assemble        : answer (auto-split into up to 6 shuffled pieces by the app)
