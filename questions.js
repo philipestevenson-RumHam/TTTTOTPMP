@@ -1476,3 +1476,236 @@ window.QUIZ_QUESTIONS = {
     }
   ]
 };
+window.HTP_EXAMPLES = {
+  "multiple_choice": {
+    "type": "multiple_choice",
+    "question": "Which decade did Madonna release \"Like a Virgin\"?",
+    "options": [
+      "1970s",
+      "1980s",
+      "1990s",
+      "2000s"
+    ],
+    "answer": "1980s"
+  },
+  "letters": {
+    "type": "letters",
+    "question": "Which letter starts the surname of the singer behind \"Rolling in the Deep\"?",
+    "answer": "A",
+    "display_answer": "Adele"
+  },
+  "letters_shuffled": {
+    "type": "letters_shuffled",
+    "question": "Which letter starts this Fleetwood Mac album released in 1977?",
+    "answer": "R",
+    "display_answer": "Rumours"
+  },
+  "numbers": {
+    "type": "numbers",
+    "question": "How many Grammy Awards has Beyoncé won as of 2023?",
+    "answer": 32
+  },
+  "numbers_shuffled": {
+    "type": "numbers_shuffled",
+    "question": "How many Grammy Awards has Beyoncé won as of 2023?",
+    "answer": 32
+  },
+  "word": {
+    "type": "word",
+    "question": "Type the one-word stage name of the artist born Stefani Germanotta.",
+    "answer": "GaGa",
+    "accepted": [
+      "Lady Gaga",
+      "LadyGaGa"
+    ]
+  },
+  "sequence": {
+    "type": "sequence",
+    "question": "Put these Beatles albums in the order they were released, earliest first.",
+    "items": [
+      "Abbey Road",
+      "Please Please Me",
+      "Let It Be",
+      "Revolver"
+    ],
+    "answer": [
+      "Please Please Me",
+      "Revolver",
+      "Abbey Road",
+      "Let It Be"
+    ]
+  },
+  "assemble": {
+    "type": "assemble",
+    "question": "Tap the pieces in order to spell this artist’s name.",
+    "answer": "Coldplay"
+  },
+  "match": {
+    "type": "match",
+    "question": "Match each artist to their debut studio album.",
+    "left": [
+      "Adele",
+      "Beyoncé"
+    ],
+    "right": [
+      "19",
+      "Dangerously in Love"
+    ]
+  },
+  "connections": {
+    "type": "connections",
+    "question": "Find the four hidden groups of four.",
+    "groups": [
+      {
+        "label": "British Solo Artists",
+        "items": [
+          "Adele",
+          "Sam Smith",
+          "Dua Lipa",
+          "Ed Sheeran"
+        ]
+      },
+      {
+        "label": "Coldplay Songs",
+        "items": [
+          "Yellow",
+          "Fix You",
+          "Clocks",
+          "The Scientist"
+        ]
+      },
+      {
+        "label": "Rihanna Songs",
+        "items": [
+          "Umbrella",
+          "Diamonds",
+          "Work",
+          "Only Girl"
+        ]
+      },
+      {
+        "label": "Michael Jackson Albums",
+        "items": [
+          "Thriller",
+          "Bad",
+          "Off the Wall",
+          "Dangerous"
+        ]
+      }
+    ]
+  },
+  "multitap": {
+    "type": "multitap",
+    "question": "Tap every one of these that was a member of the Spice Girls.",
+    "options": [
+      "Mel B",
+      "Mel C",
+      "Cheryl Cole",
+      "Geri Halliwell",
+      "Rita Ora",
+      "Emma Bunton"
+    ],
+    "answers": [
+      "Mel B",
+      "Mel C",
+      "Geri Halliwell",
+      "Emma Bunton"
+    ]
+  },
+  "wordsnake": {
+    "type": "wordsnake",
+    "question": "This girl group sang \"Wannabe\" in 1996.",
+    "answer": "Spice Girls"
+  },
+  "hangman": {
+    "type": "hangman",
+    "question": "Which rock band released the 1987 album Appetite for Destruction?",
+    "answer": "Guns N' Roses"
+  },
+  "safecrack": {
+    "type": "safecrack",
+    "question": "Crack the safe: 12, 7, 25",
+    "combo": [
+      12,
+      7,
+      25
+    ]
+  },
+  "correction": {
+    "type": "correction",
+    "question": "The Beatles were formed in Manchester in 1960.",
+    "words": [
+      "The",
+      "Beatles",
+      "were",
+      "formed",
+      "in",
+      "Manchester",
+      "in",
+      "1960."
+    ],
+    "wrongWordIndex": 5,
+    "correctLetter": "L",
+    "correctWord": "Liverpool"
+  },
+  "padlock": {
+    "type": "padlock",
+    "question": "Crack the padlock using the clues above each dial",
+    "combo": [
+      7,
+      5
+    ],
+    "clues": [
+      "S Club _",
+      "Maroon _"
+    ]
+  },
+  "tapspot": {
+    "type": "tapspot",
+    "question": "Tap the Eiffel Tower in this photo.",
+    "target": [
+      {
+        "x": 45,
+        "y": 10
+      },
+      {
+        "x": 55,
+        "y": 10
+      },
+      {
+        "x": 52,
+        "y": 90
+      },
+      {
+        "x": 48,
+        "y": 90
+      }
+    ],
+    "display_answer": "Eiffel Tower",
+    "media": {
+      "type": "image",
+      "url": "media/paris-skyline.jpg"
+    }
+  },
+  "bucketsort": {
+    "type": "bucketsort",
+    "question": "Sort each act into the right group",
+    "buckets": [
+      {
+        "name": "Boy Band",
+        "items": [
+          "Backstreet Boys",
+          "NSYNC"
+        ]
+      },
+      {
+        "name": "Girl Group",
+        "items": [
+          "Spice Girls",
+          "Destiny's Child"
+        ]
+      }
+    ],
+    "timeLimit": 20
+  }
+};
