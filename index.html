@@ -5146,6 +5146,11 @@ button {
     aPanel.appendChild(screen);
     document.getElementById('btn-practice-back').addEventListener('click', () => {
       practiceMode = false;
+      // Restore the actual start screen underneath before reopening the
+      // modal, so if it's later dismissed (Close, background tap, "Got
+      // it!"), the person lands back on the real start screen instead of
+      // this now-stale practice feedback screen showing through.
+      showStart();
       openHowToPlay(practiceReturnType);
     });
   }
