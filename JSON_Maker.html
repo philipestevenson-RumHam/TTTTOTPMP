@@ -66,6 +66,7 @@
   <span class="chip" style="background:#D5D9F2">assemble</span>
   <span class="chip" style="background:#C6DBE1">match</span>
   <span class="chip" style="background:#D0BFFF">connections</span>
+  <span class="chip" style="background:#A2C4C9">bucketsort</span>
   <span class="chip" style="background:#C9DAF8">multitap</span>
   <span class="chip" style="background:#D9E8D3">wordsnake</span>
   <span class="chip" style="background:#F4CCCC">hangman</span>
@@ -257,6 +258,35 @@ function processFile(file) {
           const dupe = allItems.find((v, idx) => allItems.indexOf(v) !== idx);
           if (dupe) { console.warn(`Row ${i+1}: connections has the item "${dupe}" appearing in more than one group`); errorCount++; continue; }
           q = { type: 'connections', question, groups };
+
+        } else if (qtype === 'bucketsort') {
+          // D-G = up to 4 bucket names. J-M = that bucket's items, a
+          // comma-separated list at the SAME position (D's items are in J,
+          // E's in K, F's in L, G's in M). Every item across all buckets
+          // gets shuffled together and the player sorts them back in —
+          // up to 12 items total, no duplicates, every bucket needs at
+          // least 1 item, at least 2 buckets required.
+          const nameCells = [row[3], row[4], row[5], row[6]];
+          const itemCells = [row[9], row[10], row[11], row[12]];
+          const buckets = [];
+          let bucketError = null;
+          for (let b = 0; b < 4; b++) {
+            const name = String(nameCells[b] || '').trim();
+            const cell = String(itemCells[b] || '').trim();
+            if (!name && !cell) continue; // empty bucket slot
+            if (!name) { bucketError = `bucket ${b+1} (column ${String.fromCharCode(74+b)}) has items but no bucket name in column ${String.fromCharCode(68+b)}`; break; }
+            if (!cell) { bucketError = `bucket "${name}" (column ${String.fromCharCode(68+b)}) has no items in column ${String.fromCharCode(74+b)}`; break; }
+            const items = cell.split(',').map(v => v.trim()).filter(v => v !== '');
+            if (items.length < 1) { bucketError = `bucket "${name}" needs at least 1 item`; break; }
+            buckets.push({ name, items });
+          }
+          if (bucketError) { console.warn(`Row ${i+1}: bucketsort ${bucketError}`); errorCount++; continue; }
+          if (buckets.length < 2) { console.warn(`Row ${i+1}: bucketsort needs at least 2 buckets filled in across columns D-G / J-M, found ${buckets.length}`); errorCount++; continue; }
+          const allBucketItems = buckets.flatMap(b => b.items);
+          if (allBucketItems.length > 12) { console.warn(`Row ${i+1}: bucketsort has ${allBucketItems.length} items total across all buckets — max is 12`); errorCount++; continue; }
+          const dupeItem = allBucketItems.find((v, idx) => allBucketItems.indexOf(v) !== idx);
+          if (dupeItem) { console.warn(`Row ${i+1}: bucketsort has the item "${dupeItem}" appearing in more than one bucket`); errorCount++; continue; }
+          q = { type: 'bucketsort', question, buckets };
 
         } else if (qtype === 'multitap') {
           // D–I = options (up to 6), J–O = the ones that are correct (can be
@@ -507,6 +537,9 @@ convertBtn.addEventListener('click', () => {
 //   match           : left items (D-I) paired with right items (J-O) at the same position
 //   connections     : 4 groups of 4 items each (D-G, comma-separated), each
 //                     paired with its connection label (J-M at the same position)
+//   bucketsort      : up to 4 bucket names (D-G), each paired with its items
+//                     (J-M, comma-separated, same position) — 2-4 buckets,
+//                     12 items max total, no duplicates across buckets
 //   multitap        : options (up to 6), answers (array \u2014 every correct one)
 //   wordsnake       : answer (word or phrase, max 20 letters — spaces don't count)
 //   hangman         : answer (word or phrase), optional lives (wrong guesses

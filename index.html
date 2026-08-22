@@ -648,6 +648,79 @@ button {
   border: none;
 }
 .padlock-submit:active { transform: scale(0.97); }
+.bucketsort-wrap {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 8px 4px;
+}
+.bucketsort-buckets {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  gap: 8px;
+}
+.bucketsort-bucket {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: rgba(20,26,64,0.5);
+  border: 2px solid rgba(122,143,200,0.3);
+  border-radius: 10px;
+  padding: 8px 6px;
+  cursor: pointer;
+}
+.bucketsort-bucket-label {
+  font-size: clamp(0.75rem, 3vw, 0.95rem);
+  font-weight: 800;
+  color: var(--sq-text);
+  text-align: center;
+  line-height: 1.2;
+}
+.bucketsort-bucket-chips {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  justify-content: center;
+  gap: 4px;
+  min-height: 0;
+}
+.bucketsort-pool {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 4px;
+  border-top: 1px solid rgba(122,143,200,0.2);
+}
+.kbtn.bucketsort-item {
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: clamp(0.7rem, 2.8vw, 0.9rem);
+  font-weight: 700;
+  background: var(--sq-gold);
+  color: var(--sq-btn-text);
+  border: none;
+  flex-shrink: 0;
+}
+.bucketsort-item.selected {
+  background: #f5d76e !important;
+  color: var(--sq-btn-text) !important;
+  box-shadow: 0 0 0 3px rgba(245,215,110,0.35);
+  transform: scale(1.05);
+}
+.bucketsort-item.placed {
+  font-size: clamp(0.65rem, 2.4vw, 0.8rem);
+  padding: 4px 8px;
+}
 .safecrack-wrap {
   flex: 1;
   min-height: 0;
@@ -1831,7 +1904,8 @@ button {
     hangman: 'Hangman',
     safecrack: 'Safe Crack',
     correction: 'Correction',
-    padlock: 'Padlock'
+    padlock: 'Padlock',
+    bucketsort: 'Bucket Sort'
   };
   const TYPE_ICONS = {
     multiple_choice: '🔘',
@@ -1850,7 +1924,8 @@ button {
     hangman: '🪢',
     safecrack: '🔐',
     correction: '✏️',
-    padlock: '🧳'
+    padlock: '🧳',
+    bucketsort: '🗂️'
   };
   let currentIndex = 0;
   let score = 0;
@@ -1922,6 +1997,16 @@ button {
   const PADLOCK_TICK_PX = 40; // vertical px of drag per digit tick
   let padlockCombo = [];         // target digits, e.g. [4, 8, 2, 9, 1, 3]
   let padlockCurrentDigits = []; // each dial's current live value
+  // Bucket Sort — up to 4 labeled buckets, up to 12 items shuffled
+  // together into a pool. Tap an item (pool or already-placed) to pick it
+  // up, tap a bucket to place/move it there — freely reassignable right up
+  // until the pool is empty, at which point it auto-checks (all-or-nothing,
+  // no partial credit).
+  let bucketSortBuckets = [];        // [{name, items}] as authored
+  let bucketSortAssignment = {};     // item text -> bucket index, or absent if still in the pool
+  let bucketSortSelectedItem = null; // item text currently picked up, or null
+  let bucketSortItemOrder = [];      // shuffled once at render time, stays fixed across re-renders
+  let bucketSortChecking = false;    // true during the brief pause while a completed sort is being auto-checked
 
   // Pyramid scoring state
   let streak = 0;           // consecutive correct answers since last miss (or game start)
@@ -2604,6 +2689,11 @@ button {
     correctionChecking = false;
     padlockCombo = [];
     padlockCurrentDigits = [];
+    bucketSortBuckets = [];
+    bucketSortAssignment = {};
+    bucketSortSelectedItem = null;
+    bucketSortItemOrder = [];
+    bucketSortChecking = false;
     hud.classList.remove('hidden');
     hud.classList.toggle('joker-glow', jokerActive);
     hudSub.classList.remove('hidden');
@@ -2639,6 +2729,7 @@ button {
       case 'safecrack': renderSafeCrack(q); break;
       case 'correction': renderCorrection(q); break;
       case 'padlock': renderPadlock(q); break;
+      case 'bucketsort': renderBucketSort(q); break;
       case 'tapspot': renderTapSpot(q); break;
       case 'word': renderWord(q); break;
     }
@@ -3935,6 +4026,143 @@ button {
     wrap.querySelectorAll('.padlock-dial, .padlock-submit').forEach(el => { el.style.pointerEvents = 'none'; });
   }
 
+  // Bucket Sort — up to 4 labeled buckets, up to 12 items shuffled together
+  // into a pool below them. Tap an item (pool or already placed) to pick it
+  // up, tap a bucket to place/move it there — freely reassignable right up
+  // until every item has a bucket, at which point it auto-checks
+  // (all-or-nothing — every item must be in its authored bucket to score).
+  function renderBucketSort(q) {
+    bucketSortBuckets = q.buckets;
+    bucketSortAssignment = {};
+    bucketSortSelectedItem = null;
+    bucketSortChecking = false;
+    bucketSortItemOrder = shuffle(q.buckets.flatMap(b => b.items));
+
+    const wrap = document.createElement('div');
+    wrap.className = 'bucketsort-wrap';
+    aPanel.appendChild(wrap);
+
+    renderBucketSortState(q, wrap);
+  }
+
+  function renderBucketSortState(q, wrap) {
+    wrap.innerHTML = '';
+
+    const bucketsRow = document.createElement('div');
+    bucketsRow.className = 'bucketsort-buckets';
+    bucketSortBuckets.forEach((b, i) => {
+      const bucketEl = document.createElement('div');
+      bucketEl.className = 'bucketsort-bucket';
+      bucketEl.dataset.index = i;
+
+      const label = document.createElement('div');
+      label.className = 'bucketsort-bucket-label';
+      label.textContent = b.name;
+      bucketEl.appendChild(label);
+
+      const chipArea = document.createElement('div');
+      chipArea.className = 'bucketsort-bucket-chips';
+      bucketSortItemOrder.forEach(item => {
+        if (bucketSortAssignment[item] !== i) return;
+        const chip = document.createElement('button');
+        chip.className = 'kbtn bucketsort-item placed';
+        if (item === bucketSortSelectedItem) chip.classList.add('selected');
+        chip.textContent = item;
+        chip.addEventListener('click', (e) => { e.stopPropagation(); onBucketSortItemTap(item, q, wrap); });
+        chipArea.appendChild(chip);
+      });
+      bucketEl.appendChild(chipArea);
+
+      bucketEl.addEventListener('click', () => onBucketSortBucketTap(i, q, wrap));
+      bucketsRow.appendChild(bucketEl);
+    });
+    wrap.appendChild(bucketsRow);
+
+    const pool = document.createElement('div');
+    pool.className = 'bucketsort-pool';
+    bucketSortItemOrder.forEach(item => {
+      if (bucketSortAssignment[item] !== undefined) return;
+      const chip = document.createElement('button');
+      chip.className = 'kbtn bucketsort-item';
+      if (item === bucketSortSelectedItem) chip.classList.add('selected');
+      chip.textContent = item;
+      chip.addEventListener('click', () => onBucketSortItemTap(item, q, wrap));
+      pool.appendChild(chip);
+    });
+    wrap.appendChild(pool);
+  }
+
+  function onBucketSortItemTap(item, q, wrap) {
+    if (answered || bucketSortChecking) return;
+    bucketSortSelectedItem = (bucketSortSelectedItem === item) ? null : item;
+    renderBucketSortState(q, wrap);
+  }
+
+  function onBucketSortBucketTap(bucketIndex, q, wrap) {
+    if (answered || bucketSortChecking || bucketSortSelectedItem === null) return;
+    bucketSortAssignment[bucketSortSelectedItem] = bucketIndex;
+    bucketSortSelectedItem = null;
+    renderBucketSortState(q, wrap);
+    maybeCheckBucketSort(q, wrap);
+  }
+
+  function maybeCheckBucketSort(q, wrap) {
+    const totalItems = bucketSortBuckets.reduce((n, b) => n + b.items.length, 0);
+    if (Object.keys(bucketSortAssignment).length < totalItems) return;
+    // Brief pause so the final placement is visible before resolving, same
+    // pattern as Connections' auto-submit on the 4th tile.
+    bucketSortChecking = true;
+    setTimeout(() => resolveBucketSort(q, wrap), 300);
+  }
+
+  function resolveBucketSort(q, wrap) {
+    if (answered) return; // timer could have expired in the 300ms pause
+    const isCorrect = bucketSortBuckets.every((b, i) => b.items.every(item => bucketSortAssignment[item] === i));
+    answered = true; stopTimer(); revealQuestionTextNow();
+    const pts = awardPoints(isCorrect);
+
+    wrap.querySelectorAll('.bucketsort-item').forEach(chip => {
+      const item = chip.textContent;
+      const correctBucketIndex = bucketSortBuckets.findIndex(b => b.items.includes(item));
+      chip.classList.remove('selected');
+      chip.classList.add(bucketSortAssignment[item] === correctBucketIndex ? 'correct-state' : 'wrong-state');
+      chip.disabled = true;
+    });
+    wrap.querySelectorAll('.bucketsort-bucket').forEach(b => { b.style.pointerEvents = 'none'; });
+
+    showFeedback(isCorrect, q.display_answer || bucketSortBuckets.map(b => b.name).join(', '), pts);
+  }
+
+  // Called on timeout — any item still sitting in the pool never got a
+  // bucket. Those get moved into their correct bucket for the reveal (so
+  // nothing just vanishes) and marked distinctly, while items the player
+  // actually placed keep their normal correct/wrong coloring.
+  function revealBucketSortAnswer(q, wrap) {
+    if (!wrap) return;
+    const neverPlaced = new Set();
+    bucketSortBuckets.forEach((b, i) => {
+      b.items.forEach(item => {
+        if (bucketSortAssignment[item] === undefined) {
+          neverPlaced.add(item);
+          bucketSortAssignment[item] = i; // drop it straight into its correct bucket for the reveal
+        }
+      });
+    });
+    renderBucketSortState(q, wrap);
+    wrap.querySelectorAll('.bucketsort-item').forEach(chip => {
+      const item = chip.textContent;
+      chip.classList.remove('selected');
+      if (neverPlaced.has(item)) {
+        chip.classList.add('wrong-state', 'reveal-missed');
+      } else {
+        const correctBucketIndex = bucketSortBuckets.findIndex(b => b.items.includes(item));
+        chip.classList.add(bucketSortAssignment[item] === correctBucketIndex ? 'correct-state' : 'wrong-state');
+      }
+      chip.disabled = true;
+    });
+    wrap.querySelectorAll('.bucketsort-bucket').forEach(b => { b.style.pointerEvents = 'none'; });
+  }
+
   // percentage points (from the Shape Picker tool) defines the target area;
   // tapping inside it (via point-in-polygon) counts as correct. Works for
   // both photos and video, since the polygon is stored as percentages
@@ -4711,6 +4939,12 @@ button {
         if (plWrap) revealPadlockAnswer(q, plWrap);
         break;
       }
+      case 'bucketsort': {
+        correctDisplay = q.display_answer || bucketSortBuckets.map(b => b.name).join(', ');
+        const bsWrap = aPanel.querySelector('.bucketsort-wrap');
+        if (bsWrap) revealBucketSortAnswer(q, bsWrap);
+        break;
+      }
       case 'tapspot': {
         correctDisplay = q.display_answer || '';
         const spotSvg = aPanel.querySelector('.tapspot-wrap svg');
@@ -5052,7 +5286,8 @@ button {
     { type: 'hangman', category: 'Puzzle', icon: '🪢', heading: 'Hangman', text: 'Guess the answer one letter at a time before you run out of lives.', list: ['Tap letters on the keypad \u2014 correct ones fill in every matching blank','Wrong letters cost a heart \u2014 run out and the question\u2019s over','The clock is still ticking too, so don\u2019t take too long between guesses'] },
     { type: 'safecrack', category: 'Puzzle', icon: '🔐', heading: 'Safe Crack', text: 'Spin the dial to crack the combination before time runs out.', list: ['Drag the knob to dial in each number, one at a time','Directions always alternate \u2014 left, right, left, right...','Land on the wrong number, or turn the wrong way, and it resets to the start'] },
     { type: 'correction', category: 'Puzzle', icon: '✏️', heading: 'Correction', text: 'One word in the sentence is wrong \u2014 find it and fix it.', list: ['Tap the wrong word, and tap the first letter of the correct one \u2014 any order','Both light up as you pick them','Once you\u2019ve picked both, it checks automatically \u2014 no going back, so be sure'] },
-    { type: 'padlock', category: 'Puzzle', icon: '🧳', heading: 'Padlock', text: 'Each dial has a clue above it \u2014 work out the digit and dial it in, then hit Submit.', list: ['Drag a dial up or down to change its number, or use the arrows','Get every dial right and hit Submit to crack it','Wrong guess? It tells you how many are right \u2014 unlimited tries, so keep adjusting'] }
+    { type: 'padlock', category: 'Puzzle', icon: '🧳', heading: 'Padlock', text: 'Each dial has a clue above it \u2014 work out the digit and dial it in, then hit Submit.', list: ['Drag a dial up or down to change its number, or use the arrows','Get every dial right and hit Submit to crack it','Wrong guess? It tells you how many are right \u2014 unlimited tries, so keep adjusting'] },
+    { type: 'bucketsort', category: 'Puzzle', icon: '🗂️', heading: 'Bucket Sort', text: 'Sort every item into the bucket it belongs in.', list: ['Tap an item, then tap the bucket you think it belongs in \u2014 any order', 'Tap a placed item again to pick it up and move it before you\u2019re done', 'Once every item has a bucket, it checks automatically \u2014 all of them need to be right to score'] }
   ];
 
   // Small illustrative mockups, one per question type, shown between the
@@ -5152,6 +5387,19 @@ button {
         ${['7','2','4','9'].map(d => `<div style="width:26px;height:32px;border-radius:6px;border:2px solid rgba(122,143,200,.4);display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:900;color:#00c8e8">${d}</div>`).join('')}
       </div>
       <div style="padding:5px 16px;border-radius:6px;background:#00c8e8;color:#07091c;font-weight:800;font-size:0.7rem">SUBMIT</div>
+    </div>`,
+    bucketsort: `<div class="htp-mock">
+      <div style="display:flex;gap:5px;margin-bottom:6px">
+        ${['Boy Band','Girl Group'].map(name => `<div style="flex:1;border:2px solid rgba(122,143,200,.4);border-radius:8px;padding:4px;text-align:center">
+          <div style="font-size:0.55rem;font-weight:800;margin-bottom:3px">${name}</div>
+          <div style="display:flex;flex-wrap:wrap;gap:2px;justify-content:center">
+            ${(name==='Boy Band' ? ['NSYNC'] : ['Spice Girls']).map(v => `<div class="htp-mock-tile" style="width:auto;height:16px;padding:0 4px;font-size:0.45rem;background:#f5d76e">${v}</div>`).join('')}
+          </div>
+        </div>`).join('')}
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:3px;justify-content:center">
+        ${['Backstreet Boys','Destiny\u2019s Child'].map(v => `<div class="htp-mock-tile" style="width:auto;height:18px;padding:0 5px;font-size:0.5rem">${v}</div>`).join('')}
+      </div>
     </div>`
   };
 
