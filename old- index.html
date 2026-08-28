@@ -1794,7 +1794,7 @@ button {
 
 <!-- Theme song — persists across start-screen re-renders (e.g. changing the
      quiz date) since it lives outside aPanel and is never recreated. -->
-<audio id="theme-audio" preload="auto">
+<audio id="theme-audio" loop preload="auto">
   <source src="theme.mp3" type="audio/mpeg">
 </audio>
 
@@ -2233,7 +2233,6 @@ button {
       playerName = name; // carried forward — the real start screen pre-fills from this
       const themeAudio = document.getElementById('theme-audio');
       if (themeAudio) {
-        if (themeAudio.ended) themeAudio.currentTime = 0;
         // Fire synchronously inside this tap handler — this is the one
         // moment guaranteed to count as a user gesture, so it's the most
         // reliable place in the whole app to start the music from. If it's
@@ -2294,24 +2293,18 @@ button {
     `;
     aPanel.appendChild(screen);
 
-    // Theme song — plays through once per visit to this screen (no loop,
-    // see the <audio> tag — a fresh play() naturally restarts from 0 once
-    // the previous playthrough has ended). Browsers that block autoplay
-    // will reject the play() promise, in which case the toggle button
-    // pulses to invite a tap. Since the <audio> element lives outside
-    // aPanel, it's never recreated by a re-render (e.g. changing the quiz
-    // date) — only a fresh arrival at this screen (splash, Play Again,
-    // returning from practice mode) restarts it.
+    // Theme song — attempts autoplay (looped) each time the start screen
+    // renders; browsers that block autoplay will reject the play() promise,
+    // in which case the toggle button pulses to invite a tap. Since the
+    // <audio> element lives outside aPanel, it's never recreated by a
+    // re-render (e.g. changing the quiz date), so it just keeps playing
+    // uninterrupted rather than restarting from 0.
     const themeAudio = document.getElementById('theme-audio');
     const themeToggle = document.getElementById('theme-audio-toggle');
     function updateThemeToggleIcon() {
       themeToggle.textContent = (themeAudio.paused || themeAudio.muted) ? '🔇' : '🔊';
     }
     function tryPlayTheme() {
-      // A track that's already played through to the end sits with
-      // currentTime pinned at the end — play() on it is a no-op (silently
-      // re-fires 'ended' immediately) unless explicitly rewound first.
-      if (themeAudio.ended) themeAudio.currentTime = 0;
       const p = themeAudio.play();
       if (p && p.catch) {
         p.then(() => { themeToggle.classList.remove('needs-tap'); updateThemeToggleIcon(); })
@@ -2452,8 +2445,6 @@ button {
     const modal = document.getElementById('htpModal');
     modal.classList.remove('is-open');
     modal.hidden = true;
-    const themeAudio = document.getElementById('theme-audio');
-    if (themeAudio) { themeAudio.pause(); themeAudio.currentTime = 0; }
     practiceMode = true;
     practiceReturnType = type;
     gameQuestions = [exampleQ];
